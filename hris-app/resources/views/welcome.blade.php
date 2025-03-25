@@ -10,7 +10,7 @@
 
 <body>
 
-    <div class="container mt-5">
+    <div class="container-fluid mt-5">
         <h1 class="text-center">HUMAN RESOURCE INFORMATION SYSTEM</h1>
         <!-- Button to go to Login Page -->
         <div class="text-center my-4">
