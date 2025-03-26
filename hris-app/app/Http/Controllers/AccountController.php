@@ -6,6 +6,7 @@ use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Laravel\Socialite\Facades\Socialite;
 use Exception;
+use Illuminate\Support\Str;
 
 
 class AccountController extends Controller
@@ -20,33 +21,40 @@ class AccountController extends Controller
     public function googleAuth()
     {
         try {
-            // Get the user details from Google
             $user = Socialite::driver('google')->user();
 
-            // Check if the user already exists
-            $existingUser = User::where('google_id', $user->id)->first();
+            // Add validation
+            if (!$user->email) {
+                return redirect()->route('login')->with('error', 'Email not provided by Google');
+            }
+
+            $existingUser = User::where('google_id', $user->id)
+                ->orWhere('email', $user->email)
+                ->first();
 
             if ($existingUser) {
-                // Log in the existing user
+                $existingUser->update(['google_id' => $user->id]);
                 Auth::login($existingUser);
             } else {
-                // Create a new user
                 $newUser = User::create([
-                    'username' => $user->name,
+                    'username' => $user->name ?? $user->email,
                     'email' => $user->email,
                     'google_id' => $user->id,
-                    'password' => bcrypt('123456dummy'),  // Hash the password
+                    'password' => bcrypt(Str::random(16)), // More secure dummy password
                 ]);
-
-                // Log in the newly created user
                 Auth::login($newUser);
             }
 
-            // Redirect to the leave management page
             return redirect()->route('leave_management');
         } catch (Exception $e) {
-            // Handle any exceptions
-            dd($e->getMessage());  // Dump the exception message for debugging
+            logger()->error('Google auth error: ' . $e->getMessage());
+            return redirect()->route('login')->with('error', 'Login failed, please try again');
         }
+    }
+
+    public function logout()
+    {
+        Auth::logout();
+        return redirect()->route('login'); // Change 'login' to your login route name
     }
 }

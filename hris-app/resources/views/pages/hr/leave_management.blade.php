@@ -7,11 +7,12 @@
     <title>Employee Leave Management</title>
     @vite(['resources/sass/app.scss', 'resources/js/app.js'])
     <link href="https://cdn.jsdelivr.net/npm/remixicon@2.5.0/fonts/remixicon.css" rel="stylesheet">
+    <link rel="stylesheet" href="/css/leave_manangement.css">
 </head>
 
 <body>
 
-    <div class="container-fluid ">
+    <div class="container-fluid">
 
         <div class="row">
             <!-- Navigation Section -->
@@ -20,17 +21,10 @@
                 <x-navbar />
             </div>
 
-
             <!-- Main Content Section -->
             <div class="col-10">
-                <div class="row align-items-center border p-3 mb-3">
-                    <div class="col text-start">
-                        <h2 class="font-weight-bold">HUMAN RESOURCE INFORMATION SYSTEM</h2>
-                    </div>
-                    <div class="col-2 text-end">
-                        <a href="#" class="btn btn-danger">Logout</a>
-                    </div>
-                </div>
+                <!-- Include the titlebar component -->
+                <x-titlebar />
 
 
                 <!-- Employee List Section -->

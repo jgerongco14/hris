@@ -34,11 +34,6 @@ class Employee extends Model
         'photo',
     ];
 
-    // If you have any custom casts, for example for photo binary data
-    protected $casts = [
-        'photo' => 'binary',
-    ];
-
     // If you want to handle dates properly for 'empBirthdate'
     protected $dates = [
         'empBirthdate',

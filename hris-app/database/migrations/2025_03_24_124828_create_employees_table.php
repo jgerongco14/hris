@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('employees', function (Blueprint $table) {
             $table->id('empID');
-            $table->binary('photo')->nullable();
+            $table->string('photo')->nullable();
             $table->string('empPrefix')->nullable();
             $table->string('empSuffix')->nullable();
             $table->string('empFname')->nullable();
