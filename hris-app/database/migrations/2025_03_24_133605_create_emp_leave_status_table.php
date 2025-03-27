@@ -12,8 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('empLeaveStatus', function (Blueprint $table) {
-            $table->id();
-            $table->string('empLSNo');
+            $table->id('empLSNo');
             $table->unsignedBigInteger('empLeaveNo')->index();
             $table->string('empLSOffice');
             $table->unsignedBigInteger('empID')->index();

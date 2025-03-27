@@ -51,7 +51,7 @@
                 </div>
             </div>
             <div class="col">
-                <img src="{{ asset('images/login.svg') }}" alt="Login Image" class="img-fluid">
+                <img src="" alt="Login Image" class="img-fluid">
             </div>
         </div>
     </div>

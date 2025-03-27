@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AccountController;
 use App\Http\Controllers\EmployeeController;
+use App\Http\Controllers\EmpLeaveController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -16,25 +17,36 @@ Route::controller(AccountController::class)->group(function () {
 Route::get('/logout', [AccountController::class, 'logout'])->name('logout');
 
 
-Route::get('/leave_management', function () {
-    return view('pages.hr.leave_management');
-})->name('leave_management');
-
-
 Route::get('/login', function () {
     return view('pages.login_page');
 })->name('login');
 
-Route::get('/employee_management', function () {
-    return view('pages.hr.employee_management');
-})->name('employee_management');
+//Employee
+Route::get('/employee', function () {
+    return view('pages.employee.leave');
+})->name('leave_application');
+Route::post('/employee', [EmpLeaveController::class, 'store'])->name('leave_application.store');
+// Route::get('/employee', [EmpLeaveController::class, 'index'])->name('leave_application');
 
+
+
+//HR
+//Employee Management
 Route::get('/addEmployee', function () {
     return view('pages.hr.employee_management');
 })->name('addEmployee');
 Route::post('/addEmployee', [EmployeeController::class, 'store'])->name('addEmployee.store');
 Route::get('/employee_management', [EmployeeController::class, 'index'])
      ->name('employee_management');
+
+
+//Leave Management
+// Route::get('/leave_management', function () {
+//     return view('pages.hr.leave_management');
+// })->name('leave_management');
+Route::get('/leave_management', [EmpLeaveController::class, 'index'])->name('leave_management');
+Route::get('/leave_management/{id}', [EmpLeaveController::class, 'show'])->name('leave.show');
+Route::post('/leave_management/{id}/approve', [EmpLeaveController::class, 'approval']);
 
 
 // User Profile

@@ -19,6 +19,7 @@ return new class extends Migration
             $table->date('empLeaveStartDate');
             $table->date('empLeaveEndDate');
             $table->string('empLeaveDescription');
+            $table->string('empLeaveAttachment')->nullable();
             $table->timestamps();
 
             $table->foreign('empID')->references('empID')->on('employees');

@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Auth;
 use Laravel\Socialite\Facades\Socialite;
 use Exception;
 use Illuminate\Support\Str;
+use App\Models\Employee;
 
 
 class AccountController extends Controller
@@ -21,36 +22,72 @@ class AccountController extends Controller
     public function googleAuth()
     {
         try {
-            $user = Socialite::driver('google')->user();
+            $googleUser = Socialite::driver('google')->user();
 
-            // Add validation
-            if (!$user->email) {
-                return redirect()->route('login')->with('error', 'Email not provided by Google');
+            if (!$googleUser->email) {
+                return redirect()->route('login')->with('error', 'Google email is required');
             }
 
-            $existingUser = User::where('google_id', $user->id)
-                ->orWhere('email', $user->email)
-                ->first();
+            // Check if user exists
+            $user = User::where('email', $googleUser->email)->first();
+            $isFirstGoogleLogin = false;
 
-            if ($existingUser) {
-                $existingUser->update(['google_id' => $user->id]);
-                Auth::login($existingUser);
+            if ($user) {
+                // Update google_id if not yet saved
+                if (!$user->google_id) {
+                    $user->google_id = $googleUser->id;
+                    $user->save();
+                    $isFirstGoogleLogin = true;
+                }
             } else {
-                $newUser = User::create([
-                    'username' => $user->name ?? $user->email,
-                    'email' => $user->email,
-                    'google_id' => $user->id,
-                    'password' => bcrypt(Str::random(16)), // More secure dummy password
+                // Create new user with default 'employee' role
+                $user = User::create([
+                    'username' => $googleUser->name,
+                    'email' => $googleUser->email,
+                    'google_id' => $googleUser->id,
+                    'password' => bcrypt(Str::random(16)),
+                    'role' => 'employee',
                 ]);
-                Auth::login($newUser);
+                $isFirstGoogleLogin = true;
             }
 
-            return redirect()->route('leave_management');
+            // Login the user
+            Auth::login($user);
+
+            // Log for debugging
+            logger()->info('Logged in via Google:', ['user_id' => $user->id, 'isFirstGoogleLogin' => $isFirstGoogleLogin]);
+
+            // If employee or HR and it's the first Google login, create or update profile
+            if (in_array($user->role, ['employee', 'hr']) && $isFirstGoogleLogin) {
+                if (method_exists($user, 'employee')) {
+                    $user->employee()->updateOrCreate(
+                        ['user_id' => $user->id],
+                        [
+                            'empFname' => $googleUser->user['given_name'] ?? '',
+                            'empLname' => $googleUser->user['family_name'] ?? '',
+                            'photo' => $googleUser->avatar ?? '',
+                        ]
+                    );
+                    logger()->info('Employee profile created/updated.', ['user_id' => $user->id]);
+                } else {
+                    logger()->warning('User model is missing employee() relationship.');
+                }
+            }
+
+            // Redirect based on role
+            return match ($user->role) {
+                'hr' => redirect()->route('leave_management'),
+                'employee' => redirect()->route('myProfile'),
+                'admin' => redirect()->route('admin.dashboard'),
+                default => redirect()->route('login')->with('error', 'Invalid user role.'),
+            };
         } catch (Exception $e) {
-            logger()->error('Google auth error: ' . $e->getMessage());
-            return redirect()->route('login')->with('error', 'Login failed, please try again');
+            logger()->error('Google Login Error: ' . $e->getMessage());
+            return redirect()->route('login')->with('error', 'Google login failed. Please try again.');
         }
     }
+
+
 
     public function logout()
     {

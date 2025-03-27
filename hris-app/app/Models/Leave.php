@@ -12,6 +12,12 @@ class Leave extends Model
     // The table associated with the model
     protected $table = 'empLeaves';
 
+    protected $primaryKey = 'empLeaveNo';
+    public $incrementing = true;
+    protected $keyType = 'int';
+
+
+
     protected $fillable = [
         'empLeaveNo',
         'empID',
@@ -20,8 +26,16 @@ class Leave extends Model
         'empLeaveStartDate',
         'empLeaveEndDate',
         'empLeaveDescription',
+        'empLeaveAttachment',
     ];
 
-
-
+    public function status()
+    {
+        return $this->hasOne(LeaveStatus::class, 'empLeaveNo', 'empLeaveNo');
+    }
+    
+    public function employee()
+    {
+        return $this->belongsTo(Employee::class, 'empID', 'empID');
+    }
 }

@@ -35,7 +35,7 @@
                 @endif
 
                 <!-- Add Employee Button -->
-                <button class="btn btn-primary" id="addEmployeeBtn">Add Employee</button>
+                <button class="btn btn-primary my-4" id="addEmployeeBtn">Add Employee</button>
 
                 <!-- The Form (Initially Hidden) -->
                 <form method="POST" action="{{ route('addEmployee.store') }}" enctype="multipart/form-data" id="employeeForm" style="display: none;" class="container mt-4">
@@ -150,61 +150,67 @@
                         <h3>EMPLOYEE LIST</h3>
                         <table class="table table-bordered">
                             <thead>
-                                <tr>
-                                    <th>EmpID</th>
-                                    <th>Full Name</th>
-                                    <th>Position</th>
-                                    <th>Email</th>
-                                    <th>Address</th>
-                                    <th>Benefits</th>
-                                    <th>Actions</th>
+                                <tr class="text-center">
+                                    <th class="align-middle">EmpID</th>
+                                    <th class="align-middle">Full Name</th>
+                                    <th class="align-middle">Position</th>
+                                    <th class="align-middle">Email</th>
+                                    <th class="align-middle">Address</th>
+                                    <th class="align-middle">Benefits</th>
+                                    <th class="align-middle">Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
+
+
                                 @foreach($employees as $employee)
                                 <tr>
-                                    <td>{{ $employee->empID }}</td>
-                                    <td>
-                                        <div class="row">
-                                            <div class="col-2">
-                                                @if($employee->photo)
-                                                <img src="{{ asset('storage/'.$employee->photo) }}"
-                                                    alt="Employee Photo"
-                                                    width="50"
-                                                    height="50"
-                                                    class="rounded-circle">
-                                                @else
-                                                <div class="no-photo bg-light rounded-circle d-flex align-items-center justify-content-center"
-                                                    style="width:50px; height:50px;">
-                                                    <i class="ri-user-line"></i>
-                                                </div>
-                                                @endif
+                                    <td class="text-center align-middle">{{ $employee->empID }}</td>
+                                    <td class="align-middle">
+                                        <div class="d-flex align-items-center gap-2">
+                                            @php
+                                            $employeePhoto = $employee->photo ?? null;
+                                            $isExternal = $employeePhoto && Str::startsWith($employeePhoto, ['http://', 'https://']);
+                                            @endphp
+
+                                            @if($employeePhoto)
+                                            <img src="{{ $isExternal ? $employeePhoto : asset('storage/' . $employeePhoto) }}"
+                                                alt="Employee Photo"
+                                                width="50"
+                                                height="50"
+                                                class="rounded-circle">
+                                            @else
+                                            <div class="no-photo bg-light rounded-circle d-flex align-items-center justify-content-center"
+                                                style="width:50px; height:50px;">
+                                                <i class="ri-user-line"></i>
                                             </div>
-                                            <div class="col-10">
+                                            @endif
+
+                                            <span>
                                                 {{ $employee->empPrefix }}
                                                 {{ $employee->empFname }}
                                                 {{ $employee->empMname }}
                                                 {{ $employee->empLname }}
                                                 {{ $employee->empSuffix }}
-                                            </div>
+                                            </span>
                                         </div>
                                     </td>
-                                    <td>Position Placeholder</td>
-                                    <td>Email Placeholder</td>
-                                    <td>
-                                        {{ $employee->address }},
-                                        {{ $employee->barangay }},
-                                        {{ $employee->city }},
-                                        {{ $employee->province }}
-                                    </td>
-                                    <td>
-                                        <ul class="list-unstyled">
+                                    <td class="align-middle">{{ $employee->position->positionName ?? 'N/A' }}</td>
+                                    <td class="align-middle">{{ $employee->email }}</td>
+                                    <td class="align-middle">
+                                        <ul class="list-unstyled mb-0">
+                                            <li>{{ $employee->address }}</li>
+                                            <li>{{ $employee->city }}, {{ $employee->province }}</li>
+                                            <li>{{ $employee->barangay }}</li>
+                                        </ul>
+                                    <td class="align-middle">
+                                        <ul class="list-unstyled mb-0">
                                             <li>SSS: {{ $employee->empSSSNum ?? 'N/A' }}</li>
                                             <li>TIN: {{ $employee->empTinNum ?? 'N/A' }}</li>
                                             <li>Pag-Ibig: {{ $employee->empPagIbigNum ?? 'N/A' }}</li>
                                         </ul>
                                     </td>
-                                    <td>
+                                    <td class="align-middle">
                                         <button class="btn btn-sm btn-primary me-1">
                                             <i class="ri-pencil-line"></i>
                                         </button>

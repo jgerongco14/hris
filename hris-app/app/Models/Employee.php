@@ -17,6 +17,7 @@ class Employee extends Model
 
     // The attributes that are mass assignable
     protected $fillable = [
+        'user_id',
         'empPrefix',
         'empSuffix',
         'empFname',
@@ -32,10 +33,16 @@ class Employee extends Model
         'empTinNum',
         'empPagIbigNum',
         'photo',
+        'role',
     ];
 
     // If you want to handle dates properly for 'empBirthdate'
     protected $dates = [
         'empBirthdate',
     ];
+
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
 }

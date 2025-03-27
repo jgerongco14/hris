@@ -76,20 +76,24 @@ class EmployeeController extends Controller
 
     public function index(Request $request)
     {
-        $query = Employee::query();
+        try {
+            $query = Employee::query();
 
-        if ($request->has('search')) {
-            $search = $request->search;
-            $query->where(function ($q) use ($search) {
-                $q->where('empFname', 'like', "%$search%")
-                    ->orWhere('empLname', 'like', "%$search%")
-                    ->orWhere('empSSSNum', 'like', "%$search%");
-            });
+            if ($request->has('search')) {
+                $search = $request->search;
+                $query->where(function ($q) use ($search) {
+                    $q->where('empFname', 'like', "%$search%")
+                        ->orWhere('empLname', 'like', "%$search%")
+                        ->orWhere('empSSSNum', 'like', "%$search%");
+                });
+            }
+
+            $employees = $query->paginate(10);
+
+            return view('pages.hr.employee_management', compact('employees'));
+        } catch (Exception $e) {
+            return back()->with('error', $e->getMessage());
         }
-
-        $employees = $query->paginate(10);
-
-        return view('pages.hr.employee_management', compact('employees'));
     }
 
 
