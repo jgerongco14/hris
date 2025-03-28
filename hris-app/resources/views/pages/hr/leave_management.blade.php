@@ -194,8 +194,9 @@
                             document.getElementById('leaveListTable').style.display = 'block';
                             formContainer.removeAttribute('data-leave-id');
 
-                            // Reload the table content
-                            refreshLeaveList();
+                            setTimeout(() => {
+                                window.location.href = '/leave_management';
+                            }, 500);
                         })
                         .catch(err => {
                             console.error('Error:', err);
@@ -203,37 +204,6 @@
                         });
                 });
             }
-
-            function refreshLeaveList() {
-                // Show spinner
-                document.getElementById('leaveListTable').style.display = 'none';
-                document.getElementById('loadingSpinner').style.display = 'block';
-
-                fetch('/leave_management', {
-                        headers: {
-                            'Accept': 'application/json',
-                            'X-Requested-With': 'XMLHttpRequest'
-                        }
-                    })
-                    .then(response => response.text())
-                    .then(html => {
-                        // Replace table content
-                        document.getElementById('leaveListTable').innerHTML = html;
-
-                        // Show table, hide spinner
-                        document.getElementById('leaveListTable').style.display = 'block';
-                        document.getElementById('loadingSpinner').style.display = 'none';
-                    })
-                    .catch(err => {
-                        console.error('Failed to refresh leave list:', err);
-                        showToast('Error', 'Failed to reload leave list.', 'danger');
-
-                        // Show table again even if failed
-                        document.getElementById('leaveListTable').style.display = 'block';
-                        document.getElementById('loadingSpinner').style.display = 'none';
-                    });
-            }
-
 
             function showToast(title, message, type = 'success') {
                 const toastEl = document.getElementById('liveToast');

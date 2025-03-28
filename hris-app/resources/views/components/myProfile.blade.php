@@ -10,8 +10,8 @@
            <div class="card d-flex flex-row align-items-center p-3">
                <img src="{{ $photo ? ($isExternal ? $photo : asset('storage/attachments/employee_photos/' . $photo)) : $defaultPhoto }}"
                    alt="User Avatar"
-                   width="96"
-                   height="96"
+                   width="150"
+                   height="150"
                    class="me-4">
 
                <div>

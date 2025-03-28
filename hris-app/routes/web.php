@@ -49,6 +49,7 @@ Route::get('/leave_management/{id}', [EmpLeaveController::class, 'show'])->name(
 Route::post('/leave_management/{id}/approve', [EmpLeaveController::class, 'approval'])->name('leave.approval');
 
 
+
 // User Profile
 Route::get('/myProfile', function () {
     return view('pages.profile.userProfile');
