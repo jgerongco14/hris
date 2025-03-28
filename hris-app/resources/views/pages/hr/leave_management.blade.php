@@ -28,13 +28,23 @@
                 <!-- Include the titlebar component -->
                 <x-titlebar />
 
+                <!-- Include the notification component -->
+                <x-notification />
+
                 <!-- Profile Section -->
                 <x-myProfile />
 
+                <!-- Spinner -->
+                <div id="loadingSpinner" style="display: none;" class="text-center my-4">
+                    <div class="spinner-border text-primary" role="status"></div>
+                    <p>Loading...</p>
+                </div>
 
+                <!-- Table Wrapper -->
                 <div id="leaveListTable">
                     @include('pages.hr.components.list_of_leave_application', ['tabs' => $tabs])
                 </div>
+
 
 
                 <!-- Hidden Leave Application Approval Form -->
@@ -134,7 +144,15 @@
             }
         });
 
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener("DOMContentLoaded", function() {
+            // Initialize toast system
+            const toastElList = [].slice.call(document.querySelectorAll('.toast'));
+            const toastList = toastElList.map(function(toastEl) {
+                return new bootstrap.Toast(toastEl, {
+                    delay: 10000,
+                });
+            });
+
             const submitButton = document.getElementById('submitApplication');
             if (submitButton) {
                 submitButton.addEventListener('click', () => {
@@ -145,11 +163,11 @@
                     const remarks = document.getElementById('remarks').value;
 
                     if (!leaveId) {
-                        alert('Leave ID is missing. Cannot submit.');
+                        showToast('Error', 'Leave ID is missing. Cannot submit.', 'danger');
                         return;
                     }
 
-                    fetch(`/leave_management/${leaveId}/approve`, {
+                    fetch(`/leave_management/{id}/approve`, {
                             method: 'POST',
                             headers: {
                                 'Content-Type': 'application/json',
@@ -164,21 +182,93 @@
                                 remarks: remarks,
                             }),
                         })
+                        // Inside your submit button event listener, update the success handler:
                         .then(async res => {
                             const data = await res.json();
                             if (!res.ok) throw new Error(data.message || 'Failed to submit approval');
-                            alert(data.message || 'Approval submitted successfully!');
+
+                            showToast('Success', data.message || 'Leave status updated successfully!', 'success');
 
                             // Hide form and show leave table
                             formContainer.style.display = 'none';
                             document.getElementById('leaveListTable').style.display = 'block';
                             formContainer.removeAttribute('data-leave-id');
+
+                            // Reload the table content
+                            refreshLeaveList();
                         })
                         .catch(err => {
                             console.error('Error:', err);
-                            alert('Error: ' + err.message);
+                            showToast('Error', err.message || 'Failed to update leave status. Please try again.', 'danger');
                         });
                 });
+            }
+
+            function refreshLeaveList() {
+                // Show spinner
+                document.getElementById('leaveListTable').style.display = 'none';
+                document.getElementById('loadingSpinner').style.display = 'block';
+
+                fetch('/leave_management', {
+                        headers: {
+                            'Accept': 'application/json',
+                            'X-Requested-With': 'XMLHttpRequest'
+                        }
+                    })
+                    .then(response => response.text())
+                    .then(html => {
+                        // Replace table content
+                        document.getElementById('leaveListTable').innerHTML = html;
+
+                        // Show table, hide spinner
+                        document.getElementById('leaveListTable').style.display = 'block';
+                        document.getElementById('loadingSpinner').style.display = 'none';
+                    })
+                    .catch(err => {
+                        console.error('Failed to refresh leave list:', err);
+                        showToast('Error', 'Failed to reload leave list.', 'danger');
+
+                        // Show table again even if failed
+                        document.getElementById('leaveListTable').style.display = 'block';
+                        document.getElementById('loadingSpinner').style.display = 'none';
+                    });
+            }
+
+
+            function showToast(title, message, type = 'success') {
+                const toastEl = document.getElementById('liveToast');
+                const toastHeader = document.getElementById('toast-header');
+                const toastTitle = document.getElementById('toast-title');
+                const toastMessage = document.getElementById('toast-message');
+                const toastIcon = document.getElementById('toast-icon');
+
+                // Reset and keep background white
+                toastEl.className = 'toast align-items-center border border-2 show bg-white';
+
+                const headerColors = {
+                    success: 'text-success',
+                    danger: 'text-danger',
+                    warning: 'text-warning',
+                    info: 'text-info'
+                };
+
+                const icons = {
+                    success: '✅',
+                    danger: '❌',
+                    warning: '⚠️',
+                    info: 'ℹ️'
+                };
+
+                // Style header and icon
+                toastHeader.className = `toast-header ${headerColors[type] || 'text-dark'}`;
+                toastIcon.textContent = icons[type] || '';
+                toastTitle.textContent = title;
+                toastMessage.textContent = message;
+
+                const toast = new bootstrap.Toast(toastEl, {
+                    delay: 10000
+                });
+                toast.show();
             }
         });
     </script>

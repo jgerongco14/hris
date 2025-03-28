@@ -86,7 +86,7 @@ class EmpLeaveController extends Controller
         } catch (Exception $e) {
 
             logger()->error('Failed to fetch leave details: ' . $e->getMessage());
-            
+
             // return redirect()
             //     ->back()
             //     ->with('Error', 'Failed to fetch leave details. Please try again later.');
@@ -121,14 +121,12 @@ class EmpLeaveController extends Controller
                 'message' => 'Leave status updated successfully!'
             ]);
 
-            // return redirect()
-            //     ->route('leave_management')
-            //     ->with('Success', 'Leave status updated successfully!');
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             logger()->error('Leave status update failed: ' . $e->getMessage());
-            return redirect()
-                ->back()
-                ->with('Error', 'Failed to update leave status. Please try again.');
+            return response()->json([
+                'error' => 'Failed to update leave status',
+                'message' => config('app.debug') ? $e->getMessage() : 'Please try again later'
+            ], 500);
         }
     }
 
