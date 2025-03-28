@@ -14,10 +14,42 @@ class EmpLeaveController extends Controller
 
     public function index()
     {
-        $leaveStatuses = LeaveStatus::with('leave.employee')->get();
-        return view('pages.hr.leave_management', compact('leaveStatuses'));
-    }
+        try {
+            // Get base query with relationships
+            $baseQuery = LeaveStatus::with('leave.employee')->latest();
 
+            // Get paginated results for each tab with distinct query names
+            $tabs = [
+                'all' => [
+                    'data' => $baseQuery->paginate(10, ['*'], 'all_page'),
+                    'empty' => 'No leave applications yet.',
+                    'show_actions' => true
+                ],
+                'approval' => [
+                    'data' => $baseQuery->clone()->where('empLSStatus', 'pending')->paginate(10, ['*'], 'approval_page'),
+                    'empty' => 'No leave applications pending approval.',
+                    'show_actions' => true
+                ],
+                'approved' => [
+                    'data' => $baseQuery->clone()->where('empLSStatus', 'approved')->paginate(10, ['*'], 'approved_page'),
+                    'empty' => 'No approved leave applications.',
+                    'show_actions' => false
+                ],
+                'declined' => [
+                    'data' => $baseQuery->clone()->where('empLSStatus', 'declined')->paginate(10, ['*'], 'declined_page'),
+                    'empty' => 'No declined leave applications.',
+                    'show_actions' => false
+                ]
+            ];
+
+            return view('pages.hr.leave_management', compact('tabs'));
+        } catch (Exception $e) {
+            logger()->error('Failed to fetch leave applications: ' . $e->getMessage());
+            return redirect()
+                ->back()
+                ->with('Error', 'Failed to fetch leave applications. Please try again later.');
+        }
+    }
     //For leave application page
     public function show($id)
     {
@@ -52,6 +84,12 @@ class EmpLeaveController extends Controller
                 'status' => $leave->empLSStatus,
             ]);
         } catch (Exception $e) {
+
+            logger()->error('Failed to fetch leave details: ' . $e->getMessage());
+            
+            // return redirect()
+            //     ->back()
+            //     ->with('Error', 'Failed to fetch leave details. Please try again later.');
             return response()->json([
                 'error' => 'Failed to fetch leave details',
                 'message' => config('app.debug') ? $e->getMessage() : 'Please try again later'
@@ -82,10 +120,15 @@ class EmpLeaveController extends Controller
             return response()->json([
                 'message' => 'Leave status updated successfully!'
             ]);
+
+            // return redirect()
+            //     ->route('leave_management')
+            //     ->with('Success', 'Leave status updated successfully!');
         } catch (\Exception $e) {
-            return response()->json([
-                'message' => config('app.debug') ? $e->getMessage() : 'Something went wrong while updating leave.'
-            ], 500);
+            logger()->error('Leave status update failed: ' . $e->getMessage());
+            return redirect()
+                ->back()
+                ->with('Error', 'Failed to update leave status. Please try again.');
         }
     }
 
@@ -137,6 +180,7 @@ class EmpLeaveController extends Controller
                 ->route('leave_application')
                 ->with('success', 'Leave application submitted successfully!');
         } catch (Exception $e) {
+            logger()->error('Leave application failed: ' . $e->getMessage());
             return redirect()
                 ->back()
                 ->withInput()

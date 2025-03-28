@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+
 <html lang="en">
 
 <head>
@@ -24,15 +25,7 @@
                 <!-- Include the titlebar component -->
                 <x-titlebar />
 
-                @if (session('success'))
-                <div class="alert alert-success" role="alert">
-                    {{ session('success') }}
-                </div>
-                @elseif (session('error'))
-                <div class="alert alert-danger" role="alert">
-                    {{ session('error') }}
-                </div>
-                @endif
+                <x-notification />
 
                 <!-- Add Employee Button -->
                 <button class="btn btn-primary my-4" id="addEmployeeBtn">Add Employee</button>
@@ -286,6 +279,13 @@
                 $(this).val(value);
             });
         });
+        setTimeout(() => {
+            const alerts = document.querySelectorAll('.alert');
+            alerts.forEach(alert => {
+                const bsAlert = new bootstrap.Alert(alert);
+                bsAlert.close();
+            });
+        }, 5000); // 5 seconds
     </script>
 </body>
 

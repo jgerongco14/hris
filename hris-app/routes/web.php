@@ -46,7 +46,7 @@ Route::get('/employee_management', [EmployeeController::class, 'index'])
 // })->name('leave_management');
 Route::get('/leave_management', [EmpLeaveController::class, 'index'])->name('leave_management');
 Route::get('/leave_management/{id}', [EmpLeaveController::class, 'show'])->name('leave.show');
-Route::post('/leave_management/{id}/approve', [EmpLeaveController::class, 'approval']);
+Route::post('/leave_management/{id}/approve', [EmpLeaveController::class, 'approval'])->name('leave.approval');
 
 
 // User Profile

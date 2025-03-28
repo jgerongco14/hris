@@ -56,15 +56,16 @@ class EmployeeController extends Controller
                 'photo' => $photoPath,
             ]);
 
+            // Return JSON if it's an AJAX request
+            if ($request->expectsJson()) {
+                return response()->json(['message' => 'Leave status updated successfully!']);
+            }
+
             return redirect()
                 ->route('employee_management')
                 ->with('success', 'Employee data saved successfully!');
         } catch (Exception $e) {
-            Log::error('Employee save error: ', [
-                'message' => $e->getMessage(),
-                'trace' => $e->getTraceAsString(),
-                'input' => $request->except('photo')
-            ]);
+            logger()->error('Employee data save failed: ' . $e->getMessage());
 
             return redirect()
                 ->back()
@@ -92,7 +93,10 @@ class EmployeeController extends Controller
 
             return view('pages.hr.employee_management', compact('employees'));
         } catch (Exception $e) {
-            return back()->with('error', $e->getMessage());
+            logger()->error('Failed to fetch employees: ' . $e->getMessage());
+            return redirect()
+                ->back()
+                ->with('error', 'Failed to fetch employees. Please try again later.');
         }
     }
 

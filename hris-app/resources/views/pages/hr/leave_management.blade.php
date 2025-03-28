@@ -28,40 +28,14 @@
                 <!-- Include the titlebar component -->
                 <x-titlebar />
 
+                <!-- Profile Section -->
+                <x-myProfile />
+
 
                 <div id="leaveListTable">
-                    <!-- Leave Management Section -->
-                    @include('pages.hr.components.list_of_leave_application', ['leaveStatuses' => $leaveStatuses])
+                    @include('pages.hr.components.list_of_leave_application', ['tabs' => $tabs])
                 </div>
 
-
-
-                <!-- User Profile Section -->
-                <div class="row my-4" id="profileCard" style="display: none;">
-                    <div class="col">
-                        <div class="card p-3">
-                            <div class="row">
-                                <!-- Left: Photo -->
-                                <div class="col-md-2 d-flex align-items-center justify-content-center">
-                                    <img id="profilePhoto"
-                                        alt="Employee Photo"
-                                        width="50"
-                                        height="50"
-                                        onerror="this.onerror=null; this.src='/images/default-user.png';">
-                                </div>
-
-                                <!-- Right: Profile Info -->
-                                <div class="col-md-10">
-                                    <h5 class="card-subtitle mb-2 text-muted">Employee ID: <span id="profileEmpId"></span></h5>
-                                    <h4 class="card-title" id="profileName">Full Name</h4>
-                                    <p class="card-text" id="profilePosition">Position</p>
-                                    <p class="card-text" id="profileAppointed">Appointed Date</p>
-                                    <a href="#" class="btn btn-link">Update Profile</a>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
 
                 <!-- Hidden Leave Application Approval Form -->
                 @include('pages.hr.components.leave_approval')

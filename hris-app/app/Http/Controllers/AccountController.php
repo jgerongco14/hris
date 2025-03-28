@@ -76,9 +76,9 @@ class AccountController extends Controller
 
             // Redirect based on role
             return match ($user->role) {
-                'hr' => redirect()->route('leave_management'),
-                'employee' => redirect()->route('myProfile'),
-                'admin' => redirect()->route('admin.dashboard'),
+                'hr' => redirect()->route('leave_management')->with('success', 'Welcome HR!'),
+                'employee' => redirect()->route('myProfile')->with('success', 'Welcome Employee!'),
+                'admin' => redirect()->route('admin.dashboard')->with('success', 'Welcome Admin!'),
                 default => redirect()->route('login')->with('error', 'Invalid user role.'),
             };
         } catch (Exception $e) {
@@ -92,6 +92,6 @@ class AccountController extends Controller
     public function logout()
     {
         Auth::logout();
-        return redirect()->route('login'); // Change 'login' to your login route name
+        return redirect()->route('login'); 
     }
 }
