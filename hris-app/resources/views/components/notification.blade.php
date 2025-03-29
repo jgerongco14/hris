@@ -10,3 +10,24 @@
         </div>
     </div>
 </div>
+
+
+@if (session('success'))
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        showToast('Success', "{{ session('success') }}", 'success');
+    });
+</script>
+@elseif (session('warning'))
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        showToast('Warning', "{{ session('warning') }}", 'warning');
+    });
+</script>
+@elseif (session('error'))
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        showToast('Error', "{{ session('error') }}", 'danger');
+    });
+</script>
+@endif

@@ -22,106 +22,197 @@
                 <x-titlebar />
 
                 <!-- Profile Section -->
+                <x-myProfile />
 
-                <div class="col">
-                    @php
-                    $photo = Auth::user()->employee->photo ?? null;
-                    $isExternal = $photo && Str::startsWith($photo, ['http://', 'https://']);
-                    @endphp
+                <!-- Include the notification component -->
+                <x-notification />
 
-                    <div class="card d-flex flex-row align-items-center p-3 my-3">
-                        <img src="{{ $isExternal ? $photo : asset('storage/' . $photo) }}"
-                            alt="User Avatar"
-                            width="150"
-                            height="150"
-                            class=" me-4">
-
-                        <div>
-                            <h6> {{ Auth::user()->employee->empID ?? '' }}</h6>
-                            <h4 class="card-title mb-1">
-                                {{ Auth::user()->employee->empFname ?? '' }}
-                                {{ Auth::user()->employee->empMname ?? '' }}
-                                {{ Auth::user()->employee->empLname ?? '' }}
-                            </h4>
-                            <p class="card-text">Employee</p>
-                            <p class="card-text">Google Account Linked</p>
-                            <a href="#" class="btn btn-link">Update Profile</a>
-                        </div>
-                    </div>
+                <!-- Toggle Button -->
+                <div class="d-flex justify-content-end mb-3">
+                    <button id="toggleFormBtn" class="btn btn-primary">
+                        <i id="toggleIcon"></i>
+                        <span id="toggleText">Request Leave</span>
+                    </button>
                 </div>
 
-                <div class="col my-5">
 
-                    @if (session('success'))
-                    <div class="alert alert-success" role="alert">
-                        {{ session('success') }}
-                    </div>
-                    @elseif (session('error'))
-                    <div class="alert alert-danger" role="alert">
-                        {{ session('error') }}
-                    </div>
-                    @endif
-
-
-                    <h4 class="mb-4 fw-bold">LEAVE APPLICATION FORM</h4>
-
-                    <form action="{{ route('leave_application.store') }}" method="POST" enctype="multipart/form-data">
-                        @csrf
-
-                        <!-- Include emp_id as hidden input -->
-                        <input type="hidden" name="emp_id" value="{{ Auth::user()->employee->empID ?? '' }}">
-
-                        <!-- Leave type -->
-                        <div class="mb-3">
-                            <label for="leave_type" class="form-label fw-semibold">Type of Leave*</label>
-                            <select class="form-select" id="leave_type" name="leave_type" required>
-                                <option value="" disabled selected>Leave Type</option>
-                                <option value="Sick Leave">Sick Leave</option>
-                                <option value="Vacation Leave">Vacation Leave</option>
-                                <option value="Emergency Leave">Emergency Leave</option>
-                            </select>
-                        </div>
-
-                        <!-- Dates -->
-                        <div class="mb-3">
-                            <label class="form-label fw-semibold">Date of Leave*</label>
-                            <div class="d-flex gap-3">
-                                <div>
-                                    <label class="form-label small">From</label>
-                                    <input type="date" class="form-control" name="leave_from" required>
-                                </div>
-                                <div>
-                                    <label class="form-label small">To</label>
-                                    <input type="date" class="form-control" name="leave_to" required>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Reason -->
-                        <div class="mb-3">
-                            <label for="reason" class="form-label fw-semibold">Reason / Purpose*</label>
-                            <textarea class="form-control" id="reason" name="reason" rows="3" placeholder="Place the reason for leave here..." required></textarea>
-                        </div>
-
-                        <!-- Attachments -->
-                        <div class="mb-4">
-                            <label for="attachment" class="form-label fw-semibold">Attachment/s</label>
-                            <input class="form-control" type="file" name="attachment" id="attachment" accept="image/*,application/pdf">
-                            <div class="form-text">Accepted: IMAGE, PDF</div>
-                        </div>
-
-                        <!-- Hidden status (default to pending or filed) -->
-                        <input type="hidden" name="status" value="Pending">
-
-                        <!-- Submit -->
-                        <button type="submit" class="btn btn-primary">
-                            <i class="bi bi-send me-1"></i> Submit Application
-                        </button>
-                    </form>
+                <!-- Leave Application Form (Initially Hidden) -->
+                <div id="leaveFormSection" style="display: none;">
+                    @include('pages.employee.components.applicationForm')
                 </div>
+
+                <!-- Leave Application List (Initially Visible) -->
+                <div id="leaveListSection">
+                    @include('pages.employee.components.leaveList', ['tabs' => $tabs])
+                </div>
+
             </div>
         </div>
     </div>
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            const toggleBtn = document.getElementById("toggleFormBtn");
+            const toggleText = document.getElementById("toggleText");
+            const toggleIcon = document.getElementById("toggleIcon");
+            const formSection = document.getElementById("leaveFormSection");
+            const listSection = document.getElementById("leaveListSection");
+
+            let isFormVisible = false;
+
+            toggleBtn.addEventListener("click", function() {
+                isFormVisible = !isFormVisible;
+
+                formSection.style.display = isFormVisible ? "block" : "none";
+                listSection.style.display = isFormVisible ? "none" : "block";
+
+                // Toggle button text and icon
+                toggleText.textContent = isFormVisible ? "Cancel" : "Request Leave";
+                toggleBtn.className = isFormVisible ? "btn btn-secondary" : "btn btn-primary";
+
+                // ✅ Reset form when hiding
+                if (!isFormVisible) {
+                    const form = document.getElementById('leaveForm');
+                    form.reset();
+                    document.getElementById('formMode').value = 'create';
+                    document.getElementById('leaveFormSubmitText').innerText = 'Submit Application';
+                    form.action = `{{ route('leave_application.store') }}`;
+
+                    // Remove _method override if exists
+                    const methodInput = document.querySelector('input[name="_method"]');
+                    if (methodInput) {
+                        methodInput.remove();
+                    }
+                }
+            });
+
+        });
+
+        function fetchLeaveData(id) {
+            fetch(`/employee/${id}`, {
+                    headers: {
+                        'Accept': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    // 1. Hide approval form if it exists
+                    const approvalForm = document.getElementById('approvalForm');
+                    if (approvalForm) approvalForm.style.display = 'none';
+
+                    // 2. Show the leave form section and update toggle button
+                    document.getElementById('leaveFormSection').style.display = 'block';
+                    const toggleBtn = document.getElementById('toggleFormBtn');
+                    toggleBtn.className = 'btn btn-secondary';
+                    document.getElementById('toggleText').textContent = 'Cancel';
+
+                    // 3. Get the form and prepare it for update
+                    const form = document.getElementById('leaveForm');
+                    form.action = `/employee/${data.empLeaveNo}`;
+
+                    // Add PUT method override
+                    const methodInput = document.createElement('input');
+                    methodInput.type = 'hidden';
+                    methodInput.name = '_method';
+                    methodInput.value = 'PUT';
+                    form.appendChild(methodInput);
+
+                    // 4. Fill in all form fields
+                    document.getElementById('formMode').value = 'edit';
+                    document.getElementById('empLeaveNo').value = data.empLeaveNo;
+                    document.getElementById('leave_type').value = data.type;
+                    document.querySelector('input[name="leave_from"]').value = data.dates.start;
+                    document.querySelector('input[name="leave_to"]').value = data.dates.end;
+                    document.getElementById('reason').value = data.reason;
+
+                    // Make sure employee ID is set (critical fix)
+                    const empIdInput = document.querySelector('input[name="empId"]');
+                    if (empIdInput) {
+                        empIdInput.value = data.empID || empIdInput.value;
+                        console.log('empId set to:', empIdInput.value); // Debugging
+                    } else {
+                        console.error('empId input not found!');
+                    }
+
+                    // 5. Handle attachments display
+                    const attachmentContainer = document.getElementById('existingAttachments');
+                    attachmentContainer.innerHTML = ''; // Clear existing content
+
+                    if (data.attachment && Array.isArray(data.attachment)) {
+                        data.attachment.forEach((file, index) => {
+                            const fileDisplay = document.createElement('div');
+                            fileDisplay.className = 'mb-3';
+
+                            // File info and preview
+                            fileDisplay.innerHTML = `
+                    <label><strong>Attachment ${index + 1}:</strong></label>
+                    ${file.type.toLowerCase() === 'pdf' 
+                        ? `<div><a href="${file.url}" target="_blank">View PDF</a></div>` 
+                        : `<div><img src="${file.url}" alt="Attachment ${index + 1}" style="max-width: 200px;" class="img-thumbnail"></div>`}
+                    <input type="hidden" name="existing_attachments[]" value="${file.url}">
+                    <div class="mt-1">
+                        <label class="form-label small">Replace this attachment (optional):</label>
+                        <input type="file" name="replace_attachment[${index}]" class="form-control" accept="image/*,application/pdf">
+                    </div>
+                `;
+
+                            attachmentContainer.appendChild(fileDisplay);
+                        });
+                    } else {
+                        attachmentContainer.innerHTML = '<p class="text-muted">No attachments available.</p>';
+                    }
+
+                    // 6. Update submit button text
+                    document.getElementById('leaveFormSubmitText').innerText = 'Resubmit Application';
+                })
+                .catch(error => {
+                    console.error('Error fetching leave data:', error);
+                    showToast('Error', 'Failed to load leave details', 'danger');
+                });
+        }
+
+        function showToast(title, message, type = 'success') {
+            const toastEl = document.getElementById('liveToast');
+            const toastHeader = document.getElementById('toast-header');
+            const toastTitle = document.getElementById('toast-title');
+            const toastMessage = document.getElementById('toast-message');
+            const toastIcon = document.getElementById('toast-icon');
+
+            // Reset toast class
+            toastEl.className = 'toast align-items-center border border-2 show bg-white';
+
+            const headerColors = {
+                success: 'text-success',
+                danger: 'text-danger',
+                warning: 'text-warning',
+                info: 'text-info'
+            };
+
+            const icons = {
+                success: '✅',
+                danger: '❌',
+                warning: '⚠️',
+                info: 'ℹ️'
+            };
+
+            toastHeader.className = `toast-header ${headerColors[type] || 'text-dark'}`;
+            toastIcon.textContent = icons[type] || '';
+            toastTitle.textContent = title;
+            toastMessage.textContent = message;
+
+            const toast = new bootstrap.Toast(toastEl, {
+                delay: 5000
+            });
+            toast.show();
+        }
+    </script>
+
+
 </body>
 
 </html>

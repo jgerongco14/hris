@@ -241,6 +241,44 @@
                 toast.show();
             }
         });
+
+        function renderAttachments(attachmentUrls = []) {
+            const container = document.getElementById("approvalAttachments");
+            container.innerHTML = ""; // Clear previous
+
+            attachmentUrls.forEach(url => {
+                const ext = url.split('.').pop().toLowerCase();
+                const fileName = url.split('/').pop(); // ⬅️ Extract just the file name
+                let element;
+
+                if (['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp'].includes(ext)) {
+                    element = document.createElement('img');
+                    element.src = url;
+                    element.alt = fileName;
+                    element.title = fileName;
+                    element.style.maxWidth = "100px";
+                    element.style.maxHeight = "100px";
+                    element.classList.add("img-thumbnail", "me-2", "mb-2");
+                } else if (['mp4', 'webm', 'ogg'].includes(ext)) {
+                    element = document.createElement('video');
+                    element.src = url;
+                    element.controls = true;
+                    element.title = fileName;
+                    element.style.maxWidth = "150px";
+                    element.style.maxHeight = "100px";
+                    element.classList.add("me-2", "mb-2");
+                } else {
+                    // PDF or other files
+                    element = document.createElement('a');
+                    element.href = url;
+                    element.target = "_blank";
+                    element.textContent = fileName; // 👈 Use the actual filename here
+                    element.classList.add("d-block", "text-decoration-none", "mb-1");
+                }
+
+                container.appendChild(element);
+            });
+        }
     </script>
 </body>
 

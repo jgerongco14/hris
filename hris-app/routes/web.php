@@ -22,11 +22,13 @@ Route::get('/login', function () {
 })->name('login');
 
 //Employee
-Route::get('/employee', function () {
-    return view('pages.employee.leave');
-})->name('leave_application');
+// Route::get('/employee', function () {
+//     return view('pages.employee.leave');
+// })->name('leave_application');
 Route::post('/employee', [EmpLeaveController::class, 'store'])->name('leave_application.store');
-// Route::get('/employee', [EmpLeaveController::class, 'index'])->name('leave_application');
+Route::get('/employee', [EmpLeaveController::class, 'showLeave'])->name('leave_application');
+Route::get('/employee/{id}', [EmpLeaveController::class, 'editForm'])->name('leave_application.edit');
+Route::put('/employee/{id}', [EmpLeaveController::class, 'update'])->name('leave_application.update');
 
 
 
@@ -37,7 +39,7 @@ Route::get('/addEmployee', function () {
 })->name('addEmployee');
 Route::post('/addEmployee', [EmployeeController::class, 'store'])->name('addEmployee.store');
 Route::get('/employee_management', [EmployeeController::class, 'index'])
-     ->name('employee_management');
+    ->name('employee_management');
 
 
 //Leave Management

@@ -16,6 +16,9 @@ class Leave extends Model
     public $incrementing = true;
     protected $keyType = 'int';
 
+    protected $casts = [
+        'empLeaveAttachment' => 'array',
+    ];
 
 
     protected $fillable = [
@@ -33,7 +36,7 @@ class Leave extends Model
     {
         return $this->hasOne(LeaveStatus::class, 'empLeaveNo', 'empLeaveNo');
     }
-    
+
     public function employee()
     {
         return $this->belongsTo(Employee::class, 'empID', 'empID');

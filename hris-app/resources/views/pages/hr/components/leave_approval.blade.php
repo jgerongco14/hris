@@ -25,7 +25,7 @@
                               <span id="approvalDates"></span>
                           </p>
                           <p><strong>Attachment</strong><br>
-                              <span id="approvalAttachments"></span>
+                              <span id="approvalAttachments" class="d-flex flex-wrap gap-2"></span>
                           </p>
                       </div>
                   </div>
