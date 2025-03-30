@@ -48,15 +48,15 @@
 
             <!-- Attachments -->
             <div class="mb-4">
-                <label for="attachment" class="form-label fw-semibold">Attachment/s</label>
+                <label for="attachment" class="form-label fw-semibold">New Attachment/s</label>
                 <input class="form-control" type="file" name="attachment[]" id="attachment" accept="image/*,application/pdf" multiple>
                 <div class="form-text">Accepted: IMAGE, PDF</div>
 
-                <!-- Render existing attachments (JS will fill this in edit mode) -->
-                <label class="form-label fw-semibold">Current Attachments:</label>
+                <!-- Existing attachments will be rendered via JS -->
+                <label class="form-label fw-semibold mt-3">Current Attachments:</label>
                 <div id="existingAttachments"></div>
-
             </div>
+
 
 
 

@@ -305,10 +305,10 @@ class EmpLeaveController extends Controller
                     'end' => $leave->leave->empLeaveEndDate,
                 ],
                 'reason' => $leave->leave->empLeaveDescription,
-                'attachment' => collect($leave->leave->empLeaveAttachment)
+                'attachment' => collect(json_decode($leave->leave->empLeaveAttachment ?? '[]', true))
                     ->map(function ($path) {
                         return [
-                            'url' => asset('storage/' . $path),
+                            'url' => asset('storage/' . $path),  // Full URL for viewing
                             'type' => pathinfo($path, PATHINFO_EXTENSION)
                         ];
                     })->toArray(),
@@ -349,16 +349,30 @@ class EmpLeaveController extends Controller
                 'status' => 'required',
             ]);
 
-            // Handle multiple file uploads
             $filePaths = [];
 
+            if ($request->has('existing_attachments')) {
+                $filePaths = array_map(function ($url) {
+                    // Remove full URL, leave just relative path (after `/storage/`)
+                    return str_replace(asset('storage/') . '/', '', $url);
+                }, $request->input('existing_attachments'));
+            }
+
+            // Handle replacements
+            if ($request->hasFile('replace_attachment')) {
+                foreach ($request->file('replace_attachment') as $index => $file) {
+                    if ($file) {
+                        // Replace existing with new one
+                        $filePaths[$index] = $file->store('attachments', 'public');
+                    }
+                }
+            }
+
+            // Handle newly added files
             if ($request->hasFile('attachment')) {
                 foreach ($request->file('attachment') as $file) {
                     $filePaths[] = $file->store('attachments', 'public');
                 }
-            } else {
-                // No new attachments? Keep the old ones
-                $filePaths = json_decode($leave->leave->empLeaveAttachment ?? '[]', true);
             }
 
 

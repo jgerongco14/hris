@@ -87,6 +87,23 @@
 
         });
 
+        function toggleReplaceInput(index) {
+            const input = document.getElementById(`replaceInput${index}`);
+            if (input) {
+                input.classList.toggle('d-none');
+            }
+        }
+
+        function removeAttachment(index) {
+            if (confirm("Are you sure you want to delete this attachment?")) {
+                const container = document.getElementById(`existingAttachment${index}`)?.parentElement;
+                if (container) {
+                    container.remove();
+                    showToast('Attachment Removed', `Attachment ${index + 1} has been removed.`, 'warning');
+                }
+            }
+        }
+
         function fetchLeaveData(id) {
             fetch(`/employee/${id}`, {
                     headers: {
@@ -139,32 +156,33 @@
                         console.error('empId input not found!');
                     }
 
-                    // 5. Handle attachments display
                     const attachmentContainer = document.getElementById('existingAttachments');
                     attachmentContainer.innerHTML = ''; // Clear existing content
 
-                    if (data.attachment && Array.isArray(data.attachment)) {
+                    if (data.attachment && Array.isArray(data.attachment) && data.attachment.length > 0) {
                         data.attachment.forEach((file, index) => {
                             const fileDisplay = document.createElement('div');
                             fileDisplay.className = 'mb-3';
 
-                            // File info and preview
+                            const fileName = file.url.split('/').pop();
+
                             fileDisplay.innerHTML = `
-                    <label><strong>Attachment ${index + 1}:</strong></label>
-                    ${file.type.toLowerCase() === 'pdf' 
-                        ? `<div><a href="${file.url}" target="_blank">View PDF</a></div>` 
-                        : `<div><img src="${file.url}" alt="Attachment ${index + 1}" style="max-width: 200px;" class="img-thumbnail"></div>`}
-                    <input type="hidden" name="existing_attachments[]" value="${file.url}">
-                    <div class="mt-1">
-                        <label class="form-label small">Replace this attachment (optional):</label>
-                        <input type="file" name="replace_attachment[${index}]" class="form-control" accept="image/*,application/pdf">
-                    </div>
-                `;
+    <div class="d-flex justify-content-between align-items-center gap-2">
+        <a href="${file.url}" target="_blank">${fileName}</a>
+        <div>
+            <button type="button" class="btn btn-sm btn-outline-primary me-1" onclick="toggleReplaceInput(${index})">Replace</button>
+            <button type="button" class="btn btn-sm btn-outline-danger" onclick="removeAttachment(${index})">Delete</button>
+        </div>
+    </div>
+    <input type="file" name="replace_attachment[${index}]" class="form-control mt-2 d-none" id="replaceInput${index}" accept="image/*,application/pdf">
+    <input type="hidden" name="existing_attachments[]" value="${file.url.replace(`${location.origin}/storage/`, '')}" id="existingAttachment${index}">
+`;
+
 
                             attachmentContainer.appendChild(fileDisplay);
                         });
                     } else {
-                        attachmentContainer.innerHTML = '<p class="text-muted">No attachments available.</p>';
+                        attachmentContainer.innerHTML = '<p class="text-muted">There are no attachments.</p>';
                     }
 
                     // 6. Update submit button text
