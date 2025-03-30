@@ -11,10 +11,11 @@ class LeaveStatus extends Model
 
     // The table associated with the model
     protected $table = 'empLeaveStatus';
-    protected $primaryKey = 'empLeaveNo'; // or whatever your PK column is named
+    protected $primaryKey = 'id'; 
 
 
     protected $fillable = [
+        'id',
         'empLSNo',
         'empLeaveNo',
         'empLSOffice',

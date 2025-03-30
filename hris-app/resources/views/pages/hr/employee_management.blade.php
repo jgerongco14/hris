@@ -25,6 +25,7 @@
                 <!-- Include the titlebar component -->
                 <x-titlebar />
 
+                <!-- Include the notification component -->
                 <x-notification />
 
                 <!-- Add Employee Button -->
@@ -279,13 +280,42 @@
                 $(this).val(value);
             });
         });
-        setTimeout(() => {
-            const alerts = document.querySelectorAll('.alert');
-            alerts.forEach(alert => {
-                const bsAlert = new bootstrap.Alert(alert);
-                bsAlert.close();
+
+        function showToast(title, message, type = 'success') {
+            const toastEl = document.getElementById('liveToast');
+            const toastHeader = document.getElementById('toast-header');
+            const toastTitle = document.getElementById('toast-title');
+            const toastMessage = document.getElementById('toast-message');
+            const toastIcon = document.getElementById('toast-icon');
+
+            // Reset and keep background white
+            toastEl.className = 'toast align-items-center border border-2 show bg-white';
+
+            const headerColors = {
+                success: 'text-success',
+                danger: 'text-danger',
+                warning: 'text-warning',
+                info: 'text-info'
+            };
+
+            const icons = {
+                success: '✅',
+                danger: '❌',
+                warning: '⚠️',
+                info: 'ℹ️'
+            };
+
+            // Style header and icon
+            toastHeader.className = `toast-header ${headerColors[type] || 'text-dark'}`;
+            toastIcon.textContent = icons[type] || '';
+            toastTitle.textContent = title;
+            toastMessage.textContent = message;
+
+            const toast = new bootstrap.Toast(toastEl, {
+                delay: 10000
             });
-        }, 5000); // 5 seconds
+            toast.show();
+        }
     </script>
 </body>
 

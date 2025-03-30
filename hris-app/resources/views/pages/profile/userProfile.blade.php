@@ -23,6 +23,9 @@
 
                 <!-- Profile Section -->
                 <x-myProfile />
+
+                <!-- Include the notification component -->
+                <x-notification />
             </div>
         </div>
     </div>

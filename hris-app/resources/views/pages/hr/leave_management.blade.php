@@ -110,18 +110,44 @@
                     // Populate attachments
                     const attachmentsContainer = document.getElementById('approvalAttachments');
                     attachmentsContainer.innerHTML = ''; // Clear previous attachments
+
                     if (leaveData.attachment && Array.isArray(leaveData.attachment)) {
-                        leaveData.attachment.forEach((attachment, index) => {
-                            const attachmentElement = document.createElement('a');
-                            attachmentElement.href = attachment.url;
-                            attachmentElement.target = '_blank'; // Open in a new tab
-                            attachmentElement.innerText = `Attachment ${index + 1}`;
-                            attachmentElement.classList.add('d-block'); // Add spacing between links
-                            attachmentsContainer.appendChild(attachmentElement);
+                        leaveData.attachment.forEach((attachment) => {
+                            const fileUrl = attachment.url;
+                            const fileName = fileUrl.split('/').pop();
+                            const ext = fileName.split('.').pop().toLowerCase();
+                            let element;
+
+                            if (['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp'].includes(ext)) {
+                                // Image preview
+                                element = document.createElement('a');
+                                element.href = fileUrl;
+                                element.target = '_blank';
+                                element.innerHTML = `<img src="${fileUrl}" class="img-thumbnail me-2 mb-2" style="max-width:100px; max-height:100px;" alt="${fileName}" title="${fileName}">`;
+                            } else if (['mp4', 'webm', 'ogg'].includes(ext)) {
+                                // Video preview
+                                element = document.createElement('video');
+                                element.src = fileUrl;
+                                element.controls = true;
+                                element.title = fileName;
+                                element.style.maxWidth = "150px";
+                                element.style.maxHeight = "100px";
+                                element.classList.add("me-2", "mb-2");
+                            } else {
+                                // Other files like PDFs or DOCs
+                                element = document.createElement('a');
+                                element.href = fileUrl;
+                                element.target = '_blank';
+                                element.textContent = fileName;
+                                element.classList.add('btn', 'btn-outline-secondary', 'btn-sm', 'me-2', 'mb-2');
+                            }
+
+                            attachmentsContainer.appendChild(element);
                         });
                     } else {
                         attachmentsContainer.innerHTML = '<p>No attachments available.</p>';
                     }
+
                 })
                 .catch(err => {
                     console.error('Error:', err);

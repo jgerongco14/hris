@@ -9,22 +9,24 @@ Route::get('/', function () {
     return view('welcome');
 });
 
-Route::controller(AccountController::class)->group(function () {
-    Route::get('auth/google', [AccountController::class, 'googleLogin'])->name('auth.google');
-    Route::get('auth/google-callback', [AccountController::class, 'googleAuth'])->name('auth.google-callback');
-});
-
-Route::get('/logout', [AccountController::class, 'logout'])->name('logout');
-
-
+// ✅ Login form view
 Route::get('/login', function () {
     return view('pages.login_page');
 })->name('login');
 
+// ✅ Login form submission
+Route::post('/login', [AccountController::class, 'defaultlogin'])->name('defaultlogin');
+
+// Google login
+Route::controller(AccountController::class)->group(function () {
+    Route::get('auth/google', 'googleLogin')->name('auth.google');
+    Route::get('auth/google-callback', 'googleAuth')->name('auth.google-callback');
+});
+
+Route::get('/logout', [AccountController::class, 'logout'])->name('logout');
+
 //Employee
-// Route::get('/employee', function () {
-//     return view('pages.employee.leave');
-// })->name('leave_application');
+//Employee Leave Application
 Route::post('/employee', [EmpLeaveController::class, 'store'])->name('leave_application.store');
 Route::get('/employee', [EmpLeaveController::class, 'showLeave'])->name('leave_application');
 Route::get('/employee/{id}', [EmpLeaveController::class, 'editForm'])->name('leave_application.edit');
@@ -43,9 +45,6 @@ Route::get('/employee_management', [EmployeeController::class, 'index'])
 
 
 //Leave Management
-// Route::get('/leave_management', function () {
-//     return view('pages.hr.leave_management');
-// })->name('leave_management');
 Route::get('/leave_management', [EmpLeaveController::class, 'index'])->name('leave_management');
 Route::get('/leave_management/{id}', [EmpLeaveController::class, 'show'])->name('leave.show');
 Route::post('/leave_management/{id}/approve', [EmpLeaveController::class, 'approval'])->name('leave.approval');

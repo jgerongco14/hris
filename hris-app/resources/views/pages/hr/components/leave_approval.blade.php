@@ -37,14 +37,14 @@
                           <select class="form-select" id="approvalStatus">
                               <option value="approved">Approved</option>
                               <option value="declined">Declined</option>
-                              <option value="pending">Pending</option>
+                              <option selected value="pending">Pending</option>
                           </select>
                       </div>
                       <div class="col-md-6">
                           <label for="payStatus" class="form-label">Pay Status*</label>
                           <select class="form-select" id="payStatus">
-                              <option selected>With Pay</option>
-                              <option>Without Pay</option>
+                              <option >With Pay</option>
+                              <option selected>Without Pay</option>
                           </select>
                       </div>
                       <div class="col-12 mt-3">

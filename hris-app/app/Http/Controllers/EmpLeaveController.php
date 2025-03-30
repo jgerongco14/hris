@@ -127,7 +127,8 @@ class EmpLeaveController extends Controller
                     'end' => $leave->leave->empLeaveEndDate,
                 ],
                 'reason' => $leave->leave->empLeaveDescription,
-                'attachment' => collect($leave->leave->empLeaveAttachment)
+
+                'attachment' => collect(json_decode($leave->leave->empLeaveAttachment ?? '[]', true))
                     ->map(function ($path) {
                         return [
                             'url' => asset('storage/' . $path),
@@ -154,31 +155,33 @@ class EmpLeaveController extends Controller
     public function showEmployee($id)
     {
         try {
-            $leave = LeaveStatus::with([
-                'leave.employee',
-                // 'leave.employee.department'
-            ])
-                ->where('empLeaveNo', $id)
-                ->firstOrFail();
+            // Get all leave records for the employee
+            $leaveRecords = LeaveStatus::with(['leave'])
+                ->where('empID', $id)
+                ->orderBy('created_at', 'desc')
+                ->get();
 
 
-            if (!$leave) {
-                return response()->json(['error' => 'Leave not found'], 404);
+            if ($leaveRecords->isEmpty()) {
+                return response()->json(['error' => 'No leave records found for this employee'], 404);
             }
 
-            return response()->json([
-                'empLeaveNo' => $leave->empLeaveNo,
-                'empID' => $leave->empID,
-                'dateApplied' => $leave->leave->empLeaveDateApplied,
-                'type' => $leave->leave->leaveType,
-                'dates' => [
-                    'start' => $leave->leave->empLeaveStartDate,
-                    'end' => $leave->leave->empLeaveEndDate,
-                ],
-                'reason' => $leave->leave->empLeaveDescription,
-                'status' => $leave->empLSStatus,
-                'remarks' => $leave->empLSRemarks,
-            ]);
+            $data = $leaveRecords->map(function ($leave) {
+                return [
+                    'empLeaveNo' => $leave->empLeaveNo,
+                    'type' => optional($leave->leave)->leaveType,
+                    'dateApplied' => optional($leave->leave)->empLeaveDateApplied,
+                    'dates' => [
+                        'start' => optional($leave->leave)->empLeaveStartDate,
+                        'end' => optional($leave->leave)->empLeaveEndDate,
+                    ],
+                    'reason' => optional($leave->leave)->empLeaveDescription,
+                    'status' => $leave->empLSStatus,
+                    'remarks' => $leave->empLSRemarks,
+                ];
+            });
+
+            return response()->json($data);
         } catch (Exception $e) {
 
             logger()->error('Failed to fetch leave details: ' . $e->getMessage());
@@ -233,7 +236,6 @@ class EmpLeaveController extends Controller
     {
         try {
             $request->validate([
-                'emp_id' => 'required',
                 'leave_type' => 'required|string',
                 'leave_from' => 'required|date',
                 'leave_to' => 'required|date|after_or_equal:leave_from',
@@ -241,6 +243,16 @@ class EmpLeaveController extends Controller
                 'attachment.*' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:2048',
                 'status' => 'required',
             ]);
+
+            $empID = Auth::user()->empID;
+
+            // Generate empLeaveNo (e.g., EMP001-001)
+            $leaveCount = Leave::where('empID', $empID)->count() + 1;
+            $empLeaveNo = $empID . '-' . str_pad($leaveCount, 0, '0', STR_PAD_LEFT);
+
+            // Generate empLSNo (e.g., EMP001-001-001)
+            $empLSNoCount = LeaveStatus::where('empLeaveNo', $empLeaveNo)->count() + 1;
+            $empLSNo = $empLeaveNo . '-' . str_pad($empLSNoCount, 0, '0', STR_PAD_LEFT);
 
             // Handle multiple file uploads
             $filePaths = [];
@@ -251,7 +263,8 @@ class EmpLeaveController extends Controller
             }
 
             $leave = Leave::create([
-                'empID' => $request->emp_id,
+                'empLeaveNo' => $empLeaveNo,
+                'empID' => $empID,
                 'empLeaveDateApplied' => now(),
                 'leaveType' => $request->leave_type,
                 'empLeaveStartDate' => $request->leave_from,
@@ -261,10 +274,11 @@ class EmpLeaveController extends Controller
             ]);
 
             LeaveStatus::create([
-                'empLeaveNo' => $leave->empLeaveNo,
+                'empLSNo' => $empLSNo,
+                'empLeaveNo' => $empLeaveNo,
                 'status' => $request->status,
                 'dateUpdated' => now(),
-                'empID' => $request->emp_id,
+                'empID' => $empID,
                 'empLSOffice' => '',
                 'empLSStatus' => 'pending',
                 'empLSRemarks' => '',
@@ -285,6 +299,7 @@ class EmpLeaveController extends Controller
     public function editForm($id)
     {
         try {
+            $empID = Auth::user()->empID;
             $leave = LeaveStatus::with('leave')
                 ->where('empLeaveNo', $id)
                 ->firstOrFail();
@@ -295,7 +310,7 @@ class EmpLeaveController extends Controller
 
             return response()->json([
                 'empLeaveNo' => $leave->empLeaveNo,
-                'empID' => $leave->empID,
+                'empID' => $empID,
                 'name' => optional($leave->leave->employee)->empFname . ' ' . optional($leave->leave->employee)->empLname,
                 // 'department' => optional($leave->leave->employee->department)->name ?? 'N/A',
                 // 'position' => optional($leave->leave->employee)->position ?? 'N/A',

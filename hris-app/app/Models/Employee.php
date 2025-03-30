@@ -13,10 +13,12 @@ class Employee extends Model
     protected $table = 'employees';
 
     // Primary key column name
-    protected $primaryKey = 'empID';
+    protected $primaryKey = 'id';
 
     // The attributes that are mass assignable
     protected $fillable = [
+        'id',
+        'empID',
         'user_id',
         'empPrefix',
         'empSuffix',

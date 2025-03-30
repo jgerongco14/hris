@@ -12,7 +12,7 @@ class Leave extends Model
     // The table associated with the model
     protected $table = 'empLeaves';
 
-    protected $primaryKey = 'empLeaveNo';
+    protected $primaryKey = 'id';
     public $incrementing = true;
     protected $keyType = 'int';
 
@@ -22,6 +22,7 @@ class Leave extends Model
 
 
     protected $fillable = [
+        'id',
         'empLeaveNo',
         'empID',
         'empLeaveDateApplied',

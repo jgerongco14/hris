@@ -11,18 +11,17 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('empLeaveStatus', function (Blueprint $table) {
+        Schema::create('empAssignments', function (Blueprint $table) {
             $table->id();
-            $table->string('empLSNo')->unique();
-            $table->string('empLeaveNo')->index();
-            $table->string('empLSOffice');
+            $table->string('empAssNo')->unique();
             $table->string('empID')->index();
-            $table->string('empLSStatus');
-            $table->string('empLSRemarks');
+            $table->string('positionID')->index();
+            $table->date('empAssAppointedDate');
+            $table->date('empAssEndDate');
             $table->timestamps();
 
-            $table->foreign('empLeaveNo')->references('empLeaveNo')->on('empLeaves');
             $table->foreign('empID')->references('empID')->on('employees');
+            $table->foreign('positionID')->references('positionID')->on('positions');
         });
     }
 
@@ -31,6 +30,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('emp_leave_status');
+        Schema::dropIfExists('empAssignment');
     }
 };

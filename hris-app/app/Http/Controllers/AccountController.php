@@ -8,10 +8,53 @@ use Laravel\Socialite\Facades\Socialite;
 use Exception;
 use Illuminate\Support\Str;
 use App\Models\Employee;
+use Illuminate\Support\Facades\Hash;
 
 
 class AccountController extends Controller
 {
+
+    public function defaultlogin()
+    {
+        try {
+            $identifier = request('identifier');
+            $password = request('password');
+
+            // Check if both identifier and password are provided
+            if (empty($identifier) || empty($password)) {
+                return redirect()->route('login')->with('error', 'Please enter your Email or Employee ID and Password.');
+            }
+
+            // Fetch the user using email or empID
+            $user = User::where('email', $identifier)
+                ->orWhere('empID', $identifier)
+                ->first();
+
+            // If no user or password doesn't match
+            if (!$user || !Hash::check($password, $user->password)) {
+                return redirect()->route('login')->with('error', 'Invalid credentials. Please go to your HR for assistance.');
+            }
+
+            // Login the user
+            Auth::login($user);
+
+            // Redirect based on role
+            switch ($user->role) {
+                case 'hr':
+                    return redirect()->route('leave_management')->with('success', 'Welcome HR!');
+                case 'employee':
+                    return redirect()->route('myProfile')->with('success', 'Welcome Employee!');
+                case 'admin':
+                    return redirect()->route('admin.dashboard')->with('success', 'Welcome Admin!');
+                default:
+                    return redirect()->route('login')->with('error', 'Invalid user role.');
+            }
+        } catch (\Exception $e) {
+            logger()->error('Login Error: ' . $e->getMessage());
+            return redirect()->route('login')->with('error', 'Something went wrong. Please go to your HR for assistance.');
+        }
+    }
+
     //redirect to google login page
     public function googleLogin()
     {
@@ -36,19 +79,15 @@ class AccountController extends Controller
                 // Update google_id if not yet saved
                 if (!$user->google_id) {
                     $user->google_id = $googleUser->id;
+
+                    $randomPassword = Str::random(12);
+                    $user->password = Hash::make($randomPassword);
+
                     $user->save();
                     $isFirstGoogleLogin = true;
                 }
             } else {
-                // Create new user with default 'employee' role
-                $user = User::create([
-                    'username' => $googleUser->name,
-                    'email' => $googleUser->email,
-                    'google_id' => $googleUser->id,
-                    'password' => bcrypt(Str::random(16)),
-                    'role' => 'employee',
-                ]);
-                $isFirstGoogleLogin = true;
+                return redirect()->route('login')->with('error', 'User not found. Please go to your HR for assistance.');
             }
 
             // Login the user
@@ -59,19 +98,17 @@ class AccountController extends Controller
 
             // If employee or HR and it's the first Google login, create or update profile
             if (in_array($user->role, ['employee', 'hr']) && $isFirstGoogleLogin) {
-                if (method_exists($user, 'employee')) {
-                    $user->employee()->updateOrCreate(
-                        ['user_id' => $user->id],
-                        [
-                            'empFname' => $googleUser->user['given_name'] ?? '',
-                            'empLname' => $googleUser->user['family_name'] ?? '',
-                            'photo' => $googleUser->avatar ?? '',
-                        ]
-                    );
-                    logger()->info('Employee profile created/updated.', ['user_id' => $user->id]);
-                } else {
-                    logger()->warning('User model is missing employee() relationship.');
-                }
+                $user->employee()->updateOrCreate(
+                    ['user_id' => $user->id],
+                    [
+                        'empID'    => $user->empID,
+                        'empFname' => $googleUser->user['given_name'] ?? '',
+                        'empLname' => $googleUser->user['family_name'] ?? '',
+                        'photo'    => $googleUser->avatar ?? '',
+                    ]
+                );
+
+                logger()->info('Employee profile created/updated.', ['user_id' => $user->id]);
             }
 
             // Redirect based on role
@@ -92,6 +129,6 @@ class AccountController extends Controller
     public function logout()
     {
         Auth::logout();
-        return redirect()->route('login'); 
+        return redirect()->route('login');
     }
 }

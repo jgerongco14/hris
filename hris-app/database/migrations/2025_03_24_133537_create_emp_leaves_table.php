@@ -12,8 +12,9 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('empLeaves', function (Blueprint $table) {
-            $table->id('empLeaveNo');
-            $table->unsignedBigInteger('empID')->index();
+            $table->id();
+            $table->string('empLeaveNo')->unique();
+            $table->string('empID')->index();
             $table->date('empLeaveDateApplied');
             $table->string('leaveType');
             $table->date('empLeaveStartDate');
@@ -31,6 +32,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('emp_leaves');
+        Schema::dropIfExists('emp_Leaves');
     }
 };
