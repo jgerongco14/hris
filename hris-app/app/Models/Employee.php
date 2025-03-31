@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use App\Models\Leave;
 
 class Employee extends Model
 {
@@ -46,5 +47,13 @@ class Employee extends Model
     public function user()
     {
         return $this->belongsTo(User::class);
+    }
+    public function attendance()
+    {
+        return $this->hasMany(Attendance::class, 'empID', 'empID');
+    }
+    public function leaves()
+    {
+        return $this->hasMany(Leave::class, 'empID', 'empID');
     }
 }

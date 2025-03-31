@@ -23,6 +23,11 @@
                     Leave Management
                 </a>
             </li>
+            <li class="nav-item">
+                <a class="nav-link {{ request()->routeIs('attendance_management') ? 'active' : '' }}" href="{{ route('attendance_management') }}">
+                    Attendance Management
+                </a>
+            </li>
 
             @elseif(Auth::check() && Auth::user()->role === 'employee')
             <li class="nav-item">

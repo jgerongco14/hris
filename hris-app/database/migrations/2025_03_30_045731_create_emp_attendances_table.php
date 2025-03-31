@@ -13,17 +13,14 @@ return new class extends Migration
     {
         Schema::create('empAttendances', function (Blueprint $table) {
             $table->id();
-            $table->string('empAttNo')->unique();
-            $table->string('empID')->index();
-            $table->integer('empAttID');
+            $table->string('empID', 30)->index();
+            $table->string('empAttID', 30);
             $table->date('empAttDate');
-            $table->time('empAttTimeIn')->nullable();
-            $table->string('empAttBreakOut')->nullable();
-            $table->string('empAttBreakIn')->nullable();
-            $table->time('empAttTimeOut')->nullable();
-            $table->string('empOvertime')->nullable();
-            $table->string('empAttUndertime')->nullable();
-            $table->string('empAttRemarks')->nullable();
+            $table->string('empAttTimeIn', 20)->nullable();
+            $table->string('empAttBreakOut', 20)->nullable();
+            $table->string('empAttBreakIn', 20)->nullable();
+            $table->string('empAttTimeOut', 20)->nullable();
+            $table->string('empAttRemarks', 255)->nullable();
             $table->timestamps();
 
             $table->foreign('empID')->references('empID')->on('employees');

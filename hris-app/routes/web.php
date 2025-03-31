@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AccountController;
 use App\Http\Controllers\EmployeeController;
 use App\Http\Controllers\EmpLeaveController;
+use App\Http\Controllers\AttendanceController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -48,6 +49,14 @@ Route::get('/employee_management', [EmployeeController::class, 'index'])
 Route::get('/leave_management', [EmpLeaveController::class, 'index'])->name('leave_management');
 Route::get('/leave_management/{id}', [EmpLeaveController::class, 'show'])->name('leave.show');
 Route::post('/leave_management/{id}/approve', [EmpLeaveController::class, 'approval'])->name('leave.approval');
+
+
+//Attendance Management
+Route::get('/attendance_management', function () {
+    return view('pages.hr.attendance_management');
+})->name('attendance_management');
+Route::get('/attendance_management', [AttendanceController::class, 'showAttendance'])->name('attendance_management');
+Route::post('/attendance/import', [AttendanceController::class, 'import'])->name('attendance.import');
 
 
 
