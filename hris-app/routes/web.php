@@ -28,12 +28,16 @@ Route::get('/logout', [AccountController::class, 'logout'])->name('logout');
 
 //Employee
 //Employee Leave Application
-Route::post('/employee', [EmpLeaveController::class, 'store'])->name('leave_application.store');
-Route::get('/employee', [EmpLeaveController::class, 'showLeave'])->name('leave_application');
-Route::get('/employee/{id}', [EmpLeaveController::class, 'editForm'])->name('leave_application.edit');
-Route::put('/employee/{id}', [EmpLeaveController::class, 'update'])->name('leave_application.update');
+Route::post('/leave', [EmpLeaveController::class, 'store'])->name('leave_application.store');
+Route::get('/leave', [EmpLeaveController::class, 'showLeave'])->name('leave_application');
+Route::get('/leave/{id}', [EmpLeaveController::class, 'editForm'])->name('leave_application.edit');
+Route::put('/leave/{id}', [EmpLeaveController::class, 'update'])->name('leave_application.update');
 
-
+// Employee Attendance
+Route::get('/attendance', function () {
+    return view('pages.employee.attendance');
+})->name('attendance');
+Route::get('/attendance', [AttendanceController::class, 'showEmployeeAttendance'])->name('attendance');
 
 //HR
 //Employee Management

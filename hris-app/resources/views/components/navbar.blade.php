@@ -35,6 +35,10 @@
                     Leave
                 </a>
             </li>
+            <li class="nav-item">
+                <a class="nav-link {{ request()->routeIs('attendance') ? 'active' : '' }}" href="{{ route('attendance') }}">
+                    Attendance
+                </a>
             @endif
         </ul>
     </div>
