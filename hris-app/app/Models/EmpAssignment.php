@@ -23,6 +23,6 @@ class EmpAssignment extends Model
     }
     public function employee()
     {
-        return $this->belongsTo(Employee::class, 'empID', 'empID');
+        return $this->belongsTo(Employee::class, 'empID');
     }
 }

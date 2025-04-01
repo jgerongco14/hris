@@ -9,6 +9,8 @@ use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Reader\Csv;
 use Illuminate\Support\Facades\Storage;
 use App\Models\User;
+use App\Models\Position;
+use App\Models\EmpAssignment;
 
 class EmployeeController extends Controller
 {
@@ -137,7 +139,7 @@ class EmployeeController extends Controller
                     return redirect()
                         ->back()
                         ->with('error', 'User with ID ' . $empID . ' does not exist.');
-                } 
+                }
                 // Create employee record
                 Employee::create([
                     'user_id' => $existingUser->id,
@@ -178,20 +180,27 @@ class EmployeeController extends Controller
     public function index(Request $request)
     {
         try {
-            $query = Employee::query();
+            $query = Employee::with(['assignments.position']); // Eager load assignments with positions
 
-            if ($request->has('search')) {
+            // 🔍 Search by name
+            if ($request->has('search') && $request->search != '') {
                 $search = $request->search;
-                $query->where(function ($q) use ($search) {
-                    $q->where('empFname', 'like', "%$search%")
-                        ->orWhere('empLname', 'like', "%$search%")
-                        ->orWhere('empSSSNum', 'like', "%$search%");
+                $query->whereRaw("CONCAT(empFname, ' ', empLname) LIKE ?", ["%{$search}%"]);
+            }
+
+            // 🔽 Filter by Position (✅ insert this block here)
+            if ($request->has('position') && $request->position != '') {
+                $positionId = $request->position;
+                $query->whereHas('assignments', function ($q) use ($positionId) {
+                    $q->where('positionID', $positionId);
                 });
             }
 
+            // Paginate results
             $employees = $query->paginate(10);
+            $positions = Position::all(); // For the dropdown
 
-            return view('pages.hr.employee_management', compact('employees'));
+            return view('pages.hr.employee_management', compact('employees', 'positions'));
         } catch (Exception $e) {
             logger()->error('Failed to fetch employees: ' . $e->getMessage());
             return redirect()

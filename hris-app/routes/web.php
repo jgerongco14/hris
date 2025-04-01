@@ -7,6 +7,7 @@ use App\Http\Controllers\EmpLeaveController;
 use App\Http\Controllers\AttendanceController;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\AssignmentController;
+use App\Http\Controllers\AssignEmpController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -43,7 +44,6 @@ Route::delete('/admin/user_management/{id}', [AdminController::class, 'deleteUse
 Route::get('/admin/position_management', [AssignmentController::class, 'showPositionList'])->name('assignment_management');
 Route::post('/admin/position_management', [AssignmentController::class, 'storePosition'])->name('assignment.storePosition');
 Route::put('/admin/position_management/{id}', [AssignmentController::class, 'updatePosition'])->name('assignment.updatePosition');
-// Route::get('/admin/position_management/{id}', [AssignmentController::class, 'editPosition'])->name('assignment.editPosition');
 Route::delete('/admin/position_management/{id}', [AssignmentController::class, 'deletePosition'])->name('assignment.delete');
 
 
@@ -66,10 +66,8 @@ Route::get('/addEmployee', function () {
     return view('pages.hr.employee_management');
 })->name('addEmployee');
 Route::post('/addEmployee', [EmployeeController::class, 'store'])->name('addEmployee.store');
-Route::get('/employee_management', [EmployeeController::class, 'index'])
-    ->name('employee_management');
+Route::get('/employee-management', [EmployeeController::class, 'index'])->name('employee_management');
 Route::post('/employee/import', [EmployeeController::class, 'importEmp'])->name('employee.import');
-
 
 
 //Leave Management
@@ -85,7 +83,8 @@ Route::get('/attendance_management', function () {
 Route::get('/attendance_management', [AttendanceController::class, 'showAttendance'])->name('attendance_management');
 Route::post('/attendance/import', [AttendanceController::class, 'import'])->name('attendance.import');
 
-
+// Position Assignment
+Route::post('/hr/assign-position', [AssignEmpController::class, 'assignPosition'])->name('assignPosition');
 
 // User Profile
 Route::get('/myProfile', function () {

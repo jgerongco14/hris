@@ -22,10 +22,10 @@
                     Position Management
                 </a>
             </li>
-            @endif
+        
 
 
-            @if(Auth::check() && Auth::user()->role === 'hr')
+            @elseif (Auth::check() && Auth::user()->role === 'hr')
             <li class="nav-item">
                 <a class="nav-link {{ request()->routeIs('employee_management') ? 'active' : '' }}" href="{{ route('employee_management') }}">
                     Employee Management
@@ -41,6 +41,7 @@
                     Attendance Management
                 </a>
             </li>
+    
 
             @elseif(Auth::check() && Auth::user()->role === 'employee')
             <li class="nav-item">
