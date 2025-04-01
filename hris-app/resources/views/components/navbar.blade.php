@@ -17,7 +17,13 @@
                     User Management
                 </a>
             </li>
+            <li class="nav-item">
+                <a class="nav-link {{ request()->routeIs('assignment_management') ? 'active' : '' }}" href="{{ route('assignment_management') }}">
+                    Assignment Management
+                </a>
+            </li>
             @endif
+
 
             @if(Auth::check() && Auth::user()->role === 'hr')
             <li class="nav-item">
@@ -46,7 +52,7 @@
                 <a class="nav-link {{ request()->routeIs('attendance') ? 'active' : '' }}" href="{{ route('attendance') }}">
                     Attendance
                 </a>
-            @endif
+                @endif
         </ul>
     </div>
 </nav>

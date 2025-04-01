@@ -6,6 +6,7 @@ use App\Http\Controllers\EmployeeController;
 use App\Http\Controllers\EmpLeaveController;
 use App\Http\Controllers\AttendanceController;
 use App\Http\Controllers\AdminController;
+use App\Http\Controllers\AssignmentController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -37,6 +38,13 @@ Route::get('/admin/user_management/{id}', [AdminController::class, 'editUser'])-
 Route::put('/admin/user_management/{id}', [AdminController::class, 'updateUser'])->name('user.update');
 Route::delete('/admin/user_management/{id}', [AdminController::class, 'deleteUser'])->name('user.delete');
 
+
+// Position Management
+Route::get('/admin/position_management', [AssignmentController::class, 'showPositionList'])->name('assignment_management');
+Route::post('/admin/position_management', [AssignmentController::class, 'storePosition'])->name('assignment.storePosition');
+Route::put('/admin/position_management/{id}', [AssignmentController::class, 'updatePosition'])->name('assignment.updatePosition');
+// Route::get('/admin/position_management/{id}', [AssignmentController::class, 'editPosition'])->name('assignment.editPosition');
+Route::delete('/admin/position_management/{id}', [AssignmentController::class, 'deletePosition'])->name('assignment.delete');
 
 
 //Employee
