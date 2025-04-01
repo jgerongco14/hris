@@ -80,8 +80,8 @@ class AccountController extends Controller
                 if (!$user->google_id) {
                     $user->google_id = $googleUser->id;
 
-                    $randomPassword = Str::random(12);
-                    $user->password = Hash::make($randomPassword);
+                    // $randomPassword = Str::random(12);
+                    // $user->password = Hash::make($randomPassword);
 
                     $user->save();
                     $isFirstGoogleLogin = true;
@@ -102,20 +102,21 @@ class AccountController extends Controller
                     ['user_id' => $user->id],
                     [
                         'empID'    => $user->empID,
-                        'empFname' => $googleUser->user['given_name'] ?? '',
-                        'empLname' => $googleUser->user['family_name'] ?? '',
-                        'photo'    => $googleUser->avatar ?? '',
+                        'empFname' => $user->employee->empFname ?? $googleUser->user['given_name'] ?? '',
+                        'empLname' => $user->employee->empLname ?? $googleUser->user['family_name'] ?? '',
+                        'photo'    => $user->employee->photo ?? $googleUser->avatar ?? '',
                     ]
                 );
 
                 logger()->info('Employee profile created/updated.', ['user_id' => $user->id]);
             }
 
+
             // Redirect based on role
             return match ($user->role) {
-                'hr' => redirect()->route('leave_management')->with('success', 'Welcome HR!'),
+                'hr' => redirect()->route('myProfile')->with('success', 'Welcome HR!'),
                 'employee' => redirect()->route('myProfile')->with('success', 'Welcome Employee!'),
-                'admin' => redirect()->route('admin.dashboard')->with('success', 'Welcome Admin!'),
+                'admin' => redirect()->route('myProfile')->with('success', 'Welcome Admin!'),
                 default => redirect()->route('login')->with('error', 'Invalid user role.'),
             };
         } catch (Exception $e) {

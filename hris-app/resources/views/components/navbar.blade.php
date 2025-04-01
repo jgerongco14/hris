@@ -11,6 +11,13 @@
                     My Profile
                 </a>
             </li>
+            @if(Auth::check() && Auth::user()->role === 'admin')
+            <li class="nav-item">
+                <a class="nav-link {{ request()->routeIs('user_management') ? 'active' : '' }}" href="{{ route('user_management') }}">
+                    User Management
+                </a>
+            </li>
+            @endif
 
             @if(Auth::check() && Auth::user()->role === 'hr')
             <li class="nav-item">

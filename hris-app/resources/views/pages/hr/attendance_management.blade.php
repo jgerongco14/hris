@@ -51,7 +51,7 @@
                             </div>
 
                             <!-- Import Attendance Button -->
-                            @include('pages.hr.components.import_attendance')
+                            @include('components.import_file')
 
                             <!-- Push button to the right -->
                             <div class="col-md-2 ms-auto">

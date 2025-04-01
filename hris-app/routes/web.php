@@ -5,6 +5,7 @@ use App\Http\Controllers\AccountController;
 use App\Http\Controllers\EmployeeController;
 use App\Http\Controllers\EmpLeaveController;
 use App\Http\Controllers\AttendanceController;
+use App\Http\Controllers\AdminController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -25,6 +26,18 @@ Route::controller(AccountController::class)->group(function () {
 });
 
 Route::get('/logout', [AccountController::class, 'logout'])->name('logout');
+
+
+// Admin
+// User Management
+Route::get('/admin/user_management', [AdminController::class, 'showUserManagement'])->name('user_management');
+Route::post('/admin/user_management/import', [AdminController::class, 'importUserData'])->name('user.store');
+Route::post('/admin/user_management/create', [AdminController::class, 'createUser'])->name('user.create');
+Route::get('/admin/user_management/{id}', [AdminController::class, 'editUser'])->name('user.edit');
+Route::put('/admin/user_management/{id}', [AdminController::class, 'updateUser'])->name('user.update');
+Route::delete('/admin/user_management/{id}', [AdminController::class, 'deleteUser'])->name('user.delete');
+
+
 
 //Employee
 //Employee Leave Application
@@ -47,6 +60,8 @@ Route::get('/addEmployee', function () {
 Route::post('/addEmployee', [EmployeeController::class, 'store'])->name('addEmployee.store');
 Route::get('/employee_management', [EmployeeController::class, 'index'])
     ->name('employee_management');
+Route::post('/employee/import', [EmployeeController::class, 'importEmp'])->name('employee.import');
+
 
 
 //Leave Management

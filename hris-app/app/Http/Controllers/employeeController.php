@@ -5,8 +5,10 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Employee; // Import the Employee model
 use Exception;
-use Illuminate\Support\Facades\Log;
+use PhpOffice\PhpSpreadsheet\IOFactory;
+use PhpOffice\PhpSpreadsheet\Reader\Csv;
 use Illuminate\Support\Facades\Storage;
+use App\Models\User;
 
 class EmployeeController extends Controller
 {
@@ -72,6 +74,104 @@ class EmployeeController extends Controller
                 ->withInput()
                 ->with('error', 'Employee data save failed. Please try again. ' .
                     (config('app.debug') ? $e->getMessage() : ''));
+        }
+    }
+
+    public function importEmp(Request $request)
+    {
+        try {
+            $request->validate([
+                'employee_file' => 'required|file|mimes:csv,xlsx,xls|max:2048',
+            ]);
+
+            $file = $request->file('employee_file');
+            $reader = IOFactory::createReaderForFile($file->getRealPath());
+
+            // Handle CSV-specific settings
+            if ($reader instanceof Csv) {
+                $reader->setDelimiter(','); // or ';' based on your file
+                $reader->setEnclosure('"');
+            }
+
+            $spreadsheet = $reader->load($file->getRealPath());
+            $rows = $spreadsheet->getActiveSheet()->toArray();
+
+            foreach ($rows as $index => $row) {
+                if ($index === 0) continue;
+                if (count($row) < 17) continue;
+
+                $empID = trim($row[0]);
+                $empPrefix = trim($row[1]);
+                $empFname = trim($row[2]);
+                $empMname = trim($row[3]);
+                $empLname = trim($row[4]);
+                $empSuffix = trim($row[5]);
+                $empGender = trim($row[6]);
+                $empBirthdate = trim($row[7]);
+                $address = trim($row[8]);
+                $province = trim($row[9]);
+                $city = trim($row[10]);
+                $barangay = trim($row[11]);
+                $empSSSNum = trim($row[12]);
+                $empTinNum = trim($row[13]);
+                $empPagIbigNum = trim($row[14]);
+
+
+                // Validate the data before saving
+                if (empty($empID) || empty($empFname) || empty($empLname) || empty($empGender)) {
+                    continue; // Skip invalid rows
+                }
+
+                // Check if employee already exists
+                $existingEmployee = Employee::where('empID', $empID)->first();
+                if ($existingEmployee) {
+                    return redirect()
+                        ->back()
+                        ->with('error', 'Employee with ID ' . $empID . ' already exists.');
+                }
+
+                // Check if user already exists
+                $existingUser = User::where('empID', $empID)->first();
+                if (!$existingUser) {
+                    // Create user if not exists
+                    return redirect()
+                        ->back()
+                        ->with('error', 'User with ID ' . $empID . ' does not exist.');
+                } 
+                // Create employee record
+                Employee::create([
+                    'user_id' => $existingUser->id,
+                    'empID' => $empID,
+                    'empPrefix' => $empPrefix,
+                    'empFname' => $empFname,
+                    'empMname' => $empMname,
+                    'empLname' => $empLname,
+                    'empSuffix' => $empSuffix,
+                    'empGender' => $empGender,
+                    'empBirthdate' => $empBirthdate,
+                    'address' => $address,
+                    'province' => $province,
+                    'city' => $city,
+                    'barangay' => $barangay,
+                    'empSSSNum' => $empSSSNum,
+                    'empTinNum' => $empTinNum,
+                    'empPagIbigNum' => $empPagIbigNum,
+                    'empStatus' => 'active',
+                ]);
+            }
+
+            return redirect()
+                ->back()
+                ->with('success', 'Employees imported successfully!');
+        } catch (Exception $e) {
+            logger()->error('Failed to import employees: ' . $e->getMessage());
+            return redirect()
+                ->back()
+                ->with('error', 'Failed to import employees. Please try again later. ' .
+                    (config('app.debug') ? $e->getMessage() : ''));
+            // return redirect()
+            //     ->back()
+            //     ->with('error', 'Failed to import employees. Please try again later.');
         }
     }
 

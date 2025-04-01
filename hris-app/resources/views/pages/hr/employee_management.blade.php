@@ -28,8 +28,20 @@
                 <!-- Include the notification component -->
                 <x-notification />
 
+                <!-- Import Attendance Button -->
+                @include('components.import_file')
+
                 <!-- Add Employee Button -->
-                <button class="btn btn-primary my-4" id="addEmployeeBtn">Add Employee</button>
+                <div class="dropdown my-4">
+                    <button class="btn btn-primary dropdown-toggle" type="button" id="addEmployeeBtn" data-bs-toggle="dropdown" aria-expanded="false">
+                        Add Employee
+                    </button>
+                    <ul class="dropdown-menu" aria-labelledby="addEmployeeBtn">
+                        <li><a class="dropdown-item" href="#" id="addIndividualBtn">Add Individual Employee</a></li>
+                        <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#addEmployee">Import Employee (CSV/Excel)</a></li>
+                    </ul>
+                </div>
+
 
                 <!-- The Form (Initially Hidden) -->
                 <form method="POST" action="{{ route('addEmployee.store') }}" enctype="multipart/form-data" id="employeeForm" style="display: none;" class="container mt-4">
@@ -224,22 +236,22 @@
     </div>
 
 
-    <!-- Include Bootstrap CSS and JS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
     <!-- Include jQuery and jQuery UI for datepicker -->
     <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
     <script>
+
         $(document).ready(function() {
-            // Toggle form visibility when the button is clicked
-            $('#addEmployeeBtn').click(function() {
-                $('#employeeForm').toggle(); // Toggle visibility
+
+            $('#addIndividualBtn').click(function() {
+                $('#employeeForm').toggle(); // Toggle the form visibility
+                $('#addEmployee').modal('hide'); // Close the import modal if it's open
             });
 
-            // Initialize datepicker
+            // Initialize the datepicker
             $('.datepicker').datepicker({
                 changeMonth: true,
                 changeYear: true,
@@ -248,15 +260,13 @@
                 dateFormat: 'yy-mm-dd'
             });
 
-            // Prevent manual input in date field
+            // Prevent manual input for birthdate
             $('#empBirthdate').on('keydown paste', function(e) {
                 e.preventDefault();
                 return false;
             });
-        });
 
-        $(document).ready(function() {
-            // Format SSS number as XX-XXXXXXX-X
+            // Handle SSS Number formatting
             $('#empSSSNum').on('input', function() {
                 let value = $(this).val().replace(/\D/g, ''); // Remove non-numeric characters
                 if (value.length > 2) value = value.slice(0, 2) + '-' + value.slice(2);
@@ -264,7 +274,7 @@
                 $(this).val(value);
             });
 
-            // Format TIN number as XXX-XXX-XXX
+            // Handle TIN Number formatting
             $('#empTinNum').on('input', function() {
                 let value = $(this).val().replace(/\D/g, ''); // Remove non-numeric characters
                 if (value.length > 3) value = value.slice(0, 3) + '-' + value.slice(3);
@@ -272,7 +282,7 @@
                 $(this).val(value);
             });
 
-            // Format Pag-Ibig number as XXXX-XXXX-XXXX
+            // Handle Pag-Ibig Number formatting
             $('#empPagIbigNum').on('input', function() {
                 let value = $(this).val().replace(/\D/g, ''); // Remove non-numeric characters
                 if (value.length > 4) value = value.slice(0, 4) + '-' + value.slice(4);
