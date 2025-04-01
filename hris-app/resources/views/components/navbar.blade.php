@@ -19,7 +19,7 @@
             </li>
             <li class="nav-item">
                 <a class="nav-link {{ request()->routeIs('assignment_management') ? 'active' : '' }}" href="{{ route('assignment_management') }}">
-                    Assignment Management
+                    Position Management
                 </a>
             </li>
             @endif

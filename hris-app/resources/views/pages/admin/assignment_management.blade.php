@@ -97,7 +97,19 @@
                         </table>
 
                         <!-- Pagination Links -->
-                        {{ $positions->links() }}
+                        @if($positions['data'])
+                        <div class="d-flex flex-column align-items-center mt-4 gap-2">
+                            {{-- Pagination links --}}
+                            <div>
+                                {{ $positions['data']->links('pagination::bootstrap-5') }}
+                            </div>
+
+                            {{-- Showing text --}}
+                            <div class="text-muted small">
+                                Showing {{ $positions['data']->firstItem() }} to {{ $positions['data']->lastItem() }} of {{ $positions['data']->total() }} results
+                            </div>
+                        </div>
+                        @endif
                     </div>
                 </div>
             </div>
