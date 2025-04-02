@@ -68,6 +68,9 @@ Route::get('/addEmployee', function () {
 Route::post('/addEmployee', [EmployeeController::class, 'store'])->name('addEmployee.store');
 Route::get('/employee-management', [EmployeeController::class, 'index'])->name('employee_management');
 Route::post('/employee/import', [EmployeeController::class, 'importEmp'])->name('employee.import');
+Route::get('/employee/{id}/edit', [EmployeeController::class, 'edit']);
+Route::put('/employee/{id}', [EmployeeController::class, 'update']);
+
 
 
 //Leave Management

@@ -210,14 +210,64 @@ class EmployeeController extends Controller
     }
 
 
-    public function edit(Employee $employee)
+    public function edit($id)
     {
-        return view('pages.hr.employee_edit', compact('employee'));
+        try {
+            $employee = Employee::with('assignments.position')->findOrFail($id);
+            return response()->json($employee);
+        } catch (Exception $e) {
+            logger()->error('Failed to fetch employee for edit: ' . $e->getMessage());
+            return redirect()
+                ->back()
+                ->with('error', 'Failed to fetch employee for edit. Please try again later.');
+        }
     }
 
-    public function update(Request $request, Employee $employee)
+
+    public function update(Request $request, $id)
     {
-        // Similar to store but with update logic
+        try {
+            $employee = Employee::findOrFail($id);
+
+            // Validate incoming data
+            $validated = $request->validate([
+                'empPrefix' => 'nullable|string|max:10',
+                'empFname' => 'required|string|max:100',
+                'empMname' => 'nullable|string|max:100',
+                'empLname' => 'required|string|max:100',
+                'empSuffix' => 'nullable|string|max:10',
+                'empGender' => 'nullable|in:male,female',
+                'empBirthdate' => 'nullable|date',
+                'address' => 'nullable|string|max:255',
+                'province' => 'nullable|string|max:100',
+                'city' => 'nullable|string|max:100',
+                'barangay' => 'nullable|string|max:100',
+                'empSSSNum' => 'nullable|string|max:30',
+                'empTinNum' => 'nullable|string|max:30',
+                'empPagIbigNum' => 'nullable|string|max:30',
+                'photo' => 'nullable|image|max:2048', // max 2MB
+            ]);
+
+            // Handle file upload if new photo is provided
+            if ($request->hasFile('photo')) {
+                // Delete old photo if exists
+                if ($employee->photo && Storage::exists('public/' . $employee->photo)) {
+                    Storage::delete('public/' . $employee->photo);
+                }
+
+                $validated['photo'] = $request->file('photo')->store('photos', 'public/storage');
+            }
+
+            // Update the employee
+            $employee->update($validated);
+
+            return redirect()->route('employee_management')->with('success', 'Employee updated successfully.');
+        } catch (Exception $e) {
+            logger()->error('Failed to update employee: ' . $e->getMessage());
+            return redirect()
+                ->back()
+                ->with('error', 'Failed to update employee. Please try again later.');
+        }
     }
 
     public function destroy(Employee $employee)

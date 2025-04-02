@@ -39,7 +39,6 @@
 
                 @include('pages.hr.components.assign_position', ['positions' => $positions])
 
-
             </div>
         </div>
     </div>
@@ -50,6 +49,65 @@
     <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
 
     <script>
+        let selectedEmployeeId = null;
+
+        function showEditOptions(employeeId) {
+            selectedEmployeeId = employeeId;
+            $('#editChoiceModal').modal('show');
+        }
+
+        document.getElementById('editInfoBtn').addEventListener('click', function() {
+            $('#editChoiceModal').modal('hide');
+
+            // Fetch employee data (AJAX)
+            fetch(`/employee/${selectedEmployeeId}/edit`)
+                .then(res => res.json())
+                .then(data => {
+                    // Populate form fields
+                    document.getElementById('empPrefix').value = data.empPrefix ?? '';
+                    document.getElementById('empFname').value = data.empFname ?? '';
+                    document.getElementById('empMname').value = data.empMname ?? '';
+                    document.getElementById('empLname').value = data.empLname ?? '';
+                    document.getElementById('empSuffix').value = data.empSuffix ?? '';
+                    document.getElementById('empBirthdate').value = data.empBirthdate ?? '';
+                    document.getElementById('address').value = data.address ?? '';
+                    document.getElementById('province').value = data.province ?? '';
+                    document.getElementById('city').value = data.city ?? '';
+                    document.getElementById('barangay').value = data.barangay ?? '';
+                    document.getElementById('empSSSNum').value = data.empSSSNum ?? '';
+                    document.getElementById('empTinNum').value = data.empTinNum ?? '';
+                    document.getElementById('empPagIbigNum').value = data.empPagIbigNum ?? '';
+
+                    // Gender
+                    if (data.empGender === 'male') {
+                        document.getElementById('male').checked = true;
+                    } else if (data.empGender === 'female') {
+                        document.getElementById('female').checked = true;
+                    }
+
+                    // Show the form
+                    document.getElementById('employeeForm').style.display = 'block';
+
+                    // Optionally, change form action to update route
+                    document.getElementById('employeeForm').action = `/employee/${selectedEmployeeId}`;
+                    // Also add a hidden _method input to spoof PUT
+                    if (!document.getElementById('_method')) {
+                        const input = document.createElement('input');
+                        input.type = 'hidden';
+                        input.name = '_method';
+                        input.value = 'PUT';
+                        input.id = '_method';
+                        document.getElementById('employeeForm').appendChild(input);
+                    }
+                });
+        });
+
+        document.getElementById('editPositionBtn').addEventListener('click', function() {
+            $('#editChoiceModal').modal('hide');
+            // Show the assign position form/modal instead
+            assignPosition(selectedEmployeeId); // Reuse your existing assignPosition function
+        });
+
         $(document).ready(function() {
 
 
