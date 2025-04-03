@@ -8,6 +8,7 @@ use App\Http\Controllers\AttendanceController;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\AssignmentController;
 use App\Http\Controllers\AssignEmpController;
+use App\Http\Controllers\EmpContributionController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -88,6 +89,20 @@ Route::post('/attendance/import', [AttendanceController::class, 'import'])->name
 
 // Position Assignment
 Route::post('/hr/assign-position', [AssignEmpController::class, 'assignPosition'])->name('assignPosition');
+
+
+// Employee Contribution
+
+Route::post('/contribution', [EmpContributionController::class, 'store'])->name('contribution.store');
+Route::post('/contribution/import', [EmpContributionController::class, 'importContributions'])->name('importContributions');
+Route::get('/contribution_management', [EmpContributionController::class, 'showContributionManagement'])->name('contribution_management');
+
+// Update Contribution
+Route::get('/contribution-management', [EmpContributionController::class, 'showContributionManagement'])->name('contribution.management');
+
+// Delete Contribution
+Route::delete('/contribution/{contribution}', [EmpContributionController::class, 'destroy'])->name('contribution.destroy');
+
 
 // User Profile
 Route::get('/myProfile', function () {

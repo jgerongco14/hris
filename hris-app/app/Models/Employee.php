@@ -61,4 +61,8 @@ class Employee extends Model
     {
         return $this->hasMany(EmpAssignment::class, 'empID', 'empID');
     }
+    public function contributions()
+    {
+        return $this->hasMany(Contribution::class, 'empID', 'empID');
+    }
 }

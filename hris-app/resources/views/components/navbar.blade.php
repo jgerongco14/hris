@@ -41,6 +41,11 @@
                     Attendance Management
                 </a>
             </li>
+            <li class="nav-item">
+                <a class="nav-link {{ request()->routeIs('contribution_management') ? 'active' : '' }}" href="{{ route('contribution_management') }}">
+                    Contribution Management
+                </a>
+            </li>
     
 
             @elseif(Auth::check() && Auth::user()->role === 'employee')

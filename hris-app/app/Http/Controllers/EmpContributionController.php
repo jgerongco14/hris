@@ -1,0 +1,206 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use Illuminate\Http\Request;
+use App\Models\Contribution;
+use App\Models\Employee;
+use PhpOffice\PhpSpreadsheet\IOFactory;
+use PhpOffice\PhpSpreadsheet\Reader\Csv;
+use Carbon\Carbon;
+
+class EmpContributionController extends Controller
+{
+    public function store(Request $request)
+    {
+        try {
+            // Generate empConNo
+            $empConNo = $request->empID . '-' . date('Y', strtotime($request->empConDate));
+            $existingContribution = Contribution::where('empConNo', $empConNo)->first();
+            if ($existingContribution) {
+                return redirect()->back()->with('error', 'Contribution already exists for this employee.');
+            }
+
+            Contribution::create([
+                'empConNo' => $empConNo,
+                'empID' => $request->empID,
+                'empContype' => $request->empContype,
+                'empConAmount' => $request->empConAmount,
+                'empConDate' => $request->empConDate,
+                'empConRemarks' => $request->empConRemarks,
+            ]);
+
+            return redirect()->back()->with('success', 'Contribution successfully added.');
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Error occurred while adding contribution: ' . $e->getMessage());
+        }
+    }
+
+    public function importContributions(Request $request)
+    {
+        try {
+            $request->validate([
+                'contribution_file' => 'required|file|mimes:csv,xlsx,xls|max:2048',
+            ]);
+
+            $file = $request->file('contribution_file');
+            $reader = IOFactory::createReaderForFile($file->getRealPath());
+
+            if ($reader instanceof Csv) {
+                $reader->setDelimiter(',');
+                $reader->setEnclosure('"');
+            }
+
+            $spreadsheet = $reader->load($file->getRealPath());
+            $rows = $spreadsheet->getActiveSheet()->toArray();
+
+            foreach ($rows as $index => $row) {
+                if ($index === 0) continue; // Skip header row
+                if (count($row) < 5) continue; // Ensure there are enough columns (5 columns in your case)
+
+                $empID = trim($row[0]);
+                $empContype = trim($row[1]);
+                $empConAmount = trim($row[2]);
+                $empConDate = trim($row[3]);
+                $empConRemarks = trim($row[4]);
+
+                // Format empConDate as Y-m (Month-Year)
+                $formattedDate = Carbon::createFromFormat('Y-m', $empConDate)->format('Y-m');
+
+                // Get the count of existing contributions for the same empID and empConDate
+                $existingCount = Contribution::where('empID', $empID)
+                    ->where('empConDate', $formattedDate)
+                    ->count();
+
+                // Generate empConNo as empID + empConDate + incremental number
+                $incremental = $existingCount + 1;
+                $empConNo = $empID  . $formattedDate .  str_pad($incremental, 0, '0', STR_PAD_LEFT);
+
+                // Insert the new contribution
+                Contribution::create([
+                    'empConNo' => $empConNo,
+                    'empID' => $empID,
+                    'empContype' => $empContype,
+                    'empConAmount' => $empConAmount,
+                    'empConDate' => $formattedDate,
+                    'empConRemarks' => $empConRemarks,
+                ]);
+            }
+
+            return redirect()->back()->with('success', 'Contributions successfully imported.');
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Error importing: ' . $e->getMessage());
+        }
+    }
+
+
+    public function showContributionManagement(Request $request)
+    {
+        try {
+            $search = $request->input('search'); // Get the search query
+    
+            // Get all employees for the add contribution modal
+            $employees = Employee::all();
+    
+            // Fetch contributions based on empContype and search query
+            $sssContributions = Contribution::with('employee')
+                ->where('empContype', 'SSS')
+                ->when($search, function ($query, $search) {
+                    $query->where(function ($q) use ($search) {
+                        $q->where('empID', 'like', "%{$search}%")
+                            ->orWhereHas('employee', function ($q) use ($search) {
+                                $q->whereRaw("CONCAT(empFname, ' ', empLname) LIKE ?", ["%{$search}%"])
+                                    ->orWhere('empFname', 'like', "%{$search}%")
+                                    ->orWhere('empLname', 'like', "%{$search}%");
+                            });
+                    });
+                })
+                ->get();
+    
+            $pagibigContributions = Contribution::with('employee')
+                ->where('empContype', 'PAG-IBIG')
+                ->when($search, function ($query, $search) {
+                    $query->where(function ($q) use ($search) {
+                        $q->where('empID', 'like', "%{$search}%")
+                            ->orWhereHas('employee', function ($q) use ($search) {
+                                $q->whereRaw("CONCAT(empFname, ' ', empLname) LIKE ?", ["%{$search}%"])
+                                    ->orWhere('empFname', 'like', "%{$search}%")
+                                    ->orWhere('empLname', 'like', "%{$search}%");
+                            });
+                    });
+                })
+                ->get();
+    
+            $tinContributions = Contribution::with('employee')
+                ->where('empContype', 'TIN')
+                ->when($search, function ($query, $search) {
+                    $query->where(function ($q) use ($search) {
+                        $q->where('empID', 'like', "%{$search}%")
+                            ->orWhereHas('employee', function ($q) use ($search) {
+                                $q->whereRaw("CONCAT(empFname, ' ', empLname) LIKE ?", ["%{$search}%"])
+                                    ->orWhere('empFname', 'like', "%{$search}%")
+                                    ->orWhere('empLname', 'like', "%{$search}%");
+                            });
+                    });
+                })
+                ->get();
+    
+            return view('pages.hr.contribution_management', compact(
+                'sssContributions',
+                'pagibigContributions',
+                'tinContributions',
+                'employees'
+            ));
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Error occurred while fetching contributions: ' . $e->getMessage());
+        }
+    }
+
+    // Edit Contribution
+    // In your controller
+    public function edit($id)
+    {
+        $contribution = Contribution::findOrFail($id); // Fetch the specific contribution by its ID
+        return view('pages.hr.contribution_management', compact('contribution'));
+    }
+
+
+    // Update Contribution
+    public function update(Request $request, $id)
+    {
+        try {
+            $request->validate([
+                'empID' => 'required',
+                'empContype' => 'required',
+                'empConAmount' => 'required|numeric',
+                'empConDate' => 'required|date',
+            ]);
+
+            $contribution = Contribution::findOrFail($id);
+            $contribution->update([
+                'empID' => $request->empID,
+                'empContype' => $request->empContype,
+                'empConAmount' => $request->empConAmount,
+                'empConDate' => $request->empConDate,
+                'empConRemarks' => $request->empConRemarks,
+            ]);
+
+            return redirect()->route('contribution.management')->with('success', 'Contribution successfully updated.');
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Error occurred while updating the contribution: ' . $e->getMessage());
+        }
+    }
+
+    // Delete Contribution
+    public function destroy($id)
+    {
+        try {
+            $contribution = Contribution::findOrFail($id);
+            $contribution->delete();
+
+            return redirect()->route('contribution.management')->with('success', 'Contribution successfully deleted.');
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Error occurred while deleting the contribution: ' . $e->getMessage());
+        }
+    }
+}
