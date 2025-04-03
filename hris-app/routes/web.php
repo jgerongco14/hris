@@ -97,7 +97,6 @@ Route::post('/contribution', [EmpContributionController::class, 'store'])->name(
 Route::post('/contribution/import', [EmpContributionController::class, 'importContributions'])->name('importContributions');
 Route::get('/contribution_management', [EmpContributionController::class, 'showContributionManagement'])->name('contribution_management');
 
-// Update Contribution
 Route::get('/contribution-management', [EmpContributionController::class, 'showContributionManagement'])->name('contribution.management');
 
 // Delete Contribution

@@ -98,10 +98,10 @@ class EmpContributionController extends Controller
     {
         try {
             $search = $request->input('search'); // Get the search query
-    
+
             // Get all employees for the add contribution modal
             $employees = Employee::all();
-    
+
             // Fetch contributions based on empContype and search query
             $sssContributions = Contribution::with('employee')
                 ->where('empContype', 'SSS')
@@ -115,8 +115,8 @@ class EmpContributionController extends Controller
                             });
                     });
                 })
-                ->get();
-    
+                ->paginate(10);
+
             $pagibigContributions = Contribution::with('employee')
                 ->where('empContype', 'PAG-IBIG')
                 ->when($search, function ($query, $search) {
@@ -129,8 +129,8 @@ class EmpContributionController extends Controller
                             });
                     });
                 })
-                ->get();
-    
+                ->paginate(10);
+
             $tinContributions = Contribution::with('employee')
                 ->where('empContype', 'TIN')
                 ->when($search, function ($query, $search) {
@@ -143,51 +143,11 @@ class EmpContributionController extends Controller
                             });
                     });
                 })
-                ->get();
-    
-            return view('pages.hr.contribution_management', compact(
-                'sssContributions',
-                'pagibigContributions',
-                'tinContributions',
-                'employees'
-            ));
+                ->paginate(10);
+
+            return view('pages.hr.contribution_management', compact('sssContributions', 'pagibigContributions', 'tinContributions', 'employees'));
         } catch (\Exception $e) {
             return redirect()->back()->with('error', 'Error occurred while fetching contributions: ' . $e->getMessage());
-        }
-    }
-
-    // Edit Contribution
-    // In your controller
-    public function edit($id)
-    {
-        $contribution = Contribution::findOrFail($id); // Fetch the specific contribution by its ID
-        return view('pages.hr.contribution_management', compact('contribution'));
-    }
-
-
-    // Update Contribution
-    public function update(Request $request, $id)
-    {
-        try {
-            $request->validate([
-                'empID' => 'required',
-                'empContype' => 'required',
-                'empConAmount' => 'required|numeric',
-                'empConDate' => 'required|date',
-            ]);
-
-            $contribution = Contribution::findOrFail($id);
-            $contribution->update([
-                'empID' => $request->empID,
-                'empContype' => $request->empContype,
-                'empConAmount' => $request->empConAmount,
-                'empConDate' => $request->empConDate,
-                'empConRemarks' => $request->empConRemarks,
-            ]);
-
-            return redirect()->route('contribution.management')->with('success', 'Contribution successfully updated.');
-        } catch (\Exception $e) {
-            return redirect()->back()->with('error', 'Error occurred while updating the contribution: ' . $e->getMessage());
         }
     }
 

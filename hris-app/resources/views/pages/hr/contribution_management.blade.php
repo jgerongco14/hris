@@ -171,6 +171,19 @@
                                         @endforelse
                                     </tbody>
                                 </table>
+                                @if($sssContributions->hasPages())
+                                <div class="d-flex flex-column align-items-center mt-4 gap-2">
+                                    {{-- Pagination links --}}
+                                    <div>
+                                        {{ $sssContributions->links('pagination::bootstrap-5') }}
+                                    </div>
+                                    {{-- Showing text --}}
+                                    <div class="text-muted small">
+                                        Showing {{ $sssContributions->firstItem() }} to {{ $sssContributions->lastItem() }} of {{ $sssContributions->total() }} results
+                                    </div>
+
+                                </div>
+                                @endif
                             </div>
 
                             <!-- PAG-IBIG Contributions -->
@@ -237,6 +250,18 @@
                                         @endforelse
                                     </tbody>
                                 </table>
+                                @if($pagibigContributions->hasPages())
+                                <div class="d-flex flex-column align-items-center mt-4 gap-2">
+                                    {{-- Pagination links --}}
+                                    <div>
+                                        {{ $pagibigContributions->links('pagination::bootstrap-5') }}
+                                    </div>
+                                    <div class="text-muted small">
+                                        Showing {{ $pagibigContributions->firstItem() }} to {{ $pagibigContributions->lastItem() }} of {{ $pagibigContributions->total() }} results
+                                    </div>
+
+                                </div>
+                                @endif
                             </div>
 
                             <!-- TIN Contributions -->
@@ -303,6 +328,18 @@
                                         @endforelse
                                     </tbody>
                                 </table>
+                                @if($tinContributions->hasPages())
+                                <div class="d-flex flex-column align-items-center mt-4 gap-2">
+                                    {{-- Pagination links --}}
+                                    <div>
+                                        {{ $tinContributions->links('pagination::bootstrap-5') }}
+                                    </div>
+                                    {{-- Showing text --}}
+                                    <div class="text-muted small">
+                                        Showing {{ $tinContributions->firstItem() }} to {{ $tinContributions->lastItem() }} of {{ $tinContributions->total() }} results
+                                    </div>
+                                </div>
+                                @endif
                             </div>
                         </div>
                     </div>
