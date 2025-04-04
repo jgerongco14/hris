@@ -9,6 +9,8 @@ use Carbon\Carbon;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Reader\Csv;
 use Illuminate\Support\Facades\Auth;
+use PhpOffice\PhpSpreadsheet\Reader\Exception;
+
 
 
 class AttendanceController extends Controller
@@ -36,12 +38,11 @@ class AttendanceController extends Controller
             $counter = Attendance::count() + 1;
             foreach ($rows as $index => $row) {
                 if ($index === 0) continue; // header row
-                if (count($row) < 10) continue;
 
-                $empID = trim($row[0]);
-                $month = trim($row[2]);
-                $day = trim($row[4]);
-                $year = trim($row[3]);
+                $empID = isset($row[0]) ? trim($row[0]) : null;
+                $month = isset($row[2]) ? trim($row[2]) : null;
+                $day = isset($row[4]) ? trim($row[4]) : null;
+                $year = isset($row[3]) ? trim($row[3]) : null;
 
                 try {
                     $date = Carbon::createFromFormat('F j Y', "$month $day $year")->format('Y-m-d');
@@ -64,7 +65,7 @@ class AttendanceController extends Controller
             }
 
             return redirect()->back()->with('success', 'Attendance data imported successfully.');
-        } catch (\PhpOffice\PhpSpreadsheet\Reader\Exception $e) {
+        } catch (Exception $e) {
             logger()->error('Reader error: ' . $e->getMessage());
             return redirect()->back()->with('error', 'File type is unreadable.');
         } catch (\Exception $e) {
