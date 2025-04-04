@@ -80,9 +80,6 @@ class AccountController extends Controller
                 if (!$user->google_id) {
                     $user->google_id = $googleUser->id;
 
-                    // $randomPassword = Str::random(12);
-                    // $user->password = Hash::make($randomPassword);
-
                     $user->save();
                     $isFirstGoogleLogin = true;
                 }
@@ -98,19 +95,32 @@ class AccountController extends Controller
 
             // If employee or HR and it's the first Google login, create or update profile
             if (in_array($user->role, ['employee', 'hr']) && $isFirstGoogleLogin) {
-                $user->employee()->updateOrCreate(
-                    ['user_id' => $user->id],
-                    [
+                $existingEmployee = \App\Models\Employee::where('user_id', $user->id)
+                    ->orWhere('empID', $user->empID)
+                    ->first();
+
+                if ($existingEmployee) {
+                    // Update
+                    $existingEmployee->update([
+                        'user_id'  => $user->id,
                         'empID'    => $user->empID,
-                        'empFname' => $user->employee->empFname ?? $googleUser->user['given_name'] ?? '',
-                        'empLname' => $user->employee->empLname ?? $googleUser->user['family_name'] ?? '',
-                        'photo'    => $user->employee->photo ?? $googleUser->avatar ?? '',
-                    ]
-                );
+                        'empFname' => $existingEmployee->empFname ?? $googleUser->user['given_name'] ?? '',
+                        'empLname' => $existingEmployee->empLname ?? $googleUser->user['family_name'] ?? '',
+                        'photo'    => $existingEmployee->photo ?? $googleUser->avatar ?? '',
+                    ]);
+                } else {
+                    // Create new
+                    $user->employee()->create([
+                        'user_id'  => $user->id,
+                        'empID'    => $user->empID,
+                        'empFname' => $googleUser->user['given_name'] ?? '',
+                        'empLname' => $googleUser->user['family_name'] ?? '',
+                        'photo'    => $googleUser->avatar ?? '',
+                    ]);
+                }
 
-                logger()->info('Employee profile created/updated.', ['user_id' => $user->id]);
+                logger()->info('Employee profile created or updated.', ['user_id' => $user->id]);
             }
-
 
             // Redirect based on role
             return match ($user->role) {

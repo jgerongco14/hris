@@ -100,49 +100,32 @@ class EmployeeController extends Controller
 
             foreach ($rows as $index => $row) {
                 if ($index === 0) continue;
-                if (count($row) < 17) continue;
 
-                $empID = trim($row[0]);
-                $empPrefix = trim($row[1]);
-                $empFname = trim($row[2]);
-                $empMname = trim($row[3]);
-                $empLname = trim($row[4]);
-                $empSuffix = trim($row[5]);
-                $empGender = trim($row[6]);
-                $empBirthdate = trim($row[7]);
-                $address = trim($row[8]);
-                $province = trim($row[9]);
-                $city = trim($row[10]);
-                $barangay = trim($row[11]);
-                $empSSSNum = trim($row[12]);
-                $empTinNum = trim($row[13]);
-                $empPagIbigNum = trim($row[14]);
+                $empID = isset($row[0]) ? trim($row[0]) : null;
+                $empPrefix = isset($row[1]) ? trim($row[1]) : null;
+                $empFname = isset($row[2]) ? trim($row[2]) : null;
+                $empMname = isset($row[3]) ? trim($row[3]) : null;
+                $empLname = isset($row[4]) ? trim($row[4]) : null;
+                $empSuffix = isset($row[5]) ? trim($row[5]) : null;
+                $empGender = isset($row[6]) ? trim($row[6]) : null;
+                $empBirthdate = isset($row[7]) ? trim($row[7]) : null;
+                $address = isset($row[8]) ? trim($row[8]) : null;
+                $province = isset($row[9]) ? trim($row[9]) : null;
+                $city = isset($row[10]) ? trim($row[10]) : null;
+                $barangay = isset($row[11]) ? trim($row[11]) : null;
+                $empSSSNum = isset($row[12]) ? trim($row[12]) : null;
+                $empTinNum = isset($row[13]) ? trim($row[13]) : null;
+                $empPagIbigNum = isset($row[14]) ? trim($row[14]) : null;
 
 
                 // Validate the data before saving
-                if (empty($empID) || empty($empFname) || empty($empLname) || empty($empGender)) {
-                    continue; // Skip invalid rows
+                if (empty($empID) || empty($empFname) || empty($empLname))  continue;
+
+                if ($empID !== null && Employee::where('empID', $empID)->exists()) {
+                    continue;
                 }
 
-                // Check if employee already exists
-                $existingEmployee = Employee::where('empID', $empID)->first();
-                if ($existingEmployee) {
-                    return redirect()
-                        ->back()
-                        ->with('error', 'Employee with ID ' . $empID . ' already exists.');
-                }
-
-                // Check if user already exists
-                $existingUser = User::where('empID', $empID)->first();
-                if (!$existingUser) {
-                    // Create user if not exists
-                    return redirect()
-                        ->back()
-                        ->with('error', 'User with ID ' . $empID . ' does not exist.');
-                }
-                // Create employee record
                 Employee::create([
-                    'user_id' => $existingUser->id,
                     'empID' => $empID,
                     'empPrefix' => $empPrefix,
                     'empFname' => $empFname,
@@ -158,7 +141,6 @@ class EmployeeController extends Controller
                     'empSSSNum' => $empSSSNum,
                     'empTinNum' => $empTinNum,
                     'empPagIbigNum' => $empPagIbigNum,
-                    'empStatus' => 'active',
                 ]);
             }
 
@@ -171,9 +153,6 @@ class EmployeeController extends Controller
                 ->back()
                 ->with('error', 'Failed to import employees. Please try again later. ' .
                     (config('app.debug') ? $e->getMessage() : ''));
-            // return redirect()
-            //     ->back()
-            //     ->with('error', 'Failed to import employees. Please try again later.');
         }
     }
 
