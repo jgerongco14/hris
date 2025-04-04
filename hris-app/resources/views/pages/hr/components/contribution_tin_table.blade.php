@@ -4,6 +4,14 @@
              <h3 class="col-8 mt-4">TIN Contributions</h3>
              <div class="col-4">
                  <form method="GET" action="{{ route('contribution.management') }}" class="d-flex">
+                     <!-- Export Button -->
+                     <a href="{{ route('contribution.exportWord', array_filter([
+    'contribution_type' => 'TIN',
+    'search' => request('contribution_type') === 'TIN' ? request('search') : null
+])) }}" class="btn btn-info d-flex align-items-center mx-2">
+                         <i class="ri-file-word-2-line"></i> Export
+                     </a>
+
                      <input type="text" name="search" class="form-control me-2" placeholder="Search by EmpID or Name" value="{{ request('search') }}">
                      <input type="hidden" name="contribution_type" value="TIN">
                      <!-- Search Button -->

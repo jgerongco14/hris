@@ -103,6 +103,10 @@ Route::get('/contribution-management', [EmpContributionController::class, 'showC
 Route::delete('/contribution/{contribution}', [EmpContributionController::class, 'destroy'])->name('contribution.destroy');
 
 
+// Export Contribution
+Route::get('/contributions/export-word', [EmpContributionController::class, 'exportWord'])->name('contribution.exportWord');
+
+
 // User Profile
 Route::get('/myProfile', function () {
     return view('pages.profile.userProfile');
