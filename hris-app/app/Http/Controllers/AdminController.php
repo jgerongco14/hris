@@ -92,23 +92,23 @@ class AdminController extends Controller
 
             foreach ($rows as $index => $row) {
                 if ($index === 0) continue;
-                if (count($row) < 3) continue;
 
-                $empID = trim($row[0]);
-                $email = trim($row[1]);
-                $role = trim($row[2]);
+                $empID = isset($row[0]) ? trim($row[0]) : null;
+                $email = isset($row[1]) && trim($row[1]) !== '' ? trim($row[1]) : null;
+                $role = isset($row[2]) ? trim($row[2]) : 'employee';
+                $password = isset($row[3]) && trim($row[3]) !== '';
 
-                // Validate the data before saving
-                if (empty($empID) || empty($email) || empty($role)) {
-                    continue; // Skip invalid rows
+                // Skip if empID is missing
+                if (empty($empID)) continue;
+
+                // Skip if email exists
+                if ($email !== null && User::where('email', $email)->exists()) {
+                    continue;
                 }
 
-                // Check if user already exists
-                $existingUser = User::where('email', $email)->first();
-                if ($existingUser) {
-                    return redirect()
-                        ->back()
-                        ->with('error', 'User with email ' . $email . ' already exists.');
+                // Skip if empID exists
+                if (User::where('empID', $empID)->exists()) {
+                    continue;
                 }
 
                 // Create Users
@@ -116,6 +116,7 @@ class AdminController extends Controller
                     'empID' => $empID,
                     'email' => $email,
                     'role' => $role,
+                    'password' => bcrypt($password),
                 ]);
             }
 
