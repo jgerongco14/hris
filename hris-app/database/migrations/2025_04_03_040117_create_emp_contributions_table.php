@@ -14,6 +14,7 @@ return new class extends Migration
         Schema::create('empContributions', function (Blueprint $table) {
             $table->id();
             $table->string('empConNo')->unique();
+            $table->string('payRefNo')->nullable();
             $table->string('empID')->index();
             $table->string('empContype');
             $table->decimal('empConAmount');
