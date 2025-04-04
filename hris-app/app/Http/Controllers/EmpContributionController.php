@@ -97,59 +97,49 @@ class EmpContributionController extends Controller
     public function showContributionManagement(Request $request)
     {
         try {
-            $search = $request->input('search'); // Get the search query
-
-            // Get all employees for the add contribution modal
+            $search = $request->input('search');
+            $activeType = $request->input('contribution_type', 'SSS');
             $employees = Employee::all();
 
-            // Fetch contributions based on empContype and search query
+            // Shared filter logic
+            $searchFilter = function ($query) use ($search) {
+                $query->where(function ($q) use ($search) {
+                    $q->where('empID', 'like', "%{$search}%")
+                        ->orWhereHas('employee', function ($q) use ($search) {
+                            $q->whereRaw("CONCAT(empFname, ' ', empLname) LIKE ?", ["%{$search}%"]);
+                        });
+                });
+            };
+
+            // Always load all contributions
             $sssContributions = Contribution::with('employee')
                 ->where('empContype', 'SSS')
-                ->when($search, function ($query, $search) {
-                    $query->where(function ($q) use ($search) {
-                        $q->where('empID', 'like', "%{$search}%")
-                            ->orWhereHas('employee', function ($q) use ($search) {
-                                $q->whereRaw("CONCAT(empFname, ' ', empLname) LIKE ?", ["%{$search}%"])
-                                    ->orWhere('empFname', 'like', "%{$search}%")
-                                    ->orWhere('empLname', 'like', "%{$search}%");
-                            });
-                    });
-                })
-                ->paginate(10);
+                ->when($request->input('contribution_type') === 'SSS' && $search, $searchFilter)
+                ->paginate(10, ['*'], 'sss_page');
 
             $pagibigContributions = Contribution::with('employee')
                 ->where('empContype', 'PAG-IBIG')
-                ->when($search, function ($query, $search) {
-                    $query->where(function ($q) use ($search) {
-                        $q->where('empID', 'like', "%{$search}%")
-                            ->orWhereHas('employee', function ($q) use ($search) {
-                                $q->whereRaw("CONCAT(empFname, ' ', empLname) LIKE ?", ["%{$search}%"])
-                                    ->orWhere('empFname', 'like', "%{$search}%")
-                                    ->orWhere('empLname', 'like', "%{$search}%");
-                            });
-                    });
-                })
-                ->paginate(10);
+                ->when($request->input('contribution_type') === 'PAG-IBIG' && $search, $searchFilter)
+                ->paginate(10, ['*'], 'pagibig_page');
 
             $tinContributions = Contribution::with('employee')
                 ->where('empContype', 'TIN')
-                ->when($search, function ($query, $search) {
-                    $query->where(function ($q) use ($search) {
-                        $q->where('empID', 'like', "%{$search}%")
-                            ->orWhereHas('employee', function ($q) use ($search) {
-                                $q->whereRaw("CONCAT(empFname, ' ', empLname) LIKE ?", ["%{$search}%"])
-                                    ->orWhere('empFname', 'like', "%{$search}%")
-                                    ->orWhere('empLname', 'like', "%{$search}%");
-                            });
-                    });
-                })
-                ->paginate(10);
+                ->when($request->input('contribution_type') === 'TIN' && $search, $searchFilter)
+                ->paginate(10, ['*'], 'tin_page');
 
-            return view('pages.hr.contribution_management', compact('sssContributions', 'pagibigContributions', 'tinContributions', 'employees'));
+            return view('pages.hr.contribution_management', compact(
+                'sssContributions',
+                'pagibigContributions',
+                'tinContributions',
+                'employees',
+                'activeType' // for keeping tab active in Blade
+            ));
         } catch (\Exception $e) {
-            return redirect()->back()->with('error', 'Error occurred while fetching contributions: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'Error: ' . $e->getMessage());
         }
     }
+
+
 
     // Delete Contribution
     public function destroy($id)

@@ -94,22 +94,33 @@
                     </div>
                     <div class="card-body">
                         <!-- Tabs for Contributions -->
+                        @php
+                        $activeType = request('contribution_type', 'SSS'); // default to SSS
+                        @endphp
+
                         <ul class="nav nav-tabs" id="contributionTabs" role="tablist">
                             <li class="nav-item" role="presentation">
-                                <button class="nav-link active" id="sss-tab" data-bs-toggle="tab" data-bs-target="#sss" type="button" role="tab" aria-controls="sss" aria-selected="true">SSS</button>
+                                <button class="nav-link {{ $activeType === 'SSS' ? 'active' : '' }}" id="sss-tab"
+                                    data-bs-toggle="tab" data-bs-target="#sss" type="button" role="tab"
+                                    aria-controls="sss" aria-selected="{{ $activeType === 'SSS' ? 'true' : 'false' }}">SSS</button>
                             </li>
                             <li class="nav-item" role="presentation">
-                                <button class="nav-link" id="pagibig-tab" data-bs-toggle="tab" data-bs-target="#pagibig" type="button" role="tab" aria-controls="pagibig" aria-selected="false">PAG-IBIG</button>
+                                <button class="nav-link {{ $activeType === 'PAG-IBIG' ? 'active' : '' }}" id="pagibig-tab"
+                                    data-bs-toggle="tab" data-bs-target="#pagibig" type="button" role="tab"
+                                    aria-controls="pagibig" aria-selected="{{ $activeType === 'PAG-IBIG' ? 'true' : 'false' }}">PAG-IBIG</button>
                             </li>
                             <li class="nav-item" role="presentation">
-                                <button class="nav-link" id="tin-tab" data-bs-toggle="tab" data-bs-target="#tin" type="button" role="tab" aria-controls="tin" aria-selected="false">TIN</button>
+                                <button class="nav-link {{ $activeType === 'TIN' ? 'active' : '' }}" id="tin-tab"
+                                    data-bs-toggle="tab" data-bs-target="#tin" type="button" role="tab"
+                                    aria-controls="tin" aria-selected="{{ $activeType === 'TIN' ? 'true' : 'false' }}">TIN</button>
                             </li>
                         </ul>
+
 
                         <div class="tab-content" id="contributionTabsContent">
 
                             <!-- SSS Contributions -->
-                            <div class="tab-pane fade show active" id="sss" role="tabpanel" aria-labelledby="sss-tab">
+                            <div class="tab-pane fade {{ $activeType === 'SSS' ? 'show active' : '' }}" id="sss" role="tabpanel" aria-labelledby="sss-tab">
                                 <div class="row mb-3 justify-content-between align-items-center">
                                     <h3 class="col-8 mt-4">SSS Contributions</h3>
                                     <div class="col-4">
@@ -127,6 +138,7 @@
                                         </form>
                                     </div>
                                 </div>
+                                @if($sssContributions instanceof \Illuminate\Pagination\LengthAwarePaginator)
                                 <table class="table table-bordered">
                                     <thead>
                                         <tr>
@@ -184,10 +196,11 @@
 
                                 </div>
                                 @endif
+                                @endif
                             </div>
 
                             <!-- PAG-IBIG Contributions -->
-                            <div class="tab-pane fade" id="pagibig" role="tabpanel" aria-labelledby="pagibig-tab">
+                            <div class="tab-pane fade {{ $activeType === 'PAG-IBIG' ? 'show active' : '' }}" id="pagibig" role="tabpanel" aria-labelledby="pagibig-tab">
                                 <div class="row mb-3 justify-content-between align-items-center">
                                     <h3 class="col-8 mt-4">PAG-IBIG Contributions</h3>
                                     <div class="col-4">
@@ -205,7 +218,7 @@
                                         </form>
                                     </div>
                                 </div>
-
+                                @if($pagibigContributions instanceof \Illuminate\Pagination\LengthAwarePaginator)
                                 <table class="table table-bordered">
                                     <thead>
                                         <tr>
@@ -262,10 +275,11 @@
 
                                 </div>
                                 @endif
+                                @endif
                             </div>
 
                             <!-- TIN Contributions -->
-                            <div class="tab-pane fade" id="tin" role="tabpanel" aria-labelledby="tin-tab">
+                            <div class="tab-pane fade {{ $activeType === 'TIN' ? 'show active' : '' }}" id="tin" role="tabpanel" aria-labelledby="tin-tab">
                                 <div class="row mb-3 justify-content-between align-items-center">
                                     <h3 class="col-8 mt-4">TIN Contributions</h3>
                                     <div class="col-4">
@@ -283,7 +297,7 @@
                                         </form>
                                     </div>
                                 </div>
-
+                                @if($tinContributions instanceof \Illuminate\Pagination\LengthAwarePaginator)
                                 <table class="table table-bordered">
                                     <thead>
                                         <tr>
@@ -340,6 +354,7 @@
                                     </div>
                                 </div>
                                 @endif
+                                @endif
                             </div>
                         </div>
                     </div>
@@ -389,20 +404,16 @@
             toast.show();
         }
 
-        // Activate the correct tab based on URL parameter
-        document.addEventListener('DOMContentLoaded', function() {
-            const urlParams = new URLSearchParams(window.location.search);
-            const contributionType = urlParams.get('contribution_type');
 
-            if (contributionType) {
-                const tabId = contributionType.toLowerCase();
-                const tabButton = document.getElementById(`${tabId}-tab`);
-                if (tabButton) {
-                    const tab = new bootstrap.Tab(tabButton);
-                    tab.show();
-                }
+        const contributionType = urlParams.get('contribution_type');
+        if (contributionType) {
+            const tabId = contributionType.toLowerCase();
+            const tabButton = document.getElementById(`${tabId}-tab`);
+            if (tabButton) {
+                const tab = new bootstrap.Tab(tabButton);
+                tab.show();
             }
-        });
+        }
     </script>
 
 </body>
