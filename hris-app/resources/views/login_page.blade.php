@@ -13,9 +13,9 @@
     <div class="container-fluid mt-5">
         <x-notification />
         <div class="row align-items-center">
-            <div class="col-xl-8 col-lg-7 col-md-6 col-sm-4">
-                <div class="login-card">
-                    <h2>HUMAN RESOURCE INFORMATION SYSTEM</h2>
+            <div class="col-xl-7 col-lg-5 col-md-4 col-sm-3">
+                <div class="login-card mx-5">
+                    <h2 class="mb-5">HUMAN RESOURCE INFORMATION SYSTEM</h2>
 
                     {{-- Login Form --}}
                     <form method="POST" action="{{ route('defaultlogin') }}">
@@ -26,8 +26,15 @@
                         </div>
 
                         <div class="form-group my-3">
+
                             <label for="password">Password</label>
-                            <input type="password" name="password" class="form-control" id="password" placeholder="Enter at least 8 characters" required>
+                            <div class=" d-flex align-items-center">
+                                <input type="password" name="password" class="form-control" id="password" placeholder="********************" required>
+                                <button type="button" class="btn btn-outline-secondary  me-2" id="togglePassword">
+                                    <i class="ri-eye-off-line" id="togglePasswordIcon"></i>
+                                </button>
+                            </div>
+
                         </div>
 
                         <div class="text-center my-4">
@@ -38,21 +45,16 @@
                     {{-- Sign in with Google --}}
                     <div class="text-center my-3">
                         <p>Or</p>
-                        <a href="{{ route('auth.google') }}" class="google-signin text-white btn btn-danger btn-outline-dark w-30">
+                        <a href="{{ route('auth.google') }}" class="google-signin text-white btn btn-primary btn-outline-white w-100">
                             <i class="ri-google-fill"></i> Sign in with Google
                         </a>
                     </div>
 
-                    <!-- <div class="text-center signup-link">
-                        <p>For New Employees</p>
-                        <a href="#" class="btn btn-secondary text-decoration-none text-white">
-                            <i class="bi-pen"></i> Sign-Up Here
-                        </a>
-                    </div> -->
+                    {{-- Forgot Password Link --}}
                 </div>
             </div>
-            <div class="col">
-                <img src="" alt="Login Image" class="img-fluid">
+            <div class="col-5">
+                <img src="{{ asset('assets/9898504.jpg') }}" alt="Login Image" class="img-fluid">
             </div>
         </div>
     </div>
@@ -92,6 +94,22 @@
             });
             toast.show();
         }
+
+        document.getElementById('togglePassword').addEventListener('click', function() {
+            const passwordInput = document.getElementById('password');
+            const toggleIcon = document.getElementById('togglePasswordIcon');
+
+            // Toggle the input type between 'password' and 'text'
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                toggleIcon.classList.remove('ri-eye-off-line');
+                toggleIcon.classList.add('ri-eye-line');
+            } else {
+                passwordInput.type = 'password';
+                toggleIcon.classList.remove('ri-eye-line');
+                toggleIcon.classList.add('ri-eye-off-line');
+            }
+        });
     </script>
 </body>
 

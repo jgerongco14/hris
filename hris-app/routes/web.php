@@ -11,12 +11,11 @@ use App\Http\Controllers\AssignEmpController;
 use App\Http\Controllers\EmpContributionController;
 
 Route::get('/', function () {
-    return view('welcome');
+    return redirect()->route('login');
 });
 
-// ✅ Login form view
 Route::get('/login', function () {
-    return view('pages.login_page');
+    return view('login_page');
 })->name('login');
 
 // ✅ Login form submission

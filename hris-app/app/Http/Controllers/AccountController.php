@@ -41,11 +41,11 @@ class AccountController extends Controller
             // Redirect based on role
             switch ($user->role) {
                 case 'hr':
-                    return redirect()->route('leave_management')->with('success', 'Welcome HR!');
+                    return redirect()->route('myProfile')->with('success', 'Welcome HR!');
                 case 'employee':
                     return redirect()->route('myProfile')->with('success', 'Welcome Employee!');
                 case 'admin':
-                    return redirect()->route('admin.dashboard')->with('success', 'Welcome Admin!');
+                    return redirect()->route('myProfile')->with('success', 'Welcome Admin!');
                 default:
                     return redirect()->route('login')->with('error', 'Invalid user role.');
             }
@@ -130,6 +130,6 @@ class AccountController extends Controller
     public function logout()
     {
         Auth::logout();
-        return redirect()->route('login');
+        return redirect()->route('login')->with('success', 'Logged out successfully.');
     }
 }
