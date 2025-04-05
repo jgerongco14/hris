@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Models\Employee; // Import the Employee model
 use App\Models\User; // Import the User model
 use Exception;
+use Illuminate\Support\Facades\Hash;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Reader\Csv;
 
@@ -96,7 +97,7 @@ class AdminController extends Controller
                 $empID = isset($row[0]) ? trim($row[0]) : null;
                 $email = isset($row[1]) && trim($row[1]) !== '' ? trim($row[1]) : null;
                 $role = isset($row[2]) ? trim($row[2]) : 'employee';
-                $password = isset($row[3]) && trim($row[3]) !== '';
+                $password = isset($row[3]) && trim($row[3]) !== '' ? trim($row[3]) : 'password123'; // FIXED
 
                 // Skip if empID is missing
                 if (empty($empID)) continue;
@@ -116,7 +117,7 @@ class AdminController extends Controller
                     'empID' => $empID,
                     'email' => $email,
                     'role' => $role,
-                    'password' => bcrypt($password),
+                    'password' =>  Hash::make($password), 
                 ]);
             }
 

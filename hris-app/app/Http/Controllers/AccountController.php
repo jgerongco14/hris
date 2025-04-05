@@ -25,33 +25,48 @@ class AccountController extends Controller
                 return redirect()->route('login')->with('error', 'Please enter your Email or Employee ID and Password.');
             }
 
-            // Fetch the user using email or empID
             $user = User::where('email', $identifier)
                 ->orWhere('empID', $identifier)
                 ->first();
 
-            // If no user or password doesn't match
-            if (!$user || !Hash::check($password, $user->password)) {
+            if (!$user || !$user->password) {
                 return redirect()->route('login')->with('error', 'Invalid credentials. Please go to your HR for assistance.');
             }
 
-            // Login the user
+            $storedPassword = $user->password;
+            $isHashed = strlen($storedPassword) === 60 && str_starts_with($storedPassword, '$2y$');
+
+            $passwordValid = false;
+
+            if ($isHashed) {
+                $passwordValid = Hash::check($password, $storedPassword);
+            } else {
+                $passwordValid = $password === $storedPassword;
+            }
+
+            if (!$passwordValid) {
+                return redirect()->route('login')->with('error', 'Invalid credentials. Please go to your HR for assistance.');
+            }
+
+            // Optional: upgrade to bcrypt if it was plain text
+            if (!$isHashed) {
+                $user->password = Hash::make($password);
+                $user->save();
+                logger()->info('Upgraded plain-text password to hashed for user.', ['user_id' => $user->id]);
+            }
+
             Auth::login($user);
 
             // Redirect based on role
-            switch ($user->role) {
-                case 'hr':
-                    return redirect()->route('myProfile')->with('success', 'Welcome HR!');
-                case 'employee':
-                    return redirect()->route('myProfile')->with('success', 'Welcome Employee!');
-                case 'admin':
-                    return redirect()->route('myProfile')->with('success', 'Welcome Admin!');
-                default:
-                    return redirect()->route('login')->with('error', 'Invalid user role.');
-            }
+            return match ($user->role) {
+                'hr' => redirect()->route('myProfile')->with('success', 'Welcome HR!'),
+                'employee' => redirect()->route('myProfile')->with('success', 'Welcome Employee!'),
+                'admin' => redirect()->route('myProfile')->with('success', 'Welcome Admin!'),
+                default => redirect()->route('login')->with('error', 'Invalid user role.'),
+            };
         } catch (\Exception $e) {
             logger()->error('Login Error: ' . $e->getMessage());
-            return redirect()->route('login')->with('error', 'Something went wrong. Please go to your HR for assistance.');
+            return redirect()->route('login')->with('error', 'Something went wrong. Please go to your HR for assistance.' . $e->getMessage());
         }
     }
 
@@ -75,17 +90,17 @@ class AccountController extends Controller
             $user = User::where('email', $googleUser->email)->first();
             $isFirstGoogleLogin = false;
 
-            if ($user) {
-                // Update google_id if not yet saved
-                if (!$user->google_id) {
-                    $user->google_id = $googleUser->id;
+            if (!$user->google_id) {
+                $user->google_id = $googleUser->id;
+                $user->save();
 
-                    $user->save();
-                    $isFirstGoogleLogin = true;
-                }
-            } else {
-                return redirect()->route('login')->with('error', 'User not found. Please go to your HR for assistance.');
+                // Refresh to get the updated model from the database
+                $user->refresh();
+
+                $isFirstGoogleLogin = true;
             }
+
+            $user = User::where('id', $user->id)->first();
 
             // Login the user
             Auth::login($user);
@@ -131,7 +146,7 @@ class AccountController extends Controller
             };
         } catch (Exception $e) {
             logger()->error('Google Login Error: ' . $e->getMessage());
-            return redirect()->route('login')->with('error', 'Google login failed. Please try again.');
+            return redirect()->route('login')->with('error', 'Google login failed. Please try again.' . $e->getMessage());
         }
     }
 
