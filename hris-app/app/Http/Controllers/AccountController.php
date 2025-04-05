@@ -57,6 +57,15 @@ class AccountController extends Controller
 
             Auth::login($user);
 
+            $user_id = Employee::where('user_id', $user->id)->first();
+
+            if (!$user_id) {
+                $user->employee()->create([
+                    'user_id'  => $user->id,
+                    'empID' => $user->empID,
+                ]);
+            }
+
             // Redirect based on role
             return match ($user->role) {
                 'hr' => redirect()->route('myProfile')->with('success', 'Welcome HR!'),

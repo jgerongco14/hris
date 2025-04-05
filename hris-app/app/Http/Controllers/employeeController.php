@@ -121,27 +121,43 @@ class EmployeeController extends Controller
                 // Validate the data before saving
                 if (empty($empID) || empty($empFname) || empty($empLname))  continue;
 
-                if ($empID !== null && Employee::where('empID', $empID)->exists()) {
-                    continue;
-                }
 
-                Employee::create([
-                    'empID' => $empID,
-                    'empPrefix' => $empPrefix,
-                    'empFname' => $empFname,
-                    'empMname' => $empMname,
-                    'empLname' => $empLname,
-                    'empSuffix' => $empSuffix,
-                    'empGender' => $empGender,
-                    'empBirthdate' => $empBirthdate,
-                    'address' => $address,
-                    'province' => $province,
-                    'city' => $city,
-                    'barangay' => $barangay,
-                    'empSSSNum' => $empSSSNum,
-                    'empTinNum' => $empTinNum,
-                    'empPagIbigNum' => $empPagIbigNum,
-                ]);
+                if ($empID !== null && $employee = Employee::where('empID', $empID)->first()) {
+                    $employee->update([
+                        'empPrefix' => $empPrefix,
+                        'empFname' => $empFname,
+                        'empMname' => $empMname,
+                        'empLname' => $empLname,
+                        'empSuffix' => $empSuffix,
+                        'empGender' => $empGender,
+                        'empBirthdate' => $empBirthdate,
+                        'address' => $address,
+                        'province' => $province,
+                        'city' => $city,
+                        'barangay' => $barangay,
+                        'empSSSNum' => $empSSSNum,
+                        'empTinNum' => $empTinNum,
+                        'empPagIbigNum' => $empPagIbigNum,
+                    ]);
+                } else {
+                    $employee->create([
+                        'empID' => $empID,
+                        'empPrefix' => $empPrefix,
+                        'empFname' => $empFname,
+                        'empMname' => $empMname,
+                        'empLname' => $empLname,
+                        'empSuffix' => $empSuffix,
+                        'empGender' => $empGender,
+                        'empBirthdate' => $empBirthdate,
+                        'address' => $address,
+                        'province' => $province,
+                        'city' => $city,
+                        'barangay' => $barangay,
+                        'empSSSNum' => $empSSSNum,
+                        'empTinNum' => $empTinNum,
+                        'empPagIbigNum' => $empPagIbigNum,
+                    ]);
+                }
             }
 
             return redirect()
@@ -159,7 +175,10 @@ class EmployeeController extends Controller
     public function index(Request $request)
     {
         try {
-            $query = Employee::with(['assignments.position']); // Eager load assignments with positions
+            $query = Employee::with(['assignments.position']) // Eager load assignments with positions
+                ->whereHas('user', function ($q) {
+                    $q->where('role', '!=', 'admin'); // Exclude employees with the 'admin' role
+                });
 
             // 🔍 Search by name
             if ($request->has('search') && $request->search != '') {

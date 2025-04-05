@@ -113,12 +113,22 @@ class AdminController extends Controller
                 }
 
                 // Create Users
-                User::create([
+               $user = User::create([
                     'empID' => $empID,
                     'email' => $email,
                     'role' => $role,
-                    'password' =>  Hash::make($password), 
+                    'password' =>  Hash::make($password),
                 ]);
+
+
+                $user_id = Employee::where('user_id', $user->id)->first();
+
+                if (!$user_id) {
+                    $user->employee()->create([
+                        'user_id'  => $user->id,
+                        'empID' => $empID,
+                    ]);
+                } 
             }
 
             return redirect()->back()->with('success', 'User data imported successfully.');
