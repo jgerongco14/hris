@@ -225,12 +225,10 @@ class EmpLeaveController extends Controller
                 ->map(fn($name) => strtoupper($name))
                 ->toArray();
 
-            // Map: 'HUMAN RESOURCE' => 'HR'
             $positionMap = [
-                'HUMAN RESOURCE' => 'HR',
+                'VICE PRESIDENT ACADEMIC OF AFFAIRS' => 'VPAA',
                 'OFFICE HEAD' => 'OFFICE HEAD',
                 'PRESIDENT' => 'PRESIDENT',
-                'VICE PRESIDENT' => 'VICE PRESIDENT',
                 'FINANCE' => 'FINANCE',
             ];
 
