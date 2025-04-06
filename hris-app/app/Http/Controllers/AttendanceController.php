@@ -44,9 +44,34 @@ class AttendanceController extends Controller
                 $day = isset($row[4]) ? trim($row[4]) : null;
                 $year = isset($row[3]) ? trim($row[3]) : null;
 
-                try {
-                    $date = Carbon::createFromFormat('F j Y', "$month $day $year")->format('Y-m-d');
-                } catch (\Exception $e) {
+                $dateString = "$month $day $year";
+                $formats = ['F j Y', 'M j Y', 'F d Y', 'Y-m-d', 'm/d/Y'];
+
+                $date = null;
+                foreach ($formats as $format) {
+                    try {
+                        $parsed = Carbon::createFromFormat($format, $dateString);
+                        if ($parsed !== false) {
+                            $date = $parsed->format('Y-m-d');
+                            break;
+                        }
+                    } catch (\Exception $e) {
+                        continue;
+                    }
+                }
+
+                if (!$date) {
+                    logger()->warning("Unable to parse date for row: " . json_encode($row));
+                    continue;
+                }
+
+                // Check for duplicate
+                $exists = Attendance::where('empID', $empID)
+                    ->whereDate('empAttDate', $date)
+                    ->exists();
+
+                if ($exists) {
+                    logger()->info("Duplicate entry skipped for empID: $empID on $date");
                     continue;
                 }
 
@@ -77,39 +102,51 @@ class AttendanceController extends Controller
     public function showAttendance(Request $request)
     {
         try {
-            $attendance = Attendance::with('employee')->orderBy('empAttDate', 'desc');
+            // Apply filters
+            $attendanceQuery = Attendance::with('employee')->orderBy('empAttDate', 'desc');
 
             if ($request->filled('date_range')) {
                 $range = explode(' - ', $request->input('date_range'));
-
                 if (count($range) === 2) {
                     $start = Carbon::parse($range[0])->startOfDay();
                     $end = Carbon::parse($range[1])->endOfDay();
-
-                    $attendance = $attendance->whereBetween('empAttDate', [$start, $end]);
+                    $attendanceQuery->whereBetween('empAttDate', [$start, $end]);
                 } else {
                     $date = Carbon::parse($range[0]);
-                    $attendance = $attendance->whereDate('empAttDate', $date);
+                    $attendanceQuery->whereDate('empAttDate', $date);
                 }
+            } else {
+                $attendanceQuery->whereDate('empAttDate', Carbon::today());
             }
+
             if ($request->filled('employee_name')) {
-                $attendance->whereHas('employee', function ($query) use ($request) {
+                $attendanceQuery->whereHas('employee', function ($query) use ($request) {
                     $query->where('empFname', 'like', '%' . $request->employee_name . '%')
                         ->orWhere('empLname', 'like', '%' . $request->employee_name . '%');
                 });
             }
+            // Count absents before pagination
+            $allFiltered = (clone $attendanceQuery)->get();
 
-            $attendance = $attendance->paginate(10);
+            $totalAbsents = $allFiltered->filter(fn($item) => strtolower($item->empAttRemarks) === 'absent')->count();
+            $totalPresent = $allFiltered->filter(fn($item) => strtolower($item->empAttRemarks) === 'present')->count();
+
+
+            // Paginate and load relationships after
+            $attendance = $attendanceQuery->paginate(10)->appends($request->only(['date_range', 'employee_name']));
+            $attendance->load('leaves.status');
 
             return view('pages.hr.attendance_management', [
                 'attendance' => $attendance,
+                'totalAbsents' => $totalAbsents,
+                'totalPresent' => $totalPresent,
             ]);
-
         } catch (\Exception $e) {
             logger()->error('Show attendance error: ' . $e->getMessage());
-            return redirect()->back()->with('error', 'Something went wrong.');
+            return redirect()->back()->with('error', 'Something went wrong.' . $e->getMessage());
         }
     }
+
 
 
     //Employee side
@@ -139,7 +176,6 @@ class AttendanceController extends Controller
             return view('pages.employee.attendance', [
                 'attendance' => $attendance,
             ]);
-
         } catch (\Exception $e) {
             logger()->error('Show employee attendance error: ' . $e->getMessage());
             return redirect()->back()->with('error', 'Something went wrong.');

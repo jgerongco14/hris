@@ -146,6 +146,9 @@
                     document.querySelector('input[name="leave_from"]').value = data.dates.start;
                     document.querySelector('input[name="leave_to"]').value = data.dates.end;
                     document.getElementById('reason').value = data.reason;
+                    document.getElementById('approvalPosition').innerText =
+                        Array.isArray(data.positionNames) ? data.positionNames.join(', ') : 'N/A';
+
 
                     // Make sure employee ID is set (critical fix)
                     const empIdInput = document.querySelector('input[name="empId"]');

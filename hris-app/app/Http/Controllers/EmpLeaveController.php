@@ -226,7 +226,7 @@ class EmpLeaveController extends Controller
                 ->toArray();
 
             $positionMap = [
-                'VICE PRESIDENT ACADEMIC OF AFFAIRS' => 'VPAA',
+                'VICE PRESIDENT OF ACADEMIC AFFAIRS' => 'VPAA',
                 'OFFICE HEAD' => 'OFFICE HEAD',
                 'PRESIDENT' => 'PRESIDENT',
                 'FINANCE' => 'FINANCE',
@@ -267,9 +267,10 @@ class EmpLeaveController extends Controller
             logger()->error('Leave status update failed: ' . $e->getMessage());
 
             return response()->json([
-                'error' => 'Failed to update leave status',
+                'error' => 'Failed to fetch leave details',
                 'message' => config('app.debug') ? $e->getMessage() : 'Please try again later'
             ], 500);
+            
         }
     }
 
@@ -321,17 +322,15 @@ class EmpLeaveController extends Controller
 
             $offices = [
                 'Office Head' => 'pending',
-                'HR' => 'pending',
+                'VPAA' => 'pending',
                 'President' => 'pending',
-                'Vice President' => 'pending',
                 'Finance' => 'pending',
             ];
 
             $remarks = [
                 'Office Head' => 'N/A',
-                'HR' => 'N/A',
+                'VPAA' => 'N/A',
                 'President' => 'N/A',
-                'Vice President' => 'N/A',
                 'Finance' => 'N/A',
             ];
 
@@ -361,20 +360,30 @@ class EmpLeaveController extends Controller
     {
         try {
             $empID = Auth::user()->empID;
-            $leave = LeaveStatus::with('leave')
-                ->where('empLeaveNo', $id)
-                ->firstOrFail();
+
+            $leave = LeaveStatus::with([
+                'leave.employee.assignments.position' // 💡 Load nested relationship
+            ])->where('empLeaveNo', $id)->firstOrFail();
 
             if (!$leave) {
                 return response()->json(['error' => 'Leave not found'], 404);
             }
 
+            $employee = optional($leave->leave->employee);
+
+            // Extract all position names
+            $positions = $employee->assignments
+                ->filter(fn($a) => $a->position)
+                ->pluck('position.positionName')
+                ->unique()
+                ->values()
+                ->all();
+
             return response()->json([
                 'empLeaveNo' => $leave->empLeaveNo,
                 'empID' => $empID,
-                'name' => optional($leave->leave->employee)->empFname . ' ' . optional($leave->leave->employee)->empLname,
-                // 'department' => optional($leave->leave->employee->department)->name ?? 'N/A',
-                // 'position' => optional($leave->leave->employee)->position ?? 'N/A',
+                'name' => $employee->empFname . ' ' . $employee->empLname,
+                'positionNames' => $positions, // ✅ Now available in frontend
                 'type' => $leave->leave->leaveType,
                 'dates' => [
                     'start' => $leave->leave->empLeaveStartDate,
@@ -382,12 +391,10 @@ class EmpLeaveController extends Controller
                 ],
                 'reason' => $leave->leave->empLeaveDescription,
                 'attachment' => collect(json_decode($leave->leave->empLeaveAttachment ?? '[]', true))
-                    ->map(function ($path) {
-                        return [
-                            'url' => asset('storage/' . $path),  // Full URL for viewing
-                            'type' => pathinfo($path, PATHINFO_EXTENSION)
-                        ];
-                    })->toArray(),
+                    ->map(fn($path) => [
+                        'url' => asset('storage/' . $path),
+                        'type' => pathinfo($path, PATHINFO_EXTENSION)
+                    ])->toArray(),
 
                 'status' => $leave->empLSStatus,
             ]);
@@ -399,6 +406,7 @@ class EmpLeaveController extends Controller
             ], 500);
         }
     }
+
 
     public function update(Request $request, $id)
     {

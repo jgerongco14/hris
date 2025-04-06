@@ -28,5 +28,9 @@ class Attendance extends Model
     {
         return $this->belongsTo(Employee::class, 'empID', 'empID');
     }
-
+    public function leaves()
+    {
+        return $this->hasMany(Leave::class, 'empID', 'empID');
+    }
+    
 }

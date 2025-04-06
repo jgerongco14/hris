@@ -17,6 +17,7 @@ return new class extends Migration
             $table->string('empLeaveNo')->index();
             $table->string('empLSOffice');
             $table->string('empID')->index();
+            $table->string('empPayStatus')->nullable();
             $table->string('empLSStatus');
             $table->string('empLSRemarks');
             $table->timestamps();

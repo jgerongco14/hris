@@ -108,7 +108,7 @@
                                 $user = Auth::user();
 
                                 $positionMap = [
-                                'VICE PRESIDENT ACADEMIC OF AFFAIRS' => 'VPAA',
+                                'VICE PRESIDENT OF ACADEMIC AFFAIRS' => 'VPAA',
                                 'OFFICE HEAD' => 'OFFICE HEAD',
                                 'PRESIDENT' => 'PRESIDENT',
                                 'VICE PRESIDENT' => 'VICE PRESIDENT',

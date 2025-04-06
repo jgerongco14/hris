@@ -68,7 +68,7 @@ Route::get('/addEmployee', function () {
 Route::post('/addEmployee', [EmployeeController::class, 'store'])->name('addEmployee.store');
 Route::get('/employee-management', [EmployeeController::class, 'index'])->name('employee_management');
 Route::post('/employee/import', [EmployeeController::class, 'importEmp'])->name('employee.import');
-Route::get('/employee/{id}/edit', [EmployeeController::class, 'edit']);
+Route::get('/employee/{id}', [EmpLeaveController::class, 'editForm']);
 Route::put('/employee/{id}', [EmployeeController::class, 'update']);
 
 
@@ -83,7 +83,7 @@ Route::post('/leave_management/{id}/approve', [EmpLeaveController::class, 'appro
 Route::get('/attendance_management', function () {
     return view('pages.hr.attendance_management');
 })->name('attendance_management');
-Route::get('/attendance_management', [AttendanceController::class, 'showAttendance'])->name('attendance_management');
+Route::get('/attendance-management', [AttendanceController::class, 'showAttendance'])->name('attendance_management');
 Route::post('/attendance/import', [AttendanceController::class, 'import'])->name('attendance.import');
 
 // Position Assignment

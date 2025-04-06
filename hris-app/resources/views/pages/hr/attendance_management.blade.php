@@ -27,9 +27,20 @@
                 <div class="card mb-4">
                     <div class="card-body p-4">
                         <h3 class="text-center">Attendance Records</h3>
+                        <div class="row">
+
+                            <div class="col-2">
+                                @if($totalAbsents > 0)
+                                <div class="alert alert-warning d-flex justify-content-between align-items-center">
+                                    <div><strong>Total Absents:</strong> {{ $totalAbsents }}</div>
+                                </div>
+                                @endif
+
+                            </div>
+                        </div>
                         <div class="row align-items-end">
                             <!-- Date Range Picker -->
-                            <div class="col-6 my-3">
+                            <div class="col-8 my-3">
                                 <form method="GET" id="filterForm" class="d-flex gap-2 mb-3">
                                     <div class="input-group">
                                         <button class="btn btn-outline-secondary" type="button" id="open_datepicker">
@@ -43,8 +54,16 @@
                                         id="employee_name_input"
                                         class="form-control"
                                         placeholder="Search employee name"
-                                        autocomplete="off"
                                         value="{{ request('employee_name') }}">
+                                    <!-- Search Button -->
+                                    <button type="submit" class="btn btn-primary d-flex align-items-center">
+                                        <i class="ri-search-line"></i>
+                                    </button>
+                                    <!-- Reset Button -->
+                                    <a href="{{ route('attendance_management') }}" class="btn btn-secondary d-flex align-items-center ms-2">
+                                        <i class="ri-restart-line"></i>
+                                    </a>
+
 
                                 </form>
 
@@ -54,7 +73,7 @@
                             @include('components.import_file')
 
                             <!-- Push button to the right -->
-                            <div class="col-md-2 ms-auto">
+                            <div class="col-2 my-3 ms-auto">
                                 <div class="mb-3">
                                     <button type="button" id="openAddAttendanceModal" class="btn btn-primary w-100" data-bs-toggle="modal" data-bs-target="#addAttendanceModal">
                                         <i class="ri-add-line"></i> Add Attendance
@@ -62,12 +81,31 @@
                                 </div>
                             </div>
                         </div>
+                        <!-- Show active filters if any -->
+                        @if(request('employee_name') || request('date_range'))
+                        <div class="alert alert-info d-flex justify-content-between align-items-center">
+                            <div>
+                                @if(request('employee_name'))
+                                <strong>Employee Name:</strong> {{ request('employee_name') }}
+                                @endif
+                                @if(request('date_range'))
+                                <strong class="ms-3">Date Range:</strong> {{ request('date_range') }}
+                                @endif
+                            </div>
+                            <a href="{{ url()->current() }}" class="btn btn-sm btn-outline-secondary">Clear Filters</a>
+                        </div>
+                        @endif
+
+                        <table class="table table-bordered text">
+                            <!-- your existing table content -->
+                        </table>
 
                         <table class="table table-bordered text">
                             <thead class="text-center">
                                 <tr>
                                     <th>Attendance ID</th>
                                     <th>Employee Name</th>
+                                    <th>Date</th>
                                     <th>Time In</th>
                                     <th>Breakout</th>
                                     <th>Break-in</th>
@@ -83,11 +121,43 @@
                                         {{ $item->employee->empLname ?? 'Unknown' }}, {{ $item->employee->empFname ?? 'Unknown' }}
                                         <input type="hidden" name="empID[]" value="{{ $item->empID }}">
                                     </td>
+                                    <td class="text-center">{{ \Carbon\Carbon::parse($item->empAttDate)->format('M d, Y') }}</td>
                                     <td class="text-center">{{ $item->empAttTimeIn }}</td>
                                     <td class="text-center">{{ $item->empAttBreakOut }}</td>
                                     <td class="text-center">{{ $item->empAttBreakIn }}</td>
                                     <td class="text-center">{{ $item->empAttTimeOut }}</td>
-                                    <td class="text-center">{{ $item->empAttRemarks }}</td>
+                                    <td class="text-center">
+                                        @php
+                                        $remarks = strtolower(trim($item->empAttRemarks));
+                                        $matchingLeave = $item->leaves->first(fn($leave) =>
+                                        $leave->empLeaveStartDate <= $item->empAttDate &&
+                                            $leave->empLeaveEndDate >= $item->empAttDate
+                                            );
+                                            $leaveStatus = $matchingLeave?->status;
+                                            @endphp
+
+                                            @if($remarks === 'absent' && $matchingLeave)
+                                            <div class="badge bg-danger mb-1">Absent</div>
+                                            <div class="small text-start mt-1">
+                                                <strong>Date Leave:</strong> {{ \Carbon\Carbon::parse($matchingLeave->empLeaveStartDate)->format('M d, Y') }}
+                                                to {{ \Carbon\Carbon::parse($matchingLeave->empLeaveEndDate)->format('M d, Y') }}<br>
+                                                <strong>Status:</strong> {{ $leaveStatus->empLSStatus ?? 'Pending' }}<br>
+                                                <strong>Pay Status:</strong> {{ $leaveStatus->empLSPayStatus ?? '-' }}
+                                            </div>
+                                            @elseif($remarks === 'absent')
+                                            <span class="badge bg-danger">Absent</span><br>
+                                            <span class="small text-muted">No Filled for Leave.</span>
+                                            @elseif($remarks === 'present')
+                                            <span class="badge bg-success">Present</span>
+                                            @elseif($remarks === 'undertime')
+                                            <span class="badge bg-warning text-dark">Undertime</span>
+                                            @elseif($remarks)
+                                            <span class="badge bg-secondary">{{ ucfirst($remarks) }}</span>
+                                            @else
+                                            <span class="text-muted">—</span>
+                                            @endif
+                                    </td>
+
                                 </tr>
                                 @empty
                                 <tr>
@@ -131,6 +201,7 @@
                 autoApply: true,
                 startDate: "{{ request('date_range') ? explode(' - ', request('date_range'))[0] : date('Y-m-d') }}",
                 endDate: "{{ request('date_range') ? explode(' - ', request('date_range'))[1] ?? explode(' - ', request('date_range'))[0] : date('Y-m-d') }}",
+
             });
 
             picker.on('selected', (start, end) => {
