@@ -11,6 +11,7 @@ use Carbon\Carbon;
 use Exception;
 use PhpOffice\PhpWord\PhpWord;
 use PhpOffice\PhpWord\IOFactory as PhpWordIOFactory;
+use PhpOffice\PhpWord\TemplateProcessor;
 
 class EmpContributionController extends Controller
 {
@@ -143,71 +144,99 @@ class EmpContributionController extends Controller
     }
 
 
-    
+
     public function exportWord(Request $request)
     {
-        $contributionType = $request->input('contribution_type', 'SSS');
-        $search = $request->input('search');
-    
-        $contributions = Contribution::with('employee')
-            ->where('empContype', $contributionType)
-            ->when($search, function ($query, $search) {
-                $query->where(function ($q) use ($search) {
-                    $q->where('empID', 'like', "%{$search}%")
-                        ->orWhereHas('employee', function ($q) use ($search) {
-                            $q->whereRaw("CONCAT(empFname, ' ', empLname) LIKE ?", ["%{$search}%"]);
-                        });
-                });
-            })->get();
-    
-        $phpWord = new PhpWord();
-        $section = $phpWord->addSection();
-    
-        $section->addText(strtoupper($contributionType) . ' Contributions', ['bold' => true, 'size' => 16], ['alignment' => 'center']);
-        $section->addTextBreak(1);
-    
-        $table = $section->addTable(['borderSize' => 6, 'borderColor' => '000000']);
-    
-        // Table Headers
-        $table->addRow();
-        $table->addCell()->addText('Contribution No');
-        $table->addCell()->addText('ID No');
-        $table->addCell()->addText('Emp ID');
-        $table->addCell()->addText('Employee Name');
-        $table->addCell()->addText('Amount');
-        $table->addCell()->addText('Date');
-        $table->addCell()->addText('Remarks');
-    
-        // Table Rows
-        foreach ($contributions as $c) {
-            $employee = $c->employee;
+        try {
+            $contributionType = $request->input('contribution_type', 'SSS');
+            $search = $request->input('search');
+
+            // Fetch contributions and employee info
+            $contributions = Contribution::with('employee')
+                ->where('empContype', $contributionType)
+                ->when($search, function ($query, $search) {
+                    $query->where(function ($q) use ($search) {
+                        $q->where('empID', 'like', "%{$search}%")
+                            ->orWhereHas('employee', function ($q) use ($search) {
+                                $q->whereRaw("CONCAT(empFname, ' ', empLname) LIKE ?", ["%{$search}%"]);
+                            });
+                    });
+                })->orderBy('empConDate')->get();
+
+            if ($contributions->isEmpty()) {
+                return back()->with('error', 'No contributions found for this filter.');
+            }
+
+            // Use the first employee record to fill certificate header
+            $first = $contributions->first();
+            $employee = $first->employee;
+
             $fullName = $employee ? "{$employee->empFname} {$employee->empMname} {$employee->empLname}" : 'N/A';
-    
             $idNo = match ($contributionType) {
                 'SSS' => $employee->empSSSNum ?? 'N/A',
                 'PAG-IBIG' => $employee->empPagIbigNum ?? 'N/A',
                 'TIN' => $employee->empTinNum ?? 'N/A',
                 default => 'N/A',
             };
-    
-            $table->addRow();
-            $table->addCell()->addText($c->empConNo);
-            $table->addCell()->addText($idNo);
-            $table->addCell()->addText($employee->empID ?? 'N/A');
-            $table->addCell()->addText($fullName);
-            $table->addCell()->addText(number_format($c->empConAmount, 2));
-            $table->addCell()->addText($c->empConDate);
-            $table->addCell()->addText($c->empConRemarks);
+
+            // Compute coverage period
+            $start = \Carbon\Carbon::parse($contributions->first()->empConDate)->format('F Y');
+            $end = \Carbon\Carbon::parse($contributions->last()->empConDate)->format('F Y');
+            $coveragePeriod = "$start to $end";
+
+            // Load the certificate template
+            $templatePath = public_path('template/contribution_template.docx');
+            $templateProcessor = new \PhpOffice\PhpWord\TemplateProcessor($templatePath);
+
+            // Set certificate header fields
+            $templateProcessor->setValue('empConType', strtoupper($contributionType));
+            $templateProcessor->setValue('empName', $fullName);
+            $templateProcessor->setValue('empSSS', $idNo);
+            $templateProcessor->setValue('coveragePeriod', $coveragePeriod);
+
+            // Prepare and clone table rows
+            $contributions = $contributions->sortBy('empConDate')->values();
+            $templateProcessor->cloneRow('month', $contributions->count());
+
+            $totalAmount = 0;
+            foreach ($contributions as $index => $contribution) {
+                $row = $index + 1;
+                $date = \Carbon\Carbon::parse($contribution->empConDate);
+
+                $year = $date->format('Y');
+                $month = $date->format('F');
+
+                $premium = number_format($contribution->empConAmount, 2);
+                $ec = $contribution->empConEC ?? 'No Earnings';
+                $prNumber = $contribution->empConPRNo ?? 'No Earnings';
+                $paymentDate = $date->format('m/d/Y');
+
+                $templateProcessor->setValue("year#{$row}", $year);
+                $templateProcessor->setValue("month#{$row}", $month);
+                $templateProcessor->setValue("sssPremium#{$row}", is_numeric($premium) ? "Php {$premium}" : "No Earnings");
+                $templateProcessor->setValue("ec#{$row}", is_numeric($ec) ? "Php {$ec}" : $ec);
+                $templateProcessor->setValue("prNumber#{$row}", $prNumber);
+                $templateProcessor->setValue("paymentDate#{$row}", $paymentDate);
+
+                $totalAmount += is_numeric($contribution->empConAmount) ? $contribution->empConAmount : 0;
+            }
+
+            // Set total
+            $templateProcessor->setValue('totalPremium', number_format($totalAmount, 2));
+
+            // Downloadable file
+            $fileName = strtoupper($contributionType) . '_contributions_' . now()->format('Ymd_His') . '.docx';
+            $tempFile = tempnam(sys_get_temp_dir(), 'cert');
+            $templateProcessor->saveAs($tempFile);
+
+            return response()->download($tempFile, $fileName)->deleteFileAfterSend(true);
+        } catch (Exception $e) {
+            return back()->with('error', 'Error generating document: ' . $e->getMessage());
         }
-    
-        // Prepare file for download
-        $fileName = $contributionType . '_contributions_' . now()->format('Ymd_His') . '.docx';
-        $tempFile = tempnam(sys_get_temp_dir(), 'word');
-        $writer = PhpWordIOFactory::createWriter($phpWord, 'Word2007');
-        $writer->save($tempFile);
-    
-        return response()->download($tempFile, $fileName)->deleteFileAfterSend(true);
-    }    
+    }
+
+    // Show Contribution Edit Form
+
 
 
     // Delete Contribution
