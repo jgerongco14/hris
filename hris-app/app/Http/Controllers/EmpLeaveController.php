@@ -104,8 +104,7 @@ class EmpLeaveController extends Controller
     {
         try {
             $leave = LeaveStatus::with([
-                'leave.employee',
-                // 'leave.employee.department'
+                'leave.employee.assignments.position',
             ])
                 ->where('empLeaveNo', $id)
                 ->firstOrFail();
@@ -115,12 +114,21 @@ class EmpLeaveController extends Controller
                 return response()->json(['error' => 'Leave not found'], 404);
             }
 
+            $employee = optional($leave->leave->employee);
+
+            // Get all unique position names from assignments
+            $positions = $employee->assignments
+                ->filter(fn($assignment) => $assignment->position) // only if position exists
+                ->pluck('position.positionName')
+                ->unique()
+                ->values()
+                ->all();
+
             return response()->json([
                 'empLeaveNo' => $leave->empLeaveNo,
                 'empID' => $leave->empID,
                 'name' => optional($leave->leave->employee)->empFname . ' ' . optional($leave->leave->employee)->empLname,
-                // 'department' => optional($leave->leave->employee->department)->name ?? 'N/A',
-                // 'position' => optional($leave->leave->employee)->position ?? 'N/A',
+                'positionNames' => $positions,
                 'type' => $leave->leave->leaveType,
                 'dates' => [
                     'start' => $leave->leave->empLeaveStartDate,

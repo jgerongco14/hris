@@ -6,12 +6,11 @@
               <div class="card p-3">
                   <div class="row">
                       <div class="col-md-6">
-                          <p><strong>Name and Department</strong><br>
+                          <p><strong>Name</strong><br>
                               <span id="approvalName"></span><br>
-                              <!-- <em id="approvalDepartment"></em> -->
                           </p>
                           <p><strong>Position</strong><br>
-                              <!-- <span id="approvalPosition"></span> -->
+                              <span id="approvalPosition"></span><br>
                           </p>
                           <p><strong>Reason for Leave</strong><br>
                               <span id="approvalReason"></span>
@@ -43,7 +42,7 @@
                       <div class="col-md-6">
                           <label for="payStatus" class="form-label">Pay Status*</label>
                           <select class="form-select" id="payStatus">
-                              <option >With Pay</option>
+                              <option>With Pay</option>
                               <option selected>Without Pay</option>
                           </select>
                       </div>

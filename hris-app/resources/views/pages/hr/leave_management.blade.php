@@ -100,6 +100,10 @@
                     document.getElementById('approvalDates').innerText = `${startDate} - ${endDate}`;
 
                     document.getElementById('approvalReason').innerText = leaveData.reason;
+                    document.getElementById('approvalPosition').innerText = Array.isArray(leaveData.positionNames) ?
+                        leaveData.positionNames.join(', ') :
+                        'N/A';
+
 
                     // Set the current status in the dropdown
                     if (leaveData.status) {
