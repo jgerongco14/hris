@@ -22,7 +22,7 @@
                     Position Management
                 </a>
             </li>
-        
+
 
 
             @elseif (Auth::check() && Auth::user()->role === 'hr')
@@ -46,19 +46,38 @@
                     Contribution Management
                 </a>
             </li>
-    
+
 
             @elseif(Auth::check() && Auth::user()->role === 'employee')
+            @php
+            $hasVPAccess = Auth::user()->employee?->hasPosition(['President', 'Vice President']);
+            @endphp
+
+            @if(!$hasVPAccess)
             <li class="nav-item">
                 <a class="nav-link {{ request()->routeIs('leave_application') ? 'active' : '' }}" href="{{ route('leave_application') }}">
                     Leave
                 </a>
             </li>
+            @endif
             <li class="nav-item">
                 <a class="nav-link {{ request()->routeIs('attendance') ? 'active' : '' }}" href="{{ route('attendance') }}">
                     Attendance
                 </a>
-                @endif
+            </li>
+            @php
+            $hasVPAccess = Auth::user()->employee?->hasPosition(['President', 'Vice President']);
+            @endphp
+
+
+            @if($hasVPAccess)
+            <li class="nav-item">
+                <a class="nav-link {{ request()->routeIs('leave_management') ? 'active' : '' }}" href="{{ route('leave_management') }}">
+                    Leave Management
+                </a>
+            </li>
+            @endif
+            @endif
         </ul>
     </div>
 </nav>

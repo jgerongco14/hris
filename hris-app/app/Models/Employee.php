@@ -65,4 +65,11 @@ class Employee extends Model
     {
         return $this->hasMany(Contribution::class, 'empID', 'empID');
     }
+
+    public function hasPosition(array $positions)
+    {
+        return $this->assignments()->with('position')->get()->contains(function ($assignment) use ($positions) {
+            return in_array($assignment->position?->positionName, $positions);
+        });
+    }
 }
