@@ -249,15 +249,12 @@
                     </td>
                     <td class="align-middle text-center">
                         <!-- Updated edit button -->
-                        <button class="btn btn-sm btn-primary mx-1" onclick="showEditOptions('{{ $employee->id }}')">
+                        <button class="btn btn-sm btn-primary mx-1" onclick="showEditOptions('{{ $employee->id }}','{{ $employee->empFname }} {{ $employee->empLname }}', '{{ $employee->empID }}')">
                             <i class="ri-pencil-line"></i>
                         </button>
 
                         <button class="btn btn-sm btn-danger mx-1" onclick="deleteEmployee('{{ $employee->id }}')">
                             <i class="ri-delete-bin-line"></i>
-                        </button>
-                        <button class="btn btn-sm btn-success mx-1" onclick="assignPosition('{{ $employee->id }}', '{{ $employee->empFname }} {{ $employee->empLname }}', '{{ $employee->empID }}')">
-                            <i class="ri-briefcase-line"></i> <!-- Assign Position Icon -->
                         </button>
                     </td>
                 </tr>

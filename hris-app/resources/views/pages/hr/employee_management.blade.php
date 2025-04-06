@@ -50,9 +50,13 @@
 
     <script>
         let selectedEmployeeId = null;
+        let selectedEmployeeName = null;
+        let selectedEmpID = null;
 
-        function showEditOptions(employeeId) {
+        function showEditOptions(employeeId, empName, empID) {
             selectedEmployeeId = employeeId;
+            selectedEmployeeName = empName;
+            selectedEmpID = empID;
             $('#editChoiceModal').modal('show');
         }
 
@@ -105,7 +109,7 @@
         document.getElementById('editPositionBtn').addEventListener('click', function() {
             $('#editChoiceModal').modal('hide');
             // Show the assign position form/modal instead
-            assignPosition(selectedEmployeeId); // Reuse your existing assignPosition function
+            assignPosition(selectedEmployeeId, selectedEmployeeName, selectedEmpID);
         });
 
         $(document).ready(function() {
@@ -160,11 +164,91 @@
             const modal = new bootstrap.Modal(document.getElementById('assignPositionModal'));
             modal.show();
 
-            // Set the values properly
-            document.getElementById('assignEmpID').value = id; // internal ID if you need it
-            document.getElementById('empID').value = empID; // this should match the `empID` in the DB
+            // Set static fields
+            document.getElementById('assignEmpID').value = id;
+            document.getElementById('empID').value = empID;
+            document.getElementById('empIDHidden').value = empID;
             document.getElementById('employeeName').value = empName;
+
+            const tbody = document.getElementById('assignedPositionsBody');
+            tbody.innerHTML = `
+        <tr>
+            <td colspan="4" class="text-center text-muted">Loading...</td>
+        </tr>
+    `;
+
+            // Fetch positions
+            fetch(`/employee/${id}/positions`)
+                .then(res => res.json())
+                .then(data => {
+                    if (data.length > 0) {
+                        tbody.innerHTML = ''; // Clear loading
+                        data.forEach((assignment, index) => {
+                            const row = `
+                        <tr>
+                            <td class="text-center">${index + 1}</td>
+                            <td>${assignment.positionName}</td>
+                            <td class="text-center">${assignment.empAssAppointedDate}</td>
+                            <td class="text-center">${assignment.empAssEndDate}</td>
+                            <td class="text-center">
+                                <button class="btn btn-danger btn-sm" onclick="removePosition(${assignment.empAssID})">
+                                    <i class="ri-delete-bin-5-line"></i>
+                                </button>
+                            </td>
+                        </tr>`;
+                            tbody.insertAdjacentHTML('beforeend', row);
+                        });
+                    } else {
+                        tbody.innerHTML = `
+                    <tr>
+                        <td colspan="5" class="text-center text-muted">No position assignments found.</td>
+                    </tr>`;
+                    }
+                })
+                .catch(error => {
+                    console.error("Fetch error:", error);
+                    tbody.innerHTML = `
+                <tr>
+                    <td colspan="5" class="text-danger text-center">Failed to load positions.</td>
+                </tr>`;
+                });
         }
+
+        function removePosition(empAssID) {
+            if (!confirm("Are you sure you want to remove this position assignment?")) return;
+
+            fetch(`/employee/assignment/${empAssID}/delete`, {
+                    method: 'DELETE',
+                    headers: {
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                        'Content-Type': 'application/json'
+                    }
+                })
+                .then(res => {
+                    if (!res.ok) throw new Error('Failed to delete');
+                    return res.json(); // Make sure to return the response
+                })
+                .then(data => {
+                    if (data.success) {
+                        showToast("Success", "Position removed successfully.");
+                    } else {
+                        showToast("Error", data.message || "Delete failed.", 'danger');
+                    }
+
+                    // 🟡 Reload the assignment list only, not the entire modal
+                    assignPosition(
+                        document.getElementById('assignEmpID').value,
+                        document.getElementById('employeeName').value,
+                        document.getElementById('empID').value
+                    );
+                })
+                .catch(err => {
+                    showToast("Error", "Something went wrong while deleting.", 'danger');
+                    console.error(err);
+                });
+        }
+
+
 
 
         function cancelAssign() {

@@ -88,6 +88,9 @@ Route::post('/attendance/import', [AttendanceController::class, 'import'])->name
 
 // Position Assignment
 Route::post('/hr/assign-position', [AssignEmpController::class, 'assignPosition'])->name('assignPosition');
+Route::get('/employee/{id}/positions', [AssignEmpController::class, 'getPositions'])->name('employee.positions');
+Route::delete('/employee/assignment/{id}/delete', [AssignEmpController::class, 'deleteAssignment']);
+
 
 
 // Employee Contribution
