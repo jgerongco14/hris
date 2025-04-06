@@ -29,6 +29,7 @@
                                 <th>Type of Leave</th>
                                 <th>Date Range</th>
                                 <th>Reason</th>
+                                <th>Offices</th>
                                 <th>Status</th>
                                 <th>Remarks</th>
                                 <th>Actions</th>
@@ -53,6 +54,35 @@
                                 <!-- Reason -->
                                 <td>{{ $status->leave->empLeaveDescription }}</td>
 
+                                <!-- Offices -->
+                                <td>
+                                    @php
+                                    $offices = json_decode($status->empLSOffice, true);
+                                    @endphp
+
+                                    @if($offices && is_array($offices))
+                                    <ul class="list-unstyled mb-0">
+                                        @foreach($offices as $office => $empLSOffice)
+                                        @php
+                                        $badgeClass = match(strtolower($empLSOffice)) {
+                                        'pending' => 'bg-secondary',
+                                        'approved' => 'bg-success',
+                                        'declined' => 'bg-danger',
+                                        default => 'bg-light text-dark',
+                                        };
+                                        @endphp
+                                        <li>
+                                            <strong>{{ ucwords(strtolower($office)) }}:</strong>
+                                            <span class="badge {{ $badgeClass }}">{{ strtoupper($empLSOffice) }}</span>
+                                        </li>
+                                        @endforeach
+                                    </ul>
+                                    @else
+                                    <span class="text-muted">No status available.</span>
+                                    @endif
+                                </td>
+
+
                                 <!-- Status -->
                                 <td class="text-center">
                                     @php
@@ -66,12 +96,21 @@
                                     <span class="badge {{ $badgeClass }}">{{ strtoupper($status->empLSStatus) }}</span>
                                 </td>
 
+
                                 <!-- Remarks -->
-                                <td class="text-center">
-                                    @if($status->empLSRemarks)
-                                    <span class="badge text-dark">{{ $status->empLSRemarks }}</span>
+                                <td>
+                                    @php
+                                    $remarks = json_decode($status->empLSRemarks, true);
+                                    @endphp
+
+                                    @if($remarks && is_array($remarks))
+                                    <ul class="list-unstyled mb-0">
+                                        @foreach($remarks as $office => $remark)
+                                        <li><strong>{{ ucwords(strtolower($office)) }}:</strong> {{ $remark }}</li>
+                                        @endforeach
+                                    </ul>
                                     @else
-                                    <span class="badge text-dark">N/A</span>
+                                    <span class="text-muted">No remarks available.</span>
                                     @endif
                                 </td>
 
@@ -87,10 +126,11 @@
                                     </a>
                                     @endif
                                 </td>
+
                             </tr>
                             @empty
                             <tr>
-                                <td colspan="7" class="text-center text-muted">{{ $tabConfig['empty'] }}</td>
+                                <td colspan="8" class="text-center text-muted">{{ $tabConfig['empty'] }}</td>
                             </tr>
                             @endforelse
                         </tbody>

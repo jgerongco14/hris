@@ -150,13 +150,9 @@ class EmpLeaveController extends Controller
 
             logger()->error('Failed to fetch leave details: ' . $e->getMessage());
 
-            // return redirect()
-            //     ->back()
-            //     ->with('Error', 'Failed to fetch leave details. Please try again later.');
-            return response()->json([
-                'error' => 'Failed to fetch leave details',
-                'message' => config('app.debug') ? $e->getMessage() : 'Please try again later'
-            ], 500);
+            return redirect()
+                ->back()
+                ->with('Error', 'Failed to fetch leave details. Please try again later.');
         }
     }
 
@@ -217,24 +213,68 @@ class EmpLeaveController extends Controller
 
             $leaveStatus = LeaveStatus::where('empLeaveNo', $request->empLeaveNo)->firstOrFail();
 
+            // Decode current office status and remarks
+            $officeStatuses = json_decode($leaveStatus->empLSOffice, true);
+            $officeRemarks = json_decode($leaveStatus->empLSRemarks, true);
+
+            // Get the current user's position(s)
+            $positions = Auth::user()->employee?->assignments()
+                ->with('position')
+                ->get()
+                ->pluck('position.positionName')
+                ->map(fn($name) => strtoupper($name))
+                ->toArray();
+
+            // Map: 'HUMAN RESOURCE' => 'HR'
+            $positionMap = [
+                'HUMAN RESOURCE' => 'HR',
+                'OFFICE HEAD' => 'OFFICE HEAD',
+                'PRESIDENT' => 'PRESIDENT',
+                'VICE PRESIDENT' => 'VICE PRESIDENT',
+                'FINANCE' => 'FINANCE',
+            ];
+
+            // Update statuses only for matched position(s)
+            foreach ($positions as $pos) {
+                $mapped = $positionMap[$pos] ?? $pos;
+
+                if (isset($officeStatuses[$mapped])) {
+                    $officeStatuses[$mapped] = strtolower($request->status);
+                    $officeRemarks[$mapped] = $request->remarks ?? 'N/A';
+                }
+            }
+
+            // Determine overall empLSStatus
+            $finalStatus = 'pending';
+
+            if (in_array('declined', array_map('strtolower', $officeStatuses))) {
+                $finalStatus = 'declined';
+            } elseif (count(array_filter($officeStatuses, fn($s) => strtolower($s) === 'approved')) === count($officeStatuses)) {
+                $finalStatus = 'approved';
+            }
+
+            // Save updated status
             $leaveStatus->update([
-                'empLSStatus' => $request->status,
+                'empLSOffice' => json_encode($officeStatuses),
+                'empLSRemarks' => json_encode($officeRemarks),
+                'empLSStatus' => $finalStatus,
                 'empLSPayStatus' => $request->payStatus ?? 'With Pay',
-                'empLSRemarks' => $request->remarks,
                 'updated_at' => now(),
             ]);
 
             return response()->json([
-                'message' => 'Leave status updated successfully!'
+                'message' => 'Leave status updated successfully!',
             ]);
         } catch (Exception $e) {
             logger()->error('Leave status update failed: ' . $e->getMessage());
+
             return response()->json([
                 'error' => 'Failed to update leave status',
                 'message' => config('app.debug') ? $e->getMessage() : 'Please try again later'
             ], 500);
         }
     }
+
 
 
 
@@ -270,7 +310,7 @@ class EmpLeaveController extends Controller
                 }
             }
 
-            $leave = Leave::create([
+            Leave::create([
                 'empLeaveNo' => $empLeaveNo,
                 'empID' => $empID,
                 'empLeaveDateApplied' => now(),
@@ -281,15 +321,30 @@ class EmpLeaveController extends Controller
                 'empLeaveAttachment' => json_encode($filePaths),
             ]);
 
+            $offices = [
+                'Office Head' => 'pending',
+                'HR' => 'pending',
+                'President' => 'pending',
+                'Vice President' => 'pending',
+                'Finance' => 'pending',
+            ];
+
+            $remarks = [
+                'Office Head' => 'N/A',
+                'HR' => 'N/A',
+                'President' => 'N/A',
+                'Vice President' => 'N/A',
+                'Finance' => 'N/A',
+            ];
+
             LeaveStatus::create([
                 'empLSNo' => $empLSNo,
                 'empLeaveNo' => $empLeaveNo,
-                'status' => $request->status,
                 'dateUpdated' => now(),
                 'empID' => $empID,
-                'empLSOffice' => '',
+                'empLSOffice' => json_encode($offices),
                 'empLSStatus' => 'pending',
-                'empLSRemarks' => '',
+                'empLSRemarks' => json_encode($remarks),
             ]);
 
             return redirect()
