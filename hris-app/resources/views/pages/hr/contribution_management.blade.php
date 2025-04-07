@@ -73,6 +73,7 @@
             var amount = $(this).data('amount');
             var date = $(this).data('date');
             var remarks = $(this).data('remarks');
+            var type = $(this).data('type');
 
             // Set the action URL of the form
             var actionUrl = "{{ route('contribution.update', ':id') }}".replace(':id', contributionId);
@@ -85,6 +86,7 @@
             $('#empConAmount').val(amount);
             $('#empConDate').val(formattedDate); // Ensure the date is in 'YYYY-MM-DD' format
             $('#empConRemarks').val(remarks);
+            $('#empContype').val(type);
         });
 
 

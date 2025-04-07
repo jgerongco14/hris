@@ -46,6 +46,7 @@
                     Contribution Management
                 </a>
             </li>
+            
 
 
             @elseif(Auth::check() && Auth::user()->role === 'employee')
@@ -63,6 +64,11 @@
             <li class="nav-item">
                 <a class="nav-link {{ request()->routeIs('attendance') ? 'active' : '' }}" href="{{ route('attendance') }}">
                     Attendance
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link {{ request()->routeIs('contribution.show') ? 'active' : '' }}" href="{{ route('contribution.show') }}">
+                    Contribution
                 </a>
             </li>
             @php

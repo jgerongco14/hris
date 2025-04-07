@@ -14,12 +14,12 @@ return new class extends Migration
         Schema::create('empContributions', function (Blueprint $table) {
             $table->id();
             $table->string('empConNo')->unique();
-            $table->string('payRefNo')->nullable();
             $table->string('empID')->index();
             $table->string('empContype');
             $table->decimal('empConAmount');
+            $table->string('employeerContribution')->nullable();
             $table->string('empConDate', 7); // Format: YYYY-MM
-            $table->string('empConRemarks')->nullable();
+            $table->string('payRefNo')->nullable();
         
             $table->timestamps();
         });

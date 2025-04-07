@@ -10,6 +10,7 @@ use PhpOffice\PhpSpreadsheet\Reader\Csv;
 use Carbon\Carbon;
 use Exception;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Auth;
 
 class EmpContributionController extends Controller
 {
@@ -265,9 +266,11 @@ class EmpContributionController extends Controller
                 'empConDate' => Carbon::parse($validatedData['empConDate'])->format('Y-m'),  // Only 'YYYY-MM'
                 'empConRemarks' => $validatedData['empConRemarks'] ?? null,
             ]);
-        
 
-            return redirect()->route('contribution.management')->with('success', 'Contribution successfully updated.');
+            return redirect()->route('contribution.management', [
+                'contribution_type' => $request->input('contribution_type', 'SSS'),  // Pass the current contribution type
+                'search' => $request->input('search')  // Optionally pass any search filters back
+            ])->with('success', 'Contribution successfully updated.');
         } catch (\Illuminate\Validation\ValidationException $e) {
             // Pass the validation error to the session
             return redirect()->back()->with('error', 'Validation failed: ' . implode(", ", $e->errors()));
@@ -276,7 +279,6 @@ class EmpContributionController extends Controller
             return redirect()->back()->with('error', 'Error occurred while updating the contribution: ' . $e->getMessage());
         }
     }
-
 
     // Delete Contribution
     public function destroy($id)
@@ -290,4 +292,48 @@ class EmpContributionController extends Controller
             return redirect()->back()->with('error', 'Error occurred while deleting the contribution: ' . $e->getMessage());
         }
     }
+
+    //Employee
+    public function employeeContribution(Request $request)
+    {
+        try {
+            $activeType = $request->input('contribution_type', 'SSS');  // Default to 'SSS'
+            $employee = Auth::user()->employee;
+    
+            if (!$employee) {
+                return redirect()->back()->with('error', 'Employee record not found for the authenticated user.');
+            }
+    
+            // Get the empID of the authenticated user
+            $empID = $employee->empID;
+    
+            // Retrieve contributions for each type, filtered by the empID
+            $sssContributions = Contribution::with('employee')
+                ->where('empContype', 'SSS')
+                ->where('empID', $empID)  // Filter by empID
+                ->paginate(10, ['*'], 'sss_page');
+    
+            $pagibigContributions = Contribution::with('employee')
+                ->where('empContype', 'PAG-IBIG')
+                ->where('empID', $empID)  // Filter by empID
+                ->paginate(10, ['*'], 'pagibig_page');
+    
+            $tinContributions = Contribution::with('employee')
+                ->where('empContype', 'TIN')
+                ->where('empID', $empID)  // Filter by empID
+                ->paginate(10, ['*'], 'tin_page');
+    
+            return view('pages.employee.my_contribution', compact(
+                'sssContributions',
+                'pagibigContributions',
+                'tinContributions',
+                'employee',
+                'activeType'  // Active type passed for tab highlighting
+            ));
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Error occurred while fetching contributions: ' . $e->getMessage());
+        }
+    }
+    
+
 }

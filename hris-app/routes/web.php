@@ -113,6 +113,9 @@ Route::get('/contributions/export-word', [EmpContributionController::class, 'exp
 Route::get('/contributions/{id}/edit', [EmpContributionController::class, 'edit'])->name('contribution.edit');
 Route::put('/contributions/{id}', [EmpContributionController::class, 'update'])->name('contribution.update');
 
+//Employee Contribution
+Route::get('/contribution', [EmpContributionController::class, 'employeeContribution'])->name('contribution.show');
+
 
 // User Profile
 

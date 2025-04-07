@@ -12,6 +12,9 @@
                     @csrf
                     @method('PUT')
 
+                    <!-- EmpConType (hidden field) -->
+                    <input type="hidden" id="empConType" name="empConType">
+
                     <div class="mb-3">
                         <label for="empConAmount" class="form-label">Amount</label>
                         <input type="number" step="0.01" class="form-control" id="empConAmount" name="empConAmount" required>
