@@ -15,8 +15,10 @@ class Contribution extends Model
         'empID',
         'empContype',
         'empConAmount',
+        'employeerContribution',
+        'payRefNo',
         'empConDate',
-        'empConRemarks',
+       
     ];
 
     public function employee()

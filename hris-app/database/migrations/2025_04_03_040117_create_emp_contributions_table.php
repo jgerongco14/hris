@@ -18,7 +18,7 @@ return new class extends Migration
             $table->string('empContype');
             $table->decimal('empConAmount');
             $table->string('employeerContribution')->nullable();
-            $table->string('empConDate', 7); // Format: YYYY-MM
+            $table->string('empConDate');
             $table->string('payRefNo')->nullable();
         
             $table->timestamps();

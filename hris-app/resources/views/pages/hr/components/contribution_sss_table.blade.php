@@ -36,8 +36,9 @@
                   <th>Emp ID</th>
                   <th>Employee Name</th>
                   <th>Amount</th>
+                  <th>EC</th>
+                  <th>PR Number</th>
                   <th>Date</th>
-                  <th>Remarks</th>
                   @if(Auth::check() && Auth::user()->role !== 'employee')
                   <th>Action</th>
                   @endif
@@ -57,15 +58,18 @@
                       @endif
                   </td>
                   <td>{{ number_format($contribution->empConAmount, 2) }}</td>
+                  <td>{{ number_format($contribution->employeerContribution, 2) }}</td>
+                  <td>{{ $contribution->payRefNo }}</td>
                   <td>{{ $contribution->empConDate }}</td>
-                  <td>{{ $contribution->empConRemarks }}</td>
                   @if(Auth::check() && Auth::user()->role !== 'employee')
                   <td>
                       <a href="javascript:void(0);" class="btn btn-warning btn-sm edit-contribution"
                           data-id="{{ $contribution->id }}"
+                          data-name="{{ $contribution->employee->empFname }} {{ $contribution->employee->empMname }} {{ $contribution->employee->empLname }}"
                           data-amount="{{ $contribution->empConAmount }}"
                           data-date="{{ $contribution->empConDate }}"
-                          data-remarks="{{ $contribution->empConRemarks }}"
+                          data-employeerContribution="{{ $contribution->employeerContribution }}"
+                          data-payRefNo="{{ $contribution->payRefNo }}"
                           data-type="{{ $contribution->empContype }}"
                           data-bs-toggle="modal"
                           data-bs-target="#editContributionModal">

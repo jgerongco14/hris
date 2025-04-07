@@ -16,18 +16,28 @@
                     <input type="hidden" id="empConType" name="empConType">
 
                     <div class="mb-3">
+                        <label for="employeeName" class="form-label">Employee Name</label>
+                        <input type="text" class="form-control" id="employeeName" name="employeeName" value="{{ $contribution->employee->empFname . ' ' . $contribution->employee->empLname }}" readonly>
+                    </div>
+
+                    <div class="mb-3">
                         <label for="empConAmount" class="form-label">Amount</label>
                         <input type="number" step="0.01" class="form-control" id="empConAmount" name="empConAmount" required>
                     </div>
 
                     <div class="mb-3">
-                        <label for="empConDate" class="form-label">Date</label>
-                        <input type="date" class="form-control" id="empConDate" name="empConDate" required>
+                        <label for="employeerContribution" class="form-label">Employer Contribution</label>
+                        <input type="number" step="0.01" class="form-control" id="employeerContribution" name="employeerContribution" required>
                     </div>
 
                     <div class="mb-3">
-                        <label for="empConRemarks" class="form-label">Remarks</label>
-                        <input type="text" class="form-control" id="empConRemarks" name="empConRemarks">
+                        <label for="payRefNo" class="form-label">Pay Ref No</label>
+                        <input type="text" class="form-control" id="payRefNo" name="payRefNo" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="empConDate" class="form-label">Date</label>
+                        <input type="date" class="form-control" id="empConDate" name="empConDate" required>
                     </div>
 
                     <div class="modal-footer">

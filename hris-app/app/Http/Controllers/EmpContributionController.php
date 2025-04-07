@@ -29,8 +29,9 @@ class EmpContributionController extends Controller
                 'empID' => $request->empID,
                 'empContype' => $request->empContype,
                 'empConAmount' => $request->empConAmount,
-                'empConDate' => $request->empConDate,
-                'empConRemarks' => $request->empConRemarks,
+                'employeerContribution' => $request->employeerContribution,
+                'empConDate' => Carbon::parse($request->empConDate)->format('Y-m-d'),
+                'payRefNo' => $request->payRefNo,
             ]);
 
             return redirect()->back()->with('success', 'Contribution successfully added.');
@@ -59,16 +60,20 @@ class EmpContributionController extends Controller
 
             foreach ($rows as $index => $row) {
                 if ($index === 0) continue; // Skip header row
-                if (count($row) < 5) continue; // Ensure there are enough columns (5 columns in your case)
 
-                $empID = trim($row[0]);
-                $empContype = trim($row[1]);
-                $empConAmount = trim($row[2]);
-                $empConDate = trim($row[3]);
-                $empConRemarks = trim($row[4]);
+                $empID = isset($row[0]) ? trim($row[0]) : null;
+                $empContype = isset($row[1]) ? trim($row[1]) : null;
+                $empConAmount = isset($row[2]) ? trim($row[2]) : null;
+                $employeerContribution = isset($row[3]) ? trim($row[3]) : 
+                $payRefNo = isset($row[4]) ? trim($row[4]) : null; 
+                $empConDate = isset($row[5]) ? trim($row[5]) : null; 
+              
 
-                // Format empConDate as Y-m (Month-Year)
-                $formattedDate = Carbon::createFromFormat('Y-m', $empConDate)->format('Y-m');
+                try {
+                    $formattedDate = Carbon::createFromFormat('Y-m-d', $empConDate)->format('Y-m-d');
+                } catch (\Exception $e) {
+                    return redirect()->back()->with('error', "Invalid date format in row {$index}. Expected format: Y-m-d.");
+                }
 
                 // Get the count of existing contributions for the same empID and empConDate
                 $existingCount = Contribution::where('empID', $empID)
@@ -85,8 +90,10 @@ class EmpContributionController extends Controller
                     'empID' => $empID,
                     'empContype' => $empContype,
                     'empConAmount' => $empConAmount,
+                    'employeerContribution' => $employeerContribution,
+                    'empConRemarks' => $payRefNo, 
                     'empConDate' => $formattedDate,
-                    'empConRemarks' => $empConRemarks,
+                    
                 ]);
             }
 
@@ -192,7 +199,7 @@ class EmpContributionController extends Controller
             $templateProcessor->setValue('empName', $fullName);
             $templateProcessor->setValue('empSSS', $idNo);
             $templateProcessor->setValue('coveragePeriod', $coveragePeriod);
-
+            
             // Prepare and clone table rows
             $contributions = $contributions->sortBy('empConDate')->values();
             $templateProcessor->cloneRow('month', $contributions->count());
@@ -206,8 +213,8 @@ class EmpContributionController extends Controller
                 $month = $date->format('F');
 
                 $premium = number_format($contribution->empConAmount, 2);
-                $ec = $contribution->empConEC ?? 'No Earnings';
-                $prNumber = $contribution->empConPRNo ?? 'No Earnings';
+                $ec = $contribution->employeeContribution ?? 'No Earnings';
+                $prNumber = $contribution->payRefNo ?? 'No Earnings';
                 $paymentDate = $date->format('m/d/Y');
 
                 $templateProcessor->setValue("year#{$row}", $year);
@@ -256,15 +263,18 @@ class EmpContributionController extends Controller
 
             // Validate the incoming data
             $validatedData = $request->validate([
-                'empConAmount' => 'required|numeric',
+                'empConAmount' => 'nullable',
+                'employeerContribution' => 'nullable',
+                'payRefNo' => 'nullable',   
                 'empConDate' => 'required|date',
-                'empConRemarks' => 'nullable|string|max:255',
+                
             ]);
 
             $contribution->update([
-                'empConAmount' => $validatedData['empConAmount'],
+                'empConAmount' => $validatedData['empConAmount'] ?? null,
+                'employeerContribution' => $validatedData['employeerContribution'] ?? null,
                 'empConDate' => Carbon::parse($validatedData['empConDate'])->format('Y-m'),  // Only 'YYYY-MM'
-                'empConRemarks' => $validatedData['empConRemarks'] ?? null,
+                'payRefNo' => $validatedData['payRefNo'] ?? null,
             ]);
 
             return redirect()->route('contribution.management', [
