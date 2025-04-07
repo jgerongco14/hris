@@ -56,11 +56,24 @@
                  <td>{{ $contribution->empConDate }}</td>
                  <td>{{ $contribution->empConRemarks }}</td>
                  <td>
+                     <a href="javascript:void(0);" class="btn btn-warning btn-sm edit-contribution"
+                         data-id="{{ $contribution->id }}"
+                         data-amount="{{ $contribution->empConAmount }}"
+                         data-date="{{ $contribution->empConDate }}"
+                         data-remarks="{{ $contribution->empConRemarks }}"
+                         data-bs-toggle="modal"
+                         data-bs-target="#editContributionModal">
+                         <i class="ri-edit-line"></i> <!-- Edit Icon -->
+                     </a>
+
                      <form action="{{ route('contribution.destroy', $contribution->id) }}" method="POST" style="display:inline;">
                          @csrf
                          @method('DELETE')
-                         <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure you want to delete this contribution?')">Delete</button>
+                         <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure you want to delete this contribution?')">
+                             <i class="ri-delete-bin-5-line"></i> <!-- Delete Icon -->
+                         </button>
                      </form>
+
                  </td>
              </tr>
              @empty

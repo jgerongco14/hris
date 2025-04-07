@@ -24,11 +24,14 @@
                 <x-notification />
 
                 @if(isset($contribution))
-                @include('pages.hr.components.update_contribution_form', ['contribution' => $contribution])
+                @include('pages.hr.components.contribution_form', ['contribution' => $contribution])
                 @endif
 
                 <!-- Import Attendance Button -->
                 @include('components.import_file')
+
+                @include('pages.hr.components.contribution_form')
+
 
                 <div class="card my-5">
                     <div class="card-header d-flex justify-content-between align-items-center">
@@ -58,11 +61,35 @@
         </div>
     </div>
 
-    <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
+
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
 
     <script>
+        $('.edit-contribution').on('click', function() {
+            var contributionId = $(this).data('id');
+            var amount = $(this).data('amount');
+            var date = $(this).data('date');
+            var remarks = $(this).data('remarks');
+
+            // Set the action URL of the form
+            var actionUrl = "{{ route('contribution.update', ':id') }}".replace(':id', contributionId);
+            $('#editContributionForm').attr('action', actionUrl);
+
+            // Convert date to 'YYYY-MM-DD' format if necessary
+            var formattedDate = moment(date).format('YYYY-MM-DD'); // Using moment.js for date formatting
+
+            // Populate the form fields
+            $('#empConAmount').val(amount);
+            $('#empConDate').val(formattedDate); // Ensure the date is in 'YYYY-MM-DD' format
+            $('#empConRemarks').val(remarks);
+        });
+
+
+
+
         function showToast(title, message, type = 'success') {
             const toastEl = document.getElementById('liveToast');
             const toastHeader = document.getElementById('toast-header');
@@ -98,7 +125,6 @@
             });
             toast.show();
         }
-
 
         const contributionType = urlParams.get('contribution_type');
         if (contributionType) {

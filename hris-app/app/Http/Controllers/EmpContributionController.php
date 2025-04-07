@@ -9,9 +9,7 @@ use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Reader\Csv;
 use Carbon\Carbon;
 use Exception;
-use PhpOffice\PhpWord\PhpWord;
-use PhpOffice\PhpWord\IOFactory as PhpWordIOFactory;
-use PhpOffice\PhpWord\TemplateProcessor;
+use Illuminate\Support\Facades\Log;
 
 class EmpContributionController extends Controller
 {
@@ -236,7 +234,48 @@ class EmpContributionController extends Controller
     }
 
     // Show Contribution Edit Form
+    // Fetch the contribution data for editing
+    public function edit($id)
+    {
+        try {
+            $contribution = Contribution::with('employee')->findOrFail($id);
+            $contribution->empConDate = Carbon::parse($contribution->empConDate)->format('Y-m-d');  // Ensure it's in 'YYYY-MM-DD' format
+            return view('pages.hr.contribution_management', compact('contribution'));
+        } catch (\Exception $e) {
+            // Catch any error, and return a helpful message
+            return response()->json(['error' => 'Contribution not found'], 404);
+        }
+    }
 
+    // Update the contribution data
+    public function update(Request $request, $id)
+    {
+        try {
+            $contribution = Contribution::findOrFail($id);
+
+            // Validate the incoming data
+            $validatedData = $request->validate([
+                'empConAmount' => 'required|numeric',
+                'empConDate' => 'required|date',
+                'empConRemarks' => 'nullable|string|max:255',
+            ]);
+
+            $contribution->update([
+                'empConAmount' => $validatedData['empConAmount'],
+                'empConDate' => Carbon::parse($validatedData['empConDate'])->format('Y-m'),  // Only 'YYYY-MM'
+                'empConRemarks' => $validatedData['empConRemarks'] ?? null,
+            ]);
+        
+
+            return redirect()->route('contribution.management')->with('success', 'Contribution successfully updated.');
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            // Pass the validation error to the session
+            return redirect()->back()->with('error', 'Validation failed: ' . implode(", ", $e->errors()));
+        } catch (\Exception $e) {
+            Log::error('Error updating contribution: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'Error occurred while updating the contribution: ' . $e->getMessage());
+        }
+    }
 
 
     // Delete Contribution

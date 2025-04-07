@@ -9,6 +9,7 @@ use App\Http\Controllers\AdminController;
 use App\Http\Controllers\AssignmentController;
 use App\Http\Controllers\AssignEmpController;
 use App\Http\Controllers\EmpContributionController;
+use App\Http\Controllers\ProfileController;
 
 Route::get('/', function () {
     return redirect()->route('login');
@@ -108,8 +109,12 @@ Route::delete('/contribution/{contribution}', [EmpContributionController::class,
 // Export Contribution
 Route::get('/contributions/export-word', [EmpContributionController::class, 'exportWord'])->name('contribution.exportWord');
 
+// Edit Update Contribution
+Route::get('/contributions/{id}/edit', [EmpContributionController::class, 'edit'])->name('contribution.edit');
+Route::put('/contributions/{id}', [EmpContributionController::class, 'update'])->name('contribution.update');
+
 
 // User Profile
-Route::get('/myProfile', function () {
-    return view('pages.profile.userProfile');
-})->name('myProfile');
+
+Route::get('/myProfile', [ProfileController::class, 'index'])->name('myProfile');
+Route::post('/myProfile', [ProfileController::class, 'update'])->name('profile.update');
