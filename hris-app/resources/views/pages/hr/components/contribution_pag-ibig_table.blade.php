@@ -36,8 +36,9 @@
                  <th>Emp ID</th>
                  <th>Employee Name</th>
                  <th>Amount</th>
+                 <th>Employer Contribution</th>
+                 <th>Pay Ref No</th>
                  <th>Date</th>
-                 <th>Remarks</th>
                  @if(Auth::check() && Auth::user()->role !== 'employee')
                  <th>Action</th>
                  @endif
@@ -51,19 +52,28 @@
                  <td>{{ $contribution->employee->empID ?? 'N/A' }}</td>
                  <td>
                      @if($contribution->employee)
-                     {{ $contribution->employee->empFname }} {{ $contribution->employee->empMname }} {{ $contribution->employee->empLname }}
+                     {{ $contribution->employee->empFname }} {{ $contribution->employee->empLname }}
                      @else
                      Employee not found
                      @endif
                  </td>
-                 <td>{{ number_format($contribution->empConAmount, 2) }}</td>
+                 <td>
+                     {{ is_numeric($contribution->empConAmount) 
+                        ? '₱' . number_format($contribution->empConAmount, 2) 
+                        : 'No Earnings' }}
+                 </td>
+                 <td>
+                     {{ is_numeric($contribution->employeerContribution) 
+                        ? '₱' . number_format($contribution->employeerContribution, 2) 
+                        : 'No Earnings' }}
+                 </td>
+
+                 <td>{{ $contribution->empPRNo }}</td>
                  <td>{{ $contribution->empConDate }}</td>
-                 <td>{{ $contribution->empConRemarks }}</td>
                  @if(Auth::check() && Auth::user()->role !== 'employee')
                  <td>
                      <a href="javascript:void(0);" class="btn btn-warning btn-sm edit-contribution"
                          data-id="{{ $contribution->id }}"
-                         data-name="{{ $contribution->employee->empFname }} {{ $contribution->employee->empMname }} {{ $contribution->employee->empLname }}"
                          data-amount="{{ $contribution->empConAmount }}"
                          data-date="{{ $contribution->empConDate }}"
                          data-employeerContribution="{{ $contribution->employeerContribution }}"

@@ -16,7 +16,7 @@ class Contribution extends Model
         'empContype',
         'empConAmount',
         'employeerContribution',
-        'payRefNo',
+        'empPRNo',
         'empConDate',
        
     ];

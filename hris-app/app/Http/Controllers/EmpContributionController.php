@@ -48,9 +48,9 @@ class EmpContributionController extends Controller
             ]);
 
             $file = $request->file('contribution_file');
-            $reader = IOFactory::createReaderForFile($file->getRealPath());
+            $reader = \PhpOffice\PhpSpreadsheet\IOFactory::createReaderForFile($file->getRealPath());
 
-            if ($reader instanceof Csv) {
+            if ($reader instanceof \PhpOffice\PhpSpreadsheet\Reader\Csv) {
                 $reader->setDelimiter(',');
                 $reader->setEnclosure('"');
             }
@@ -63,46 +63,106 @@ class EmpContributionController extends Controller
 
                 $empID = isset($row[0]) ? trim($row[0]) : null;
                 $empContype = isset($row[1]) ? trim($row[1]) : null;
-                $empConAmount = isset($row[2]) ? trim($row[2]) : null;
-                $employeerContribution = isset($row[3]) ? trim($row[3]) : 
-                $payRefNo = isset($row[4]) ? trim($row[4]) : null; 
-                $empConDate = isset($row[5]) ? trim($row[5]) : null; 
-              
+                $empConAmountRaw = isset($row[2]) ? trim($row[2]) : null;
+                $employeerContributionRaw = isset($row[3]) ? trim($row[3]) : null;
+                $empPRNo = isset($row[4]) ? trim($row[4]) : null;
+                $empConDate = isset($row[5]) ? trim($row[5]) : null;
 
-                try {
-                    $formattedDate = Carbon::createFromFormat('Y-m-d', $empConDate)->format('Y-m-d');
-                } catch (\Exception $e) {
-                    return redirect()->back()->with('error', "Invalid date format in row {$index}. Expected format: Y-m-d.");
+                // Debug: Log the raw data
+                Log::debug("Row $index data:", [
+                    'empID' => $empID,
+                    'empContype' => $empContype,
+                    'empConAmountRaw' => $empConAmountRaw,
+                    'employeerContributionRaw' => $employeerContributionRaw,
+                    'empPRNo' => $empPRNo,
+                    'empConDate' => $empConDate
+                ]);
+
+                // Validate required fields
+                if (empty($empID) || empty($empContype) || empty($empConDate)) {
+                    return redirect()->back()->with('error', "Missing required data in row " . ($index + 1));
                 }
 
-                // Get the count of existing contributions for the same empID and empConDate
+                // Handle empConAmount
+                $empConAmount = null;
+                if (!empty($empConAmountRaw)) {
+                    if (strtoupper($empConAmountRaw) == 'NO EARNINGS') {
+                        $empConAmount = 'No Earnings';
+                    } elseif (is_numeric(str_replace(',', '', $empConAmountRaw))) {
+                        $empConAmount = number_format((float)str_replace(',', '', $empConAmountRaw), 2, '.', '');
+                    }
+                }
+
+                // Handle employeerContribution
+                $employeerContribution = null;
+                if (!empty($employeerContributionRaw)) {
+                    if (strtoupper($employeerContributionRaw) == 'NO EARNINGS') {
+                        $employeerContribution = 'No Earnings';
+                    } elseif (is_numeric(str_replace(',', '', $employeerContributionRaw))) {
+                        $employeerContribution = number_format((float)str_replace(',', '', $employeerContributionRaw), 2, '.', '');
+                    }
+                }
+
+                // Parse date
+                $formats = ['Y-m-d', 'm/d/Y', 'd-m-Y', 'm-d-Y'];
+                $formattedDate = null;
+
+                foreach ($formats as $format) {
+                    try {
+                        $formattedDate = \Carbon\Carbon::createFromFormat($format, $empConDate)->format('Y-m-d');
+                        break;
+                    } catch (\Exception $e) {
+                        continue;
+                    }
+                }
+
+                if (!$formattedDate) {
+                    return redirect()->back()->with('error', "Invalid date format in row " . ($index + 1) . ". Expected formats: Y-m-d, m/d/Y, d-m-Y, or m-d-Y.");
+                }
+
+                // Generate unique empConNo
                 $existingCount = Contribution::where('empID', $empID)
                     ->where('empConDate', $formattedDate)
                     ->count();
-
-                // Generate empConNo as empID + empConDate + incremental number
                 $incremental = $existingCount + 1;
-                $empConNo = $empID  . $formattedDate .  str_pad($incremental, 0, '0', STR_PAD_LEFT);
+                $empConNo = $empID . $formattedDate . str_pad($incremental, 0, '0', STR_PAD_LEFT);
 
-                // Insert the new contribution
-                Contribution::create([
+                // Debug: Log the data before insertion
+                Log::debug("Inserting data:", [
                     'empConNo' => $empConNo,
                     'empID' => $empID,
                     'empContype' => $empContype,
                     'empConAmount' => $empConAmount,
                     'employeerContribution' => $employeerContribution,
-                    'empConRemarks' => $payRefNo, 
-                    'empConDate' => $formattedDate,
-                    
+                    'empPRNo' => $empPRNo,
+                    'empConDate' => $formattedDate
                 ]);
+
+                // Insert new contribution
+                $contribution = Contribution::create([
+                    'empConNo' => $empConNo,
+                    'empID' => $empID,
+                    'empContype' => $empContype,
+                    'empConAmount' => $empConAmount,
+                    'employeerContribution' => $employeerContribution,
+                    'empPRNo' => $empPRNo, // Make sure this matches your DB column
+                    'empConDate' => $formattedDate,
+                ]);
+
+                // Debug: Verify the inserted record
+                if ($contribution) {
+                    Log::debug("Record inserted successfully:", $contribution->toArray());
+                } else {
+                    Log::error("Failed to insert record for row $index");
+                }
             }
 
             return redirect()->back()->with('success', 'Contributions successfully imported.');
         } catch (\Exception $e) {
+            Log::error("Import error: " . $e->getMessage());
             return redirect()->back()->with('error', 'Error importing: ' . $e->getMessage());
         }
     }
-
 
     public function showContributionManagement(Request $request)
     {
@@ -199,7 +259,7 @@ class EmpContributionController extends Controller
             $templateProcessor->setValue('empName', $fullName);
             $templateProcessor->setValue('empSSS', $idNo);
             $templateProcessor->setValue('coveragePeriod', $coveragePeriod);
-            
+
             // Prepare and clone table rows
             $contributions = $contributions->sortBy('empConDate')->values();
             $templateProcessor->cloneRow('month', $contributions->count());
@@ -212,20 +272,30 @@ class EmpContributionController extends Controller
                 $year = $date->format('Y');
                 $month = $date->format('F');
 
-                $premium = number_format($contribution->empConAmount, 2);
-                $ec = $contribution->employeeContribution ?? 'No Earnings';
+                $premium = is_numeric($contribution->empConAmount)
+                    ? number_format($contribution->empConAmount, 2)
+                    : 'No Earnings';
+
+                $ec = is_numeric($contribution->employeerContribution)
+                    ? number_format($contribution->employeerContribution, 2)
+                    : 'No Earnings';
+
+
                 $prNumber = $contribution->payRefNo ?? 'No Earnings';
                 $paymentDate = $date->format('m/d/Y');
 
+                // Set values in the Word template
                 $templateProcessor->setValue("year#{$row}", $year);
                 $templateProcessor->setValue("month#{$row}", $month);
-                $templateProcessor->setValue("sssPremium#{$row}", is_numeric($premium) ? "Php {$premium}" : "No Earnings");
-                $templateProcessor->setValue("ec#{$row}", is_numeric($ec) ? "Php {$ec}" : $ec);
+                $templateProcessor->setValue("sssPremium#{$row}", is_numeric($contribution->empConAmount) ? "Php {$premium}" : $premium);
+                $templateProcessor->setValue("ec#{$row}", is_numeric($contribution->employeerContribution) ? "Php {$ec}" : $ec);
                 $templateProcessor->setValue("prNumber#{$row}", $prNumber);
                 $templateProcessor->setValue("paymentDate#{$row}", $paymentDate);
 
+                // Total amount calculation
                 $totalAmount += is_numeric($contribution->empConAmount) ? $contribution->empConAmount : 0;
             }
+
 
             // Set total
             $templateProcessor->setValue('totalPremium', number_format($totalAmount, 2));
@@ -265,9 +335,9 @@ class EmpContributionController extends Controller
             $validatedData = $request->validate([
                 'empConAmount' => 'nullable',
                 'employeerContribution' => 'nullable',
-                'payRefNo' => 'nullable',   
+                'payRefNo' => 'nullable',
                 'empConDate' => 'required|date',
-                
+
             ]);
 
             $contribution->update([
@@ -309,30 +379,30 @@ class EmpContributionController extends Controller
         try {
             $activeType = $request->input('contribution_type', 'SSS');  // Default to 'SSS'
             $employee = Auth::user()->employee;
-    
+
             if (!$employee) {
                 return redirect()->back()->with('error', 'Employee record not found for the authenticated user.');
             }
-    
+
             // Get the empID of the authenticated user
             $empID = $employee->empID;
-    
+
             // Retrieve contributions for each type, filtered by the empID
             $sssContributions = Contribution::with('employee')
                 ->where('empContype', 'SSS')
                 ->where('empID', $empID)  // Filter by empID
                 ->paginate(10, ['*'], 'sss_page');
-    
+
             $pagibigContributions = Contribution::with('employee')
                 ->where('empContype', 'PAG-IBIG')
                 ->where('empID', $empID)  // Filter by empID
                 ->paginate(10, ['*'], 'pagibig_page');
-    
+
             $tinContributions = Contribution::with('employee')
                 ->where('empContype', 'TIN')
                 ->where('empID', $empID)  // Filter by empID
                 ->paginate(10, ['*'], 'tin_page');
-    
+
             return view('pages.employee.my_contribution', compact(
                 'sssContributions',
                 'pagibigContributions',
@@ -344,6 +414,4 @@ class EmpContributionController extends Controller
             return redirect()->back()->with('error', 'Error occurred while fetching contributions: ' . $e->getMessage());
         }
     }
-    
-
 }

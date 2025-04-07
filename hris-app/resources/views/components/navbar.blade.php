@@ -51,7 +51,7 @@
 
             @elseif(Auth::check() && Auth::user()->role === 'employee')
             @php
-            $hasVPAccess = Auth::user()->employee?->hasPosition(['President', 'Vice President']);
+            $hasVPAccess = Auth::user()->employee?->hasPosition(['President', 'Vice President of Academic Affairs', 'VP Finance', 'Head Office']);
             @endphp
 
             @if(!$hasVPAccess)
@@ -72,7 +72,7 @@
                 </a>
             </li>
             @php
-            $hasVPAccess = Auth::user()->employee?->hasPosition(['President', 'Vice President']);
+            $hasVPAccess = Auth::user()->employee?->hasPosition(['President', 'Vice President of Academic Affairs', 'VP Finance', 'Head Office']);
             @endphp
 
 

@@ -16,11 +16,10 @@ return new class extends Migration
             $table->string('empConNo')->unique();
             $table->string('empID')->index();
             $table->string('empContype');
-            $table->decimal('empConAmount');
-            $table->string('employeerContribution')->nullable();
-            $table->string('empConDate');
-            $table->string('payRefNo')->nullable();
-        
+            $table->string('empConAmount')->nullable(); 
+            $table->string('employeerContribution')->nullable(); 
+            $table->string('empPRNo')->nullable();
+            $table->date('empConDate'); 
             $table->timestamps();
         });
     }

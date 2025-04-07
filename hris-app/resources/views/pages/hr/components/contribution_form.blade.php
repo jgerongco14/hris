@@ -17,7 +17,7 @@
 
                     <div class="mb-3">
                         <label for="employeeName" class="form-label">Employee Name</label>
-                        <input type="text" class="form-control" id="employeeName" name="employeeName" value="{{ $contribution->employee->empFname . ' ' . $contribution->employee->empLname }}" readonly>
+                        <input type="text" class="form-control" id="employeeName" name="employeeName" readonly>
                     </div>
 
                     <div class="mb-3">
