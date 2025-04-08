@@ -10,25 +10,27 @@ use PhpOffice\PhpSpreadsheet\Reader\Csv;
 use Illuminate\Support\Facades\Storage;
 use App\Models\User;
 use App\Models\Position;
-use App\Models\EmpAssignment;
+use Illuminate\Support\Facades\Hash;
 
 class EmployeeController extends Controller
 {
 
     public function store(Request $request)
     {
-        // Validate the request data
-        $validatedData = $request->validate([
-            'empID' => 'required|unique:employees,empID|max:255',
-            'empFname' => 'required|string|max:255',
-            'empLname' => 'required|string|max:255',
-            'empGender' => 'in:male,female',
-            'empBirthdate' => 'date',
-            'photo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:5120', // 5MB max
-        ]);
-
-
         try {
+
+
+            // Validate the request data
+            $validatedData = $request->validate([
+                'empID' => 'required|unique:employees,empID|max:255',
+                'empFname' => 'required|string|max:255',
+                'empLname' => 'required|string|max:255',
+                'empGender' => 'in:male,female',
+                'empBirthdate' => 'date',
+                'photo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:5120', // 5MB max
+            ]);
+
+
             // Handle file upload
             $photoPath = null;
             if ($request->hasFile('photo')) {
@@ -143,23 +145,57 @@ class EmployeeController extends Controller
                         'empPagIbigNum' => $empPagIbigNum,
                     ]);
                 } else {
-                    Employee::create([  
-                        'empID' => $empID,
-                        'empPrefix' => $empPrefix,
-                        'empFname' => $empFname,
-                        'empMname' => $empMname,
-                        'empLname' => $empLname,
-                        'empSuffix' => $empSuffix,
-                        'empGender' => $empGender,
-                        'empBirthdate' => $empBirthdate,
-                        'address' => $address,
-                        'province' => $province,
-                        'city' => $city,
-                        'barangay' => $barangay,
-                        'empSSSNum' => $empSSSNum,
-                        'empTinNum' => $empTinNum,
-                        'empPagIbigNum' => $empPagIbigNum,
-                    ]);
+
+                    // Check if there is an ID on users table
+
+                    $user = User::where('empID', $empID)->first();
+                    if ($user) {
+                        Employee::create([
+                            'empID' => $empID,
+                            'user_id' => $user->id,
+                            'empPrefix' => $empPrefix,
+                            'empFname' => $empFname,
+                            'empMname' => $empMname,
+                            'empLname' => $empLname,
+                            'empSuffix' => $empSuffix,
+                            'empGender' => $empGender,
+                            'empBirthdate' => $empBirthdate,
+                            'address' => $address,
+                            'province' => $province,
+                            'city' => $city,
+                            'barangay' => $barangay,
+                            'empSSSNum' => $empSSSNum,
+                            'empTinNum' => $empTinNum,
+                            'empPagIbigNum' => $empPagIbigNum,
+                        ]);
+                    } else {
+                        User::create([
+                            'empID' => $empID,
+                            'role' => 'employee',
+                            'password' =>  Hash::make('temppass'),
+                        ]);
+
+                        $user = User::where('empID', $empID)->first();
+
+                        Employee::create([
+                            'empID' => $empID,
+                            'user_id' => $user->id,
+                            'empPrefix' => $empPrefix,
+                            'empFname' => $empFname,
+                            'empMname' => $empMname,
+                            'empLname' => $empLname,
+                            'empSuffix' => $empSuffix,
+                            'empGender' => $empGender,
+                            'empBirthdate' => $empBirthdate,
+                            'address' => $address,
+                            'province' => $province,
+                            'city' => $city,
+                            'barangay' => $barangay,
+                            'empSSSNum' => $empSSSNum,
+                            'empTinNum' => $empTinNum,
+                            'empPagIbigNum' => $empPagIbigNum,
+                        ]);
+                    }
                 }
             }
 
