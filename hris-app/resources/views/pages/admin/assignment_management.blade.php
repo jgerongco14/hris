@@ -31,7 +31,7 @@
                     <button type="button" class="btn btn-primary mb-3" data-bs-toggle="modal" data-bs-target="#addPositionModal">
                         Add Position
                     </button>
-
+                    @include('pages.admin.component.modal')
 
                     <!-- Positions Table -->
                     <div class="card">
@@ -97,61 +97,47 @@
                         </table>
 
                         <!-- Pagination Links -->
-                        @if($positions['data'])
+                        @if($positions->hasPages())
                         <div class="d-flex flex-column align-items-center mt-4 gap-2">
-                            {{-- Pagination links --}}
                             <div>
-                                {{ $positions['data']->links('pagination::bootstrap-5') }}
+                                {{ $positions->links('pagination::bootstrap-5') }}
                             </div>
-
-                            {{-- Showing text --}}
                             <div class="text-muted small">
-                                Showing {{ $positions['data']->firstItem() }} to {{ $positions['data']->lastItem() }} of {{ $positions['data']->total() }} results
+                                Showing {{ $positions->firstItem() }} to {{ $positions->lastItem() }} of {{ $positions->total() }} results
                             </div>
                         </div>
                         @endif
+
                     </div>
                 </div>
             </div>
 
-            <!-- Add/Edit Position Modal -->
-            <div class="modal fade" id="addPositionModal" tabindex="-1" aria-labelledby="addPositionModalLabel" aria-hidden="true">
-                <div class="modal-dialog">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h5 class="modal-title" id="addPositionModalLabel">Add Position</h5>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                        </div>
-                        <form method="POST" id="positionForm" action="{{ route('assignment.storePosition') }}">
-                            @csrf
-                            <input type="hidden" name="_method" id="formMethod" value="POST"> <!-- For PUT method -->
-                            <input type="hidden" name="id" id="id"> <!-- Hidden input for position ID -->
-                            <div class="modal-body">
-                                <div class="mb-3">
-                                    <label for="positionID" class="form-label">Position ID</label>
-                                    <input type="text" class="form-control" id="positionID" name="positionID" required>
-                                </div>
-                                <div class="mb-3">
-                                    <label for="positionName" class="form-label">Position Name</label>
-                                    <input type="text" class="form-control" id="positionName" name="positionName" required>
-                                </div>
-                                <div class="mb-3">
-                                    <label for="positionDescription" class="form-label">Position Description</label>
-                                    <textarea class="form-control" id="positionDescription" name="positionDescription" rows="3" required></textarea>
-                                </div>
-                            </div>
-                            <div class="modal-footer">
-                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                                <button type="submit" class="btn btn-primary" id="submitButton">Add Position</button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            </div>
         </div>
     </div>
 
     <script>
+        function showIndividualForm() {
+            // Show the individual position form and hide the import form
+            document.getElementById('positionForm').style.display = 'block';
+            document.getElementById('importForm').style.display = 'none';
+            document.getElementById('addPositionModalLabel').textContent = 'Add Individual Position';
+            document.getElementById('submitButton').textContent = 'Add Position';
+        }
+
+        function showImportForm() {
+            // Show the import position form and hide the individual form
+            document.getElementById('positionForm').style.display = 'none';
+            document.getElementById('importForm').style.display = 'block';
+            document.getElementById('addPositionModalLabel').textContent = 'Import Positions';
+            document.getElementById('submitButton').textContent = 'Import Positions';
+        }
+
+        document.getElementById('addPositionModal').addEventListener('hidden.bs.modal', function() {
+            const form = document.getElementById('positionForm');
+            form.reset();
+            form.action = "{{ route('assignment.storePosition') }}"; // Reset the action for individual form
+        });
+
         function editPosition(button) {
             const modal = new bootstrap.Modal(document.getElementById('addPositionModal'));
             modal.show();
