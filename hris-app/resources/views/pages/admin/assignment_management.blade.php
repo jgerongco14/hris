@@ -51,7 +51,7 @@
                         <table class="table table-bordered">
                             <thead>
                                 <tr class="text-center">
-                                    <th>#</th>
+                                    <th>No</th>
                                     <th>Position ID</th>
                                     <th>Position Name</th>
                                     <th>Position Description</th>
@@ -66,10 +66,10 @@
                                 @else
                                 @foreach($positions as $position)
                                 <tr>
-                                    <td class="text-center">{{ $loop->iteration }}</td>
+                                    <td class=" text-center">{{ $loop->iteration }}</td>
                                     <td class="text-center">{{ $position->positionID }}</td>
                                     <td>{{ $position->positionName }}</td>
-                                    <td>{{ $position->positionDescription }}</td>
+                                    <td class="col-6">{{ $position->positionDescription }}</td>
                                     <td class="text-center">
                                         <!-- Edit and Delete Buttons -->
                                         <button class="btn btn-warning btn-sm"
