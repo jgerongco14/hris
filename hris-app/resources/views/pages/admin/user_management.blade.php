@@ -142,17 +142,16 @@
                                 @endif
                             </tbody>
                         </table>
-
-                        @if($users['data'])
+                        @if($users->hasPages())
                         <div class="d-flex flex-column align-items-center mt-4 gap-2">
                             {{-- Pagination links --}}
                             <div>
-                                {{ $users['data']->links('pagination::bootstrap-5') }}
+                                {{ $users->links('pagination::bootstrap-5') }}
                             </div>
 
                             {{-- Showing text --}}
                             <div class="text-muted small">
-                                Showing {{ $users['data']->firstItem() }} to {{ $users['data']->lastItem() }} of {{ $users['data']->total() }} results
+                                Showing {{ $users->firstItem() }} to {{ $users->lastItem() }} of {{ $users->total() }} results
                             </div>
                         </div>
                         @endif

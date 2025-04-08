@@ -21,7 +21,14 @@
             <button type="button" class="btn-close" onclick="$('#employeeForm').hide(); $('#employeeForm')[0].reset()"></button>
         </div>
         <div class="card-body">
+
+
             <div class="row">
+
+                <div class="col-1 mb-3">
+                    <label for="empID" class="form-label">Emp ID</label>
+                    <input type="text" class="form-control" id="empID" name="empID" value="{{ old('empID') }}" required>
+                </div>
                 <div class="col-1 mb-3">
                     <label for="empPrefix" class="form-label">Prefix</label>
                     <input type="text" class="form-control" id="empPrefix" name="empPrefix" value="{{ old('empPrefix') }}">
@@ -89,7 +96,7 @@
 
                 <div class="col-4 mb-3">
                     <label for="empBirthdate" class="form-label">Birthdate</label>
-                    <input type="text" class="form-control datepicker" id="empBirthdate" name="empBirthdate" value="{{ old('empBirthdate') }}" readonly>
+                    <input type="text" class="form-control datepicker" id="empBirthdate" name="empBirthdate" value="{{ old('empBirthdate') }}" readonly required>
                 </div>
             </div>
 
@@ -204,11 +211,8 @@
                             @endphp
 
                             @if($employeePhoto)
-                            <img src="{{ $isExternal ? $employeePhoto : asset('storage/' . $employeePhoto) }}"
-                                alt="Employee Photo"
-                                width="50"
-                                height="50"
-                                class="rounded-circle">
+                            <img src="{{ $isExternal ? $employeePhoto : asset('storage/' . $employee->photo) }}"
+                                alt="Employee Photo" width="50" height="50" class="rounded-circle">
                             @else
                             <div class="no-photo bg-light rounded-circle d-flex align-items-center justify-content-center"
                                 style="width:50px; height:50px;">
@@ -239,7 +243,6 @@
                         <span class="text-muted">Unassigned</span>
                         @endforelse
                     </td>
-
                     <td class="align-middle">
                         <ul class="list-unstyled mb-0">
                             <li>SSS: {{ $employee->empSSSNum ?? 'N/A' }}</li>
@@ -262,38 +265,43 @@
                 @endif
             </tbody>
         </table>
-        @if($employees['data'])
+        @if($employees->hasPages())
         <div class="d-flex flex-column align-items-center mt-4 gap-2">
             {{-- Pagination links --}}
             <div>
-                {{ $employees['data']->links('pagination::bootstrap-5') }}
+                {{ $employees->links('pagination::bootstrap-5') }}
             </div>
 
             {{-- Showing text --}}
             <div class="text-muted small">
-                Showing {{ $employees['data']->firstItem() }} to {{ $employees['data']->lastItem() }} of {{ $employees['data']->total() }} results
+                Showing {{ $employees->firstItem() }} to {{ $employees->lastItem() }} of {{ $employees->total() }} results
             </div>
         </div>
         @endif
 
-        <!-- Choose Update Type Modal -->
-        <div class="modal fade" id="editChoiceModal" tabindex="-1" aria-labelledby="editChoiceLabel" aria-hidden="true">
-            <div class="modal-dialog">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title" id="editChoiceLabel">Edit Employee</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                    </div>
-                    <div class="modal-body text-center">
-                        <p>What would you like to update?</p>
-                        <button class="btn btn-primary m-2" id="editInfoBtn">Employee Information</button>
-                        <button class="btn btn-secondary m-2" id="editPositionBtn">Position Assignment</button>
-                    </div>
-                </div>
+    </div>
+</div>
+
+
+
+<!-- Choose Update Type Modal -->
+<div class="modal fade" id="editChoiceModal" tabindex="-1" aria-labelledby="editChoiceLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editChoiceLabel">Edit Employee</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body text-center">
+                <p>What would you like to update?</p>
+                <button class="btn btn-primary m-2" id="editInfoBtn">Employee Information</button>
+                <button class="btn btn-secondary m-2" id="editPositionBtn">Position Assignment</button>
             </div>
         </div>
-
-
     </div>
+</div>
+
+
+</div>
 
 </div>

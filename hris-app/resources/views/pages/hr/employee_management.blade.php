@@ -8,6 +8,8 @@
     <title>Employee Management</title>
     @vite(['resources/sass/app.scss', 'resources/js/app.js'])
     <link href="https://cdn.jsdelivr.net/npm/remixicon@2.5.0/fonts/remixicon.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
 </head>
 
 <body>
@@ -60,51 +62,6 @@
             $('#editChoiceModal').modal('show');
         }
 
-        document.getElementById('editInfoBtn').addEventListener('click', function() {
-            $('#editChoiceModal').modal('hide');
-
-            // Fetch employee data (AJAX)
-            fetch(`/employee/${selectedEmployeeId}/edit`)
-                .then(res => res.json())
-                .then(data => {
-                    // Populate form fields
-                    document.getElementById('empPrefix').value = data.empPrefix ?? '';
-                    document.getElementById('empFname').value = data.empFname ?? '';
-                    document.getElementById('empMname').value = data.empMname ?? '';
-                    document.getElementById('empLname').value = data.empLname ?? '';
-                    document.getElementById('empSuffix').value = data.empSuffix ?? '';
-                    document.getElementById('empBirthdate').value = data.empBirthdate ?? '';
-                    document.getElementById('address').value = data.address ?? '';
-                    document.getElementById('province').value = data.province ?? '';
-                    document.getElementById('city').value = data.city ?? '';
-                    document.getElementById('barangay').value = data.barangay ?? '';
-                    document.getElementById('empSSSNum').value = data.empSSSNum ?? '';
-                    document.getElementById('empTinNum').value = data.empTinNum ?? '';
-                    document.getElementById('empPagIbigNum').value = data.empPagIbigNum ?? '';
-
-                    // Gender
-                    if (data.empGender === 'male') {
-                        document.getElementById('male').checked = true;
-                    } else if (data.empGender === 'female') {
-                        document.getElementById('female').checked = true;
-                    }
-
-                    // Show the form
-                    document.getElementById('employeeForm').style.display = 'block';
-
-                    // Optionally, change form action to update route
-                    document.getElementById('employeeForm').action = `/employee/${selectedEmployeeId}`;
-                    // Also add a hidden _method input to spoof PUT
-                    if (!document.getElementById('_method')) {
-                        const input = document.createElement('input');
-                        input.type = 'hidden';
-                        input.name = '_method';
-                        input.value = 'PUT';
-                        input.id = '_method';
-                        document.getElementById('employeeForm').appendChild(input);
-                    }
-                });
-        });
 
         document.getElementById('editPositionBtn').addEventListener('click', function() {
             $('#editChoiceModal').modal('hide');
@@ -116,9 +73,10 @@
 
 
             $('#addIndividualBtn').click(function() {
-                $('#employeeForm').toggle(); // Toggle the form visibility
+                $('#employeeForm').show(); // Always show the form
                 $('#addEmployee').modal('hide'); // Close the import modal if it's open
             });
+
 
             // Initialize the datepicker
             $('.datepicker').datepicker({
@@ -257,6 +215,63 @@
             $('#employeeForm').show();
         }
 
+        document.addEventListener("DOMContentLoaded", function() {
+            const form = document.getElementById("employeeForm");
+
+            form.addEventListener("submit", function(e) {
+                let isValid = true;
+                let requiredFields = [
+                    "empID",
+                    "empFname",
+                    "empLname",
+                ];
+
+                // Check if required fields are empty
+                requiredFields.forEach(field => {
+                    const input = document.getElementById(field);
+                    if (!input.value.trim()) {
+                        isValid = false;
+                        // Show a toast message
+                        showToast("Error", `${input.placeholder} is required.`, "danger");
+                    }
+                });
+
+                // If form is invalid, prevent submission
+                if (!isValid) {
+                    e.preventDefault();
+                }
+            });
+
+
+        });
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const form = document.getElementById('employeeForm');
+            const genderInputs = document.getElementsByName('empGender');
+            const birthdateInput = document.getElementById('empBirthdate');
+
+            form.addEventListener('submit', function(event) {
+                let isValid = true;
+
+                // Check if gender is selected
+                const genderSelected = Array.from(genderInputs).some(input => input.checked);
+                if (!genderSelected) {
+                    isValid = false;
+                    showToast('Error', 'Please select a gender.', 'danger');
+                }
+
+                // Check if birthdate has a value
+                if (!birthdateInput.value) {
+                    isValid = false;
+                    showToast('Error', 'Please select a birthdate.', 'danger');
+                }
+
+                // Prevent form submission if validation fails
+                if (!isValid) {
+                    event.preventDefault();
+                }
+            });
+        });
 
         function showToast(title, message, type = 'success') {
             const toastEl = document.getElementById('liveToast');

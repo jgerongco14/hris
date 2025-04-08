@@ -67,7 +67,7 @@ Route::get('/addEmployee', function () {
     return view('pages.hr.employee_management');
 })->name('addEmployee');
 Route::post('/addEmployee', [EmployeeController::class, 'store'])->name('addEmployee.store');
-Route::get('/employee-management', [EmployeeController::class, 'index'])->name('employee_management');
+Route::get('/employee', [EmployeeController::class, 'index'])->name('employee_management');
 Route::post('/employee/import', [EmployeeController::class, 'importEmp'])->name('employee.import');
 Route::get('/employee/{id}', [EmpLeaveController::class, 'editForm']);
 Route::put('/employee/{id}', [EmployeeController::class, 'update']);

@@ -19,12 +19,14 @@ class EmployeeController extends Controller
     {
         // Validate the request data
         $validatedData = $request->validate([
+            'empID' => 'required|unique:employees,empID|max:255',
             'empFname' => 'required|string|max:255',
             'empLname' => 'required|string|max:255',
-            'empGender' => 'required|in:male,female',
-            'empBirthdate' => 'required|date',
+            'empGender' => 'in:male,female',
+            'empBirthdate' => 'date',
             'photo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:5120', // 5MB max
         ]);
+
 
         try {
             // Handle file upload
@@ -43,6 +45,7 @@ class EmployeeController extends Controller
 
             // Create employee record with explicit field mapping
             Employee::create([
+                'empID' => $request->input('empID', null),
                 'empPrefix' => $request->input('empPrefix', null),
                 'empSuffix' => $request->input('empSuffix', null),
                 'empFname' => $validatedData['empFname'],
@@ -140,7 +143,7 @@ class EmployeeController extends Controller
                         'empPagIbigNum' => $empPagIbigNum,
                     ]);
                 } else {
-                    $employee->create([
+                    Employee::create([  
                         'empID' => $empID,
                         'empPrefix' => $empPrefix,
                         'empFname' => $empFname,
@@ -196,9 +199,12 @@ class EmployeeController extends Controller
 
             // Paginate results
             $employees = $query->paginate(10);
-            $positions = Position::all(); // For the dropdown
+            $positions = Position::all();
 
-            return view('pages.hr.employee_management', compact('employees', 'positions'));
+            return view('pages.hr.employee_management', [
+                'employees' => $employees,
+                'positions' => $positions,
+            ]);
         } catch (Exception $e) {
             logger()->error('Failed to fetch employees: ' . $e->getMessage());
             return redirect()
