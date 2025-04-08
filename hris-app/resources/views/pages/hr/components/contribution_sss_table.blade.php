@@ -29,9 +29,9 @@
       </div>
       @if($sssContributions instanceof \Illuminate\Pagination\LengthAwarePaginator)
       <table class="table table-bordered">
-          <thead>
+          <thead class="text-center">
               <tr>
-                  <th>Contribution No</th>
+                  <th>No</th>
                   <th>SSS ID</th>
                   <th>Emp ID</th>
                   <th>Employee Name</th>
@@ -44,10 +44,10 @@
                   @endif
               </tr>
           </thead>
-          <tbody>
+          <tbody class="align-middle">>
               @forelse($sssContributions as $contribution)
               <tr>
-                  <td>{{ $contribution->empConNo }}</td>
+                  <td>{{ $loop->iteration + ($sssContributions->currentPage() - 1) * $sssContributions->perPage() }}</td>
                   <td>{{ $contribution->employee->empSSSNum ?? 'N/A' }}</td>
                   <td>{{ $contribution->employee->empID ?? 'N/A' }}</td>
                   <td>
@@ -97,7 +97,7 @@
               </tr>
               @empty
               <tr>
-                  <td colspan="8" class="text-center">No SSS contributions found.</td>
+                  <td colspan="9" class="text-center">No SSS contributions found.</td>
               </tr>
               @endforelse
           </tbody>

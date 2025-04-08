@@ -29,9 +29,9 @@
          </div>
          @if($tinContributions instanceof \Illuminate\Pagination\LengthAwarePaginator)
          <table class="table table-bordered">
-             <thead>
+             <thead class="text-center">
                  <tr>
-                     <th>Contribution No</th>
+                     <th>No</th>
                      <th>TIN ID</th>
                      <th>Emp ID</th>
                      <th>Employee Name</th>
@@ -42,10 +42,10 @@
                      @endif
                  </tr>
              </thead>
-             <tbody>
+             <tbody class="align-middle">
                  @forelse($tinContributions as $contribution)
                  <tr>
-                     <td>{{ $contribution->empConNo }}</td>
+                     <td>{{ $loop->iteration + ($pagibigContributions->currentPage() - 1) * $pagibigContributions->perPage() }}</td>
                      <td>{{ $contribution->employee->empTinNum ?? 'N/A' }}</td>
                      <td>{{ $contribution->employee->empID ?? 'N/A' }}</td>
                      <td>

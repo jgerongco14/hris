@@ -29,25 +29,25 @@
      </div>
      @if($pagibigContributions instanceof \Illuminate\Pagination\LengthAwarePaginator)
      <table class="table table-bordered">
-         <thead>
+         <thead class="text-center">
              <tr>
-                 <th>Contribution No</th>
+                 <th>No</th>
                  <th>PAG-IBIG ID</th>
                  <th>Emp ID</th>
                  <th>Employee Name</th>
                  <th>Amount</th>
-                 <th>Employer Contribution</th>
-                 <th>Pay Ref No</th>
+                 <th>EC</th>
+                 <th>PR Number</th>
                  <th>Date</th>
                  @if(Auth::check() && Auth::user()->role !== 'employee')
                  <th>Action</th>
                  @endif
              </tr>
          </thead>
-         <tbody>
+         <tbody class="align-middle">>
              @forelse($pagibigContributions as $contribution)
              <tr>
-                 <td>{{ $contribution->empConNo }}</td>
+                 <td>{{ $loop->iteration + ($pagibigContributions->currentPage() - 1) * $pagibigContributions->perPage() }}</td>
                  <td>{{ $contribution->employee->empPagIbigNum ?? 'N/A' }}</td>
                  <td>{{ $contribution->employee->empID ?? 'N/A' }}</td>
                  <td>
@@ -98,7 +98,7 @@
              </tr>
              @empty
              <tr>
-                 <td colspan="8" class="text-center">No PAG-IBIG contributions found.</td>
+                 <td colspan="9" class="text-center">No PAG-IBIG contributions found.</td>
              </tr>
              @endforelse
          </tbody>
