@@ -40,8 +40,8 @@
                           </select>
                       </div>
                       <div class="col-md-6">
-                          <label for="payStatus" class="form-label">Pay Status*</label>
-                          <select class="form-select" id="payStatus">
+                          <label for="empPayStatus" class="form-label">Pay Status*</label>
+                          <select class="form-select" id="empPayStatus">
                               <option>With Pay</option>
                               <option selected>Without Pay</option>
                           </select>

@@ -189,7 +189,7 @@
                     const formContainer = document.getElementById('approvalForm');
                     const leaveId = formContainer.getAttribute('data-leave-id');
                     const status = document.getElementById('approvalStatus').value;
-                    const payStatus = document.getElementById('payStatus').value;
+                    const empPayStatus = document.getElementById('empPayStatus').value;
                     const remarks = document.getElementById('remarks').value;
 
                     if (!leaveId) {
@@ -208,7 +208,7 @@
                             body: JSON.stringify({
                                 empLeaveNo: leaveId,
                                 status: status,
-                                payStatus: payStatus,
+                                empPayStatus: empPayStatus,
                                 remarks: remarks,
                             }),
                         })

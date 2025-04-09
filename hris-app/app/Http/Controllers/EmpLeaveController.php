@@ -208,16 +208,22 @@ class EmpLeaveController extends Controller
                 'empLeaveNo' => 'required',
                 'status' => 'required|string',
                 'remarks' => 'nullable|string',
-                'payStatus' => 'nullable|string',
+                'empPayStatus' => 'nullable|string',
             ]);
 
             $leaveStatus = LeaveStatus::where('empLeaveNo', $request->empLeaveNo)->firstOrFail();
 
             // Decode current office status and remarks
-            $officeStatuses = json_decode($leaveStatus->empLSOffice, true);
-            $officeRemarks = json_decode($leaveStatus->empLSRemarks, true);
+            $officeStatuses = collect(json_decode($leaveStatus->empLSOffice, true) ?? [])
+                ->mapWithKeys(fn($status, $office) => [strtoupper($office) => strtolower($status)])
+                ->toArray();
 
-            // Get the current user's position(s)
+            $officeRemarks = collect(json_decode($leaveStatus->empLSRemarks, true) ?? [])
+                ->mapWithKeys(fn($remark, $office) => [strtoupper($office) => $remark])
+                ->toArray();
+
+
+            // Get current user's position(s)
             $positions = Auth::user()->employee?->assignments()
                 ->with('position')
                 ->get()
@@ -232,31 +238,42 @@ class EmpLeaveController extends Controller
                 'PRESIDENT' => 'PRESIDENT',
             ];
 
-            // Update statuses only for matched position(s)
-            foreach ($positions as $pos) {
-                $mapped = $positionMap[$pos] ?? $pos;
+            $updated = false;
 
-                if (isset($officeStatuses[$mapped])) {
+            foreach ($positions as $pos) {
+                $mapped = strtoupper($positionMap[$pos] ?? $pos);
+
+                if (isset($officeStatuses[$mapped]) && $officeStatuses[$mapped] === 'pending') {
                     $officeStatuses[$mapped] = strtolower($request->status);
                     $officeRemarks[$mapped] = $request->remarks ?? 'N/A';
+                    $updated = true;
                 }
             }
 
-            // Determine overall empLSStatus
-            $finalStatus = 'pending';
 
-            if (in_array('declined', array_map('strtolower', $officeStatuses))) {
-                $finalStatus = 'declined';
-            } elseif (count(array_filter($officeStatuses, fn($s) => strtolower($s) === 'approved')) === count($officeStatuses)) {
-                $finalStatus = 'approved';
+            if (!$updated) {
+                return response()->json([
+                    'error' => 'You have already acted on this request or do not have permission.'
+                ], 403);
             }
 
-            // Save updated status
+            // Determine final status
+            $statuses = array_map('strtolower', $officeStatuses);
+
+            if (in_array('declined', $statuses)) {
+                $finalStatus = 'declined';
+            } elseif (count(array_filter($statuses, fn($s) => $s === 'approved')) === count($officeStatuses)) {
+                $finalStatus = 'approved';
+            } else {
+                $finalStatus = 'pending';
+            }
+
+            // Save
             $leaveStatus->update([
                 'empLSOffice' => json_encode($officeStatuses),
                 'empLSRemarks' => json_encode($officeRemarks),
                 'empLSStatus' => $finalStatus,
-                'empPayStatus' => $request->payStatus ?? 'With Pay',
+                'empPayStatus' => $request->empPayStatus ?? 'Without Pay',
                 'updated_at' => now(),
             ]);
 
@@ -267,17 +284,11 @@ class EmpLeaveController extends Controller
             logger()->error('Leave status update failed: ' . $e->getMessage());
 
             return response()->json([
-                'error' => 'Failed to fetch leave details',
+                'error' => 'Failed to update leave status',
                 'message' => config('app.debug') ? $e->getMessage() : 'Please try again later'
             ], 500);
-            
         }
     }
-
-
-
-
-
 
     public function store(Request $request)
     {
@@ -339,6 +350,7 @@ class EmpLeaveController extends Controller
                 'empLeaveNo' => $empLeaveNo,
                 'dateUpdated' => now(),
                 'empID' => $empID,
+                'empPayStatus' => 'Without Pay',
                 'empLSOffice' => json_encode($offices),
                 'empLSStatus' => 'pending',
                 'empLSRemarks' => json_encode($remarks),
@@ -471,7 +483,7 @@ class EmpLeaveController extends Controller
             ]);
             $leave->update([
                 'empLSStatus' => $request->status,
-                'empPayStatus' => '',
+                'empPayStatus' => 'Without Pay',
                 'empLSRemarks' => '',
                 'updated_at' => now(),
             ]);
