@@ -108,11 +108,10 @@
                                 $user = Auth::user();
 
                                 $positionMap = [
+                                'HEAD OFFICE' => 'HEAD OFFICE',
                                 'VICE PRESIDENT OF ACADEMIC AFFAIRS' => 'VPAA',
-                                'OFFICE HEAD' => 'OFFICE HEAD',
+                                'VP FINANCE' => 'VP FINANCE',
                                 'PRESIDENT' => 'PRESIDENT',
-                                'VICE PRESIDENT' => 'VICE PRESIDENT',
-                                'FINANCE' => 'FINANCE',
                                 ];
 
                                 // Load assignments + their position names

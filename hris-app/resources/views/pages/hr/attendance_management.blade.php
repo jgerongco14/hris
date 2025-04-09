@@ -142,7 +142,7 @@
                                                 <strong>Date Leave:</strong> {{ \Carbon\Carbon::parse($matchingLeave->empLeaveStartDate)->format('M d, Y') }}
                                                 to {{ \Carbon\Carbon::parse($matchingLeave->empLeaveEndDate)->format('M d, Y') }}<br>
                                                 <strong>Status:</strong> {{ $leaveStatus->empLSStatus ?? 'Pending' }}<br>
-                                                <strong>Pay Status:</strong> {{ $leaveStatus->empLSPayStatus ?? '-' }}
+                                                <strong>Pay Status:</strong> {{ $leaveStatus->empPayStatus ?? '-' }}
                                             </div>
                                             @elseif($remarks === 'absent')
                                             <span class="badge bg-danger">Absent</span><br>

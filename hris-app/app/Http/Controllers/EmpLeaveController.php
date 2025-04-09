@@ -227,9 +227,9 @@ class EmpLeaveController extends Controller
 
             $positionMap = [
                 'VICE PRESIDENT OF ACADEMIC AFFAIRS' => 'VPAA',
-                'OFFICE HEAD' => 'OFFICE HEAD',
+                'HEAD OFFICE' => 'HEAD OFFICE',
+                'VP FINANCE' => 'VP FINANCE',
                 'PRESIDENT' => 'PRESIDENT',
-                'FINANCE' => 'FINANCE',
             ];
 
             // Update statuses only for matched position(s)
@@ -256,7 +256,7 @@ class EmpLeaveController extends Controller
                 'empLSOffice' => json_encode($officeStatuses),
                 'empLSRemarks' => json_encode($officeRemarks),
                 'empLSStatus' => $finalStatus,
-                'empLSPayStatus' => $request->payStatus ?? 'With Pay',
+                'empPayStatus' => $request->payStatus ?? 'With Pay',
                 'updated_at' => now(),
             ]);
 
@@ -321,17 +321,17 @@ class EmpLeaveController extends Controller
             ]);
 
             $offices = [
-                'Office Head' => 'pending',
+                'Head Office' => 'pending',
                 'VPAA' => 'pending',
+                'VP Finance' => 'pending',
                 'President' => 'pending',
-                'Finance' => 'pending',
             ];
 
             $remarks = [
-                'Office Head' => 'N/A',
+                'Head Office' => 'N/A',
                 'VPAA' => 'N/A',
+                'VP Finance' => 'N/A',
                 'President' => 'N/A',
-                'Finance' => 'N/A',
             ];
 
             LeaveStatus::create([
@@ -471,7 +471,7 @@ class EmpLeaveController extends Controller
             ]);
             $leave->update([
                 'empLSStatus' => $request->status,
-                'empLSPayStatus' => '',
+                'empPayStatus' => '',
                 'empLSRemarks' => '',
                 'updated_at' => now(),
             ]);
