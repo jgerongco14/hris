@@ -10,8 +10,12 @@
             <form action="{{ route('offices.store') }}" method="POST">
                 @csrf
                 <div class="mb-3">
-                    <label for="name" class="form-label">Office Name</label>
-                    <input type="text" name="name" id="name" class="form-control" required>
+                    <label for="officeCode" class="form-label">Office Code</label>
+                    <input type="text" name="officeCode" id="officeCode" class="form-control" required>
+                </div>
+                <div class="mb-3">
+                    <label for="officeName" class="form-label">Office Name</label>
+                    <input type="text" name="officeName" id="officeName" class="form-control" required>
                 </div>
                 <button type="submit" class="btn btn-success">Add Office</button>
             </form>
@@ -30,20 +34,24 @@
     <table class="table table-bordered table-striped table-hover">
         <thead class="text-center">
             <tr>
+                <th>Code</th>
                 <th>Offices</th>
                 <th>Actions</th>
             </tr>
         </thead>
         <tbody class="align-middle">
-            
+
             @forelse ($offices as $office)
             <tr>
+                <td>{{ $office->officeCode }}</td>
                 <td>{{ $office->officeName }}</td>
-                <td class="col-3 text-center">
+                <td class="col-3 text-center align-middle">
                     <form action="{{ route('offices.destroy', $office->id) }}" method="POST" style="display:inline;">
                         @csrf
                         @method('DELETE')
-                        <button type="submit" class="btn btn-danger">Delete</button>
+                        <button type="submit" class="btn btn-danger btn-sm">
+                            <i class="ri-delete-bin-line"></i> <!-- Delete Icon -->
+                        </button>
                     </form>
                 </td>
             </tr>

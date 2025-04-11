@@ -87,26 +87,37 @@ class DepartmentController extends Controller
         try {
             $request->validate([
                 'name' => 'required|string|max:255',
-                'programName' => 'nullable|string|max:255', // Validate the optional program name
+                'departmentCode' => 'required|string|max:255',
+                'programs' => 'nullable|array', // Validate that programs is an array
+                'programs.*.programCode' => 'required|string|max:255|distinct', // Validate each programCode
+                'programs.*.programName' => 'required|string|max:255', // Validate each programName
             ]);
-
-            // Create the department
-            $department = Departments::create([
-                'departmentName' => $request->input('name'),
-            ]);
-
-            // If a program name is provided, create the program and associate it with the department
-            if ($request->filled('programName')) {
-                $program = Programs::create([
-                    'programName' => $request->input('programName'),
-                ]);
-
-                $department->programs()->attach($program->id);
+    
+            // Update or create the department
+            $department = Departments::updateOrCreate(
+                ['departmentCode' => $request->input('departmentCode')], // Match by departmentCode
+                ['departmentName' => $request->input('name')] // Update or set departmentName
+            );
+    
+            // If programs are provided, create them and associate them with the department
+            if ($request->has('programs')) {
+                foreach ($request->input('programs') as $programData) {
+                    // Create or update the program
+                    $program = Programs::firstOrCreate(
+                        ['programCode' => $programData['programCode']],
+                        ['programName' => $programData['programName']]
+                    );
+    
+                    // Attach the program to the department if not already attached
+                    if (!$department->programs->contains($program->id)) {
+                        $department->programs()->attach($program->id);
+                    }
+                }
             }
-
-            return redirect()->back()->with('success', 'Department created successfully!');
+    
+            return redirect()->back()->with('success', 'Department created or updated successfully!');
         } catch (\Exception $e) {
-            return redirect()->back()->with('error', 'Failed to create department: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'Failed to create or update department: ' . $e->getMessage());
         }
     }
 

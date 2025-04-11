@@ -137,7 +137,7 @@ Route::prefix('departments')->group(function () {
     Route::post('/', [DepartmentController::class, 'createDepartment'])->name('departments.store');
     Route::post('/import', [DepartmentController::class, 'importDepartment'])->name('departments.import');
     Route::delete('/{id}', [DepartmentController::class, 'deleteDepartment'])->name('departments.destroy');
-    Route::get('/{id}/remove-program', [DepartmentController::class, 'removeProgram'])->name('departments.removeProgram');
+    Route::delete('/{departmentId}/programs/{programId}', [DepartmentController::class, 'removeProgram'])->name('departments.removeProgram');
 });
 
 // Offices Routes
