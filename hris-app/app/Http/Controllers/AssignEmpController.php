@@ -23,6 +23,7 @@ class AssignEmpController extends Controller
                 'positions.*.empAssAppointedDate' => 'required|date',
                 'positions.*.empAssEndDate' => 'nullable|date|after_or_equal:positions.*.empAssAppointedDate',
                 'departmentID' => 'nullable|exists:departments,departmentCode',
+                'programCode' => 'nullable|exists:programs,programCode',
                 'officeID' => 'nullable|exists:offices,officeCode',
                 'makeHead' => 'nullable|boolean',
             ]);
@@ -31,6 +32,7 @@ class AssignEmpController extends Controller
             $positions = $request->input('positions'); // Array of positions
             $appointedDate = $request->input('empAssAppointedDate');
             $departmentCode = $request->input('departmentID'); // Department Code
+            $programCode = $request->input('programCode'); // Program Code
             $officeCode = $request->input('officeID'); // Office Code
             $empHead = $request->input('makeHead'); // Checkbox for Head of Office
 
@@ -56,7 +58,8 @@ class AssignEmpController extends Controller
                     'empAssEndDate' => $endDate,
                     'officeCode' => $officeCode,
                     'departmentCode' => $departmentCode,
-                    'empHead' => $empHead ? true : false, 
+                    'programCode' => $programCode,
+                    'empHead' => $empHead ? true : false,
                 ]);
             }
 
@@ -92,6 +95,4 @@ class AssignEmpController extends Controller
 
         return response()->json(['success' => true]);
     }
-
-    
 }

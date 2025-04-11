@@ -87,17 +87,18 @@
                             <select class="form-select" id="departmentID" name="departmentID">
                                 <option value="" selected>None</option>
                                 @foreach($departments as $department)
-                                <option value="{{ $department->departmentCode }}">{{ $department->departmentName }}</option>
+                                <option value="{{ $department->departmentCode }}" data-programs='@json($department->programs)'>
+                                    {{ $department->departmentName }}
+                                </option>
                                 @endforeach
                             </select>
                         </div>
 
                         <!-- Program Selection -->
                         <div class="col mb-3">
-                            <label for="programID" class="form-label">Program (Optional)</label>
-                            <select class="form-select" id="programID" name="programID">
+                            <label for="programCode" class="form-label">Program (Optional)</label>
+                            <select class="form-select" id="programCode" name="programCode">
                                 <option value="" selected>None</option>
-                                <!-- Options will be dynamically loaded -->
                             </select>
                         </div>
 
@@ -121,7 +122,7 @@
                         <label class="form-check-label" for="makeHead">Make Head of the Office</label>
                     </div>
 
-            
+
                     <div class="div mb-3 text-center">
                         <button type="submit" class="btn btn-primary">Assign</button>
                     </div>
@@ -176,29 +177,26 @@
 
     function handleDepartmentChange(departmentSelect) {
         const selectedOption = departmentSelect.options[departmentSelect.selectedIndex];
-        const programs = JSON.parse(selectedOption.getAttribute('data-programs') || '[]');
-        const programContainer = document.getElementById('programContainer');
-        const programSelect = document.getElementById('programID');
+        const programs = JSON.parse(selectedOption.getAttribute('data-programs') || '[]'); // Get programs from data attribute
+        const programSelect = document.getElementById('programCode');
         const makeHeadContainer = document.getElementById('makeHeadContainer');
 
-        // Clear and reset
+        // Clear and reset the program dropdown
         programSelect.innerHTML = '<option value="" selected>None</option>';
-        programContainer.style.display = 'none'; // 👈 Always hide first
 
-        // Only show programContainer if actual programs exist
+        // Populate the program dropdown if programs exist
         if (programs.length > 0) {
             programs.forEach(program => {
                 const option = document.createElement('option');
-                option.value = program.id;
-                option.textContent = program.programName;
+                option.value = program.programCode; // Set the value to programCode
+                option.textContent = program.programName; // Display the program name
                 programSelect.appendChild(option);
             });
-
-            programContainer.style.display = 'block';
         }
 
-        // Handle visibility of "Make Head of the Office"
-        if (departmentSelect.value || document.getElementById('officeID').value) {
+        // Show the checkbox if either department or office is selected
+        const officeValue = document.getElementById('officeID').value;
+        if (departmentSelect.value || officeValue) {
             makeHeadContainer.style.display = 'block';
         } else {
             makeHeadContainer.style.display = 'none';
@@ -209,6 +207,7 @@
         const makeHeadContainer = document.getElementById('makeHeadContainer');
         const departmentValue = document.getElementById('departmentID').value;
 
+        // Show the checkbox if either department or office is selected
         if (officeSelect.value || departmentValue) {
             makeHeadContainer.style.display = 'block';
         } else {
@@ -217,12 +216,31 @@
     }
 
     document.addEventListener('DOMContentLoaded', function() {
+        // Hide the checkbox on page load
+        const makeHeadContainer = document.getElementById('makeHeadContainer');
+        makeHeadContainer.style.display = 'none';
+
+        // Attach event listeners to department and office dropdowns
+        const departmentSelect = document.getElementById('departmentID');
+        const officeSelect = document.getElementById('officeID');
+
+        departmentSelect.addEventListener('change', function() {
+            handleDepartmentChange(departmentSelect);
+        });
+
+        officeSelect.addEventListener('change', function() {
+            handleOfficeChange(officeSelect);
+        });
+    });
+
+
+    document.addEventListener('DOMContentLoaded', function() {
         const form = document.querySelector('form[action="{{ route("empAssignment") }}"]');
 
         form.addEventListener('submit', function(e) {
             const officeID = document.getElementById('officeID').value;
             const departmentID = document.getElementById('departmentID').value;
-            const programSelect = document.getElementById('programID');
+            const programCode = document.getElementById('programCode').value;
 
             console.log('Office ID:', officeID);
             console.log('Department ID:', departmentID);

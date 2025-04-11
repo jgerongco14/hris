@@ -131,7 +131,9 @@
             document.getElementById('empIDHidden').value = empID; // Hidden input for form submission
             document.getElementById('employeeName').value = empName; // Employee Name field
             document.getElementById('hiddenDepartmentID').value = document.getElementById('departmentID').value;
+            document.getElementById('hiddenProgramCode').value = document.getElementById('programCode').value;
             document.getElementById('hiddenOfficeID').value = document.getElementById('officeID').value;
+
 
 
 

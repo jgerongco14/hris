@@ -245,13 +245,21 @@
                         @endforelse
                     </td>
                     <td class="align-middle">
-                        @forelse ($employee->assignments as $assignment)
+                        @forelse ($employee->assignments->unique(function ($assignment) {
+                        return $assignment->departmentCode . $assignment->officeCode . $assignment->programCode . $assignment->empHead;
+                        })->sortByDesc('assignDate') as $assignment)
                         <div>
                             @if ($assignment->departmentCode)
                             <strong>Department:</strong> {{ $assignment->department->departmentName ?? 'N/A' }}<br>
                             @endif
                             @if ($assignment->officeCode)
-                            <strong>Office:</strong> {{ $assignment->office->officeName ?? 'N/A' }}
+                            <strong>Office:</strong> {{ $assignment->office->officeName ?? 'N/A' }}<br>
+                            @endif
+                            @if ($assignment->programCode)
+                            <strong>Program:</strong> {{ $assignment->program->programName ?? 'N/A' }}<br>
+                            @endif
+                            @if ($assignment->empHead)
+                            <strong>Head of the Office:</strong> {{ $assignment->empHead == 1 ? 'Yes' : 'No' }}
                             @endif
                         </div>
                         @empty
