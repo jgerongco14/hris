@@ -16,6 +16,6 @@ class Programs extends Model
 
     public function departments()
     {
-        return $this->belongsTo(Departments::class, 'programCode', 'programCode');
+        return $this->belongsToMany(Departments::class, 'department_program', 'program_id', 'department_id');
     }
 }

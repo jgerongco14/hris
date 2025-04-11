@@ -22,6 +22,11 @@
                             Position Management
                         </a>
                     </li>
+                    <li class="nav-item">
+                        <a class="nav-link {{ request()->routeIs('departments_offices_management') ? 'active' : '' }}" href="{{ route('departments_offices_management') }}">
+                            Departments and Offices Management
+                        </a>
+                    </li>
                 @elseif (Auth::user()->role === 'hr')
                     <li class="nav-item">
                         <a class="nav-link {{ request()->routeIs('employee_management') ? 'active' : '' }}" href="{{ route('employee_management') }}">

@@ -10,6 +10,8 @@ use App\Http\Controllers\AssignmentController;
 use App\Http\Controllers\AssignEmpController;
 use App\Http\Controllers\EmpContributionController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\DepartmentController;
+use App\Http\Controllers\OfficeController;
 
 Route::get('/', function () {
     return redirect()->route('login');
@@ -121,3 +123,26 @@ Route::get('/contribution', [EmpContributionController::class, 'employeeContribu
 
 Route::get('/myProfile', [ProfileController::class, 'index'])->name('myProfile');
 Route::post('/myProfile', [ProfileController::class, 'update'])->name('profile.update');
+
+
+// Departments and Offices Management
+
+Route::get('/departments_offices_management', [DepartmentController::class, 'displayManagementPage'])
+    ->name('departments_offices_management');
+
+
+// Departments Routes
+Route::prefix('departments')->group(function () {
+    Route::get('/', [DepartmentController::class, 'displayDepartmentList'])->name('departments.index');
+    Route::post('/', [DepartmentController::class, 'createDepartment'])->name('departments.store');
+    Route::post('/import', [DepartmentController::class, 'importDepartment'])->name('departments.import');
+    Route::delete('/{id}', [DepartmentController::class, 'deleteDepartment'])->name('departments.destroy');
+    Route::get('/{id}/remove-program', [DepartmentController::class, 'removeProgram'])->name('departments.removeProgram');
+});
+
+// Offices Routes
+Route::prefix('offices')->group(function () {
+    Route::post('/', [OfficeController::class, 'createOffice'])->name('offices.store');
+    Route::post('/import', [OfficeController::class, 'importOfficeCSV'])->name('offices.import');
+    Route::delete('/{id}', [OfficeController::class, 'deleteOffice'])->name('offices.destroy');
+});

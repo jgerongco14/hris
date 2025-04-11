@@ -17,13 +17,13 @@ class Departments extends Model
         'programCode'
     ];
 
-    public function program()
+    public function programs()
     {
-        return $this->hasMany(Programs::class, 'programCode', 'programCode');
+        return $this->belongsToMany(Programs::class, 'department_program', 'department_id', 'program_id');
     }
 
     public function departmentHead()
     {
-      return $this->belongsTo(Employee::class, 'departmentHead', 'empID');
+        return $this->belongsTo(Employee::class, 'departmentHead', 'empID');
     }
 }
