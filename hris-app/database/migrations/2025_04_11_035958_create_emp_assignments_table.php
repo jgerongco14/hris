@@ -20,6 +20,8 @@ return new class extends Migration
             $table->date('empAssEndDate');
             $table->string('officeCode',100)->nullable()->index();
             $table->string('departmentCode',100)->nullable()->index();
+            $table->string('programCode',100)->nullable()->index();
+            $table->boolean('empHead')->default(false);
             $table->timestamps();
 
             $table->foreign('empID')->references('empID')->on('employees');

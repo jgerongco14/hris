@@ -15,10 +15,7 @@ return new class extends Migration
             $table->id();
             $table->string('officeCode',100)->unique();
             $table->string('officeName');
-            $table->string('officeHead',100)->nullable();
             $table->timestamps();
-
-            $table->foreign('officeHead')->references('empID')->on('employees');
         });
     }
 
