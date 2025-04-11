@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+
 <html lang="en">
 
 <head>
@@ -7,6 +8,8 @@
     <title>Employee Management</title>
     @vite(['resources/sass/app.scss', 'resources/js/app.js'])
     <link href="https://cdn.jsdelivr.net/npm/remixicon@2.5.0/fonts/remixicon.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
 </head>
 
 <body>
@@ -24,222 +27,58 @@
                 <!-- Include the titlebar component -->
                 <x-titlebar />
 
-                @if (session('success'))
-                <div class="alert alert-success" role="alert">
-                    {{ session('success') }}
+                <!-- Include the notification component -->
+                <x-notification />
+
+                <!-- Import Attendance Button -->
+                @include('components.import_file')
+
+                <div class="card my-5">
+                    <div class="card-body">
+                        @include('pages.hr.components.employee_list')
+                    </div>
                 </div>
-                @elseif (session('error'))
-                <div class="alert alert-danger" role="alert">
-                    {{ session('error') }}
-                </div>
-                @endif
 
-                <!-- Add Employee Button -->
-                <button class="btn btn-primary" id="addEmployeeBtn">Add Employee</button>
+                @include('pages.hr.components.assign_position', ['positions' => $positions])
 
-                <!-- The Form (Initially Hidden) -->
-                <form method="POST" action="{{ route('addEmployee.store') }}" enctype="multipart/form-data" id="employeeForm" style="display: none;" class="container mt-4">
-                    @csrf
-                    <div class="row">
-                        <div class="col-1 mb-3">
-                            <label for="empPrefix" class="form-label">Prefix</label>
-                            <input type="text" class="form-control" id="empPrefix" name="empPrefix" value="{{ old('empPrefix') }}">
-                        </div>
-
-
-                        <div class="col mb-3">
-                            <label for="empFname" class="form-label">First Name</label>
-                            <input type="text" class="form-control" id="empFname" name="empFname" value="{{ old('empFname') }}" required>
-                        </div>
-
-                        <div class="col mb-3">
-                            <label for="empMname" class="form-label">Middle Name</label>
-                            <input type="text" class="form-control" id="empMname" name="empMname" value="{{ old('empMname') }}">
-                        </div>
-
-                        <div class="col mb-3">
-                            <label for="empLname" class="form-label">Last Name</label>
-                            <input type="text" class="form-control" id="empLname" name="empLname" value="{{ old('empLname') }}" required>
-                        </div>
-                        <div class="col-1 mb-3">
-                            <label for="empSuffix" class="form-label">Suffix</label>
-                            <input type="text" class="form-control" id="empSuffix" name="empSuffix" value="{{ old('empSuffix') }}">
-                        </div>
-                    </div>
-
-                    <div class="row">
-
-                        <div class="col-4 mb-3">
-
-                            <label for="photo" class="form-label">Profile Picture</label>
-                            <input class="form-control" type="file" id="photo" name="photo">
-
-                        </div>
-
-                        <div class="col-4 mb-3">
-                            <label class="form-label">Gender</label>
-                            <div class="d-flex align-items-center">
-                                <div class="form-check me-3">
-                                    <input class="form-check-input" type="radio" id="male" name="empGender" value="male" {{ old('empGender', $employee->empGender ?? '') == 'male' ? 'checked' : '' }}>
-                                    <label class="form-check-label" for="male">Male</label>
-                                </div>
-                                <div class="form-check">
-                                    <input class="form-check-input" type="radio" id="female" name="empGender" value="female" {{ old('empGender', $employee->empGender ?? '') == 'female' ? 'checked' : '' }}>
-                                    <label class="form-check-label" for="female">Female</label>
-                                </div>
-                            </div>
-                        </div>
-
-
-
-                        <div class="col-4 mb-3">
-                            <label for="empBirthdate" class="form-label">Birthdate</label>
-                            <input type="text" class="form-control datepicker" id="empBirthdate" name="empBirthdate" value="{{ old('empBirthdate') }}" readonly>
-                        </div>
-                    </div>
-
-                    <div class="mb-3">
-                        <label for="address" class="form-label">Address</label>
-                        <input type="text" class="form-control" id="address" name="address" value="{{ old('address') }}">
-                    </div>
-
-                    <div class="row">
-                        <div class="col-md-4 mb-3">
-                            <label for="province" class="form-label">Province</label>
-                            <input type="text" class="form-control" id="province" name="province" value="{{ old('province') }}">
-                        </div>
-
-                        <div class="col-md-4 mb-3">
-                            <label for="city" class="form-label">City</label>
-                            <input type="text" class="form-control" id="city" name="city" value="{{ old('city') }}">
-                        </div>
-
-                        <div class="col-md-4 mb-3">
-                            <label for="barangay" class="form-label">Barangay</label>
-                            <input type="text" class="form-control" id="barangay" name="barangay" value="{{ old('barangay') }}">
-                        </div>
-                    </div>
-
-                    <div class="row">
-                        <div class="col-md-4 mb-3">
-                            <label for="empSSSNum" class="form-label">SSS Number</label>
-                            <input type="text" class="form-control" id="empSSSNum" name="empSSSNum" value="{{ old('empSSSNum') }}">
-                        </div>
-
-                        <div class="col-md-4 mb-3">
-                            <label for="empTinNum" class="form-label">TIN Number</label>
-                            <input type="text" class="form-control" id="empTinNum" name="empTinNum" value="{{ old('empTinNum') }}">
-                        </div>
-
-                        <div class="col-md-4 mb-3">
-                            <label for="empPagIbigNum" class="form-label">Pag-Ibig Number</label>
-                            <input type="text" class="form-control" id="empPagIbigNum" name="empPagIbigNum" value="{{ old('empPagIbigNum') }}">
-                        </div>
-                    </div>
-
-                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
-                        <button type="submit" class="btn btn-primary me-md-2">Submit</button>
-                        <button type="button" class="btn btn-secondary" onclick="$('#employeeForm').hide(); $('#employeeForm')[0].reset()">Cancel</button>
-                    </div>
-                </form>
-
-
-                <!-- Employee List Section -->
-                <div class="row my-4">
-                    <div class="col">
-                        <h3>EMPLOYEE LIST</h3>
-                        <table class="table table-bordered">
-                            <thead>
-                                <tr>
-                                    <th>EmpID</th>
-                                    <th>Full Name</th>
-                                    <th>Position</th>
-                                    <th>Email</th>
-                                    <th>Address</th>
-                                    <th>Benefits</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach($employees as $employee)
-                                <tr>
-                                    <td>{{ $employee->empID }}</td>
-                                    <td>
-                                        <div class="row">
-                                            <div class="col-2">
-                                                @if($employee->photo)
-                                                <img src="{{ asset('storage/'.$employee->photo) }}"
-                                                    alt="Employee Photo"
-                                                    width="50"
-                                                    height="50"
-                                                    class="rounded-circle">
-                                                @else
-                                                <div class="no-photo bg-light rounded-circle d-flex align-items-center justify-content-center"
-                                                    style="width:50px; height:50px;">
-                                                    <i class="ri-user-line"></i>
-                                                </div>
-                                                @endif
-                                            </div>
-                                            <div class="col-10">
-                                                {{ $employee->empPrefix }}
-                                                {{ $employee->empFname }}
-                                                {{ $employee->empMname }}
-                                                {{ $employee->empLname }}
-                                                {{ $employee->empSuffix }}
-                                            </div>
-                                        </div>
-                                    </td>
-                                    <td>Position Placeholder</td>
-                                    <td>Email Placeholder</td>
-                                    <td>
-                                        {{ $employee->address }},
-                                        {{ $employee->barangay }},
-                                        {{ $employee->city }},
-                                        {{ $employee->province }}
-                                    </td>
-                                    <td>
-                                        <ul class="list-unstyled">
-                                            <li>SSS: {{ $employee->empSSSNum ?? 'N/A' }}</li>
-                                            <li>TIN: {{ $employee->empTinNum ?? 'N/A' }}</li>
-                                            <li>Pag-Ibig: {{ $employee->empPagIbigNum ?? 'N/A' }}</li>
-                                        </ul>
-                                    </td>
-                                    <td>
-                                        <button class="btn btn-sm btn-primary me-1">
-                                            <i class="ri-pencil-line"></i>
-                                        </button>
-                                        <button class="btn btn-sm btn-danger">
-                                            <i class="ri-delete-bin-line"></i>
-                                        </button>
-                                    </td>
-                                </tr>
-                                @endforeach
-                            </tbody>
-                        </table>
-                    </div>
-
-                </div>
             </div>
         </div>
     </div>
 
-
-    <!-- Include Bootstrap CSS and JS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Include jQuery and jQuery UI for datepicker -->
     <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
     <script>
+        let selectedEmployeeId = null;
+        let selectedEmployeeName = null;
+        let selectedEmpID = null;
+
+        function showEditOptions(employeeId, empName, empID) {
+            selectedEmployeeId = employeeId;
+            selectedEmployeeName = empName;
+            selectedEmpID = empID;
+            $('#editChoiceModal').modal('show');
+        }
+
+
+        document.getElementById('editPositionBtn').addEventListener('click', function() {
+            $('#editChoiceModal').modal('hide');
+            // Show the assign position form/modal instead
+            assignPosition(selectedEmployeeId, selectedEmployeeName, selectedEmpID);
+        });
+
         $(document).ready(function() {
-            // Toggle form visibility when the button is clicked
-            $('#addEmployeeBtn').click(function() {
-                $('#employeeForm').toggle(); // Toggle visibility
+
+
+            $('#addIndividualBtn').click(function() {
+                $('#employeeForm').show(); // Always show the form
+                $('#addEmployee').modal('hide'); // Close the import modal if it's open
             });
 
-            // Initialize datepicker
+
+            // Initialize the datepicker
             $('.datepicker').datepicker({
                 changeMonth: true,
                 changeYear: true,
@@ -248,15 +87,13 @@
                 dateFormat: 'yy-mm-dd'
             });
 
-            // Prevent manual input in date field
+            // Prevent manual input for birthdate
             $('#empBirthdate').on('keydown paste', function(e) {
                 e.preventDefault();
                 return false;
             });
-        });
 
-        $(document).ready(function() {
-            // Format SSS number as XX-XXXXXXX-X
+            // Handle SSS Number formatting
             $('#empSSSNum').on('input', function() {
                 let value = $(this).val().replace(/\D/g, ''); // Remove non-numeric characters
                 if (value.length > 2) value = value.slice(0, 2) + '-' + value.slice(2);
@@ -264,7 +101,7 @@
                 $(this).val(value);
             });
 
-            // Format TIN number as XXX-XXX-XXX
+            // Handle TIN Number formatting
             $('#empTinNum').on('input', function() {
                 let value = $(this).val().replace(/\D/g, ''); // Remove non-numeric characters
                 if (value.length > 3) value = value.slice(0, 3) + '-' + value.slice(3);
@@ -272,7 +109,7 @@
                 $(this).val(value);
             });
 
-            // Format Pag-Ibig number as XXXX-XXXX-XXXX
+            // Handle Pag-Ibig Number formatting
             $('#empPagIbigNum').on('input', function() {
                 let value = $(this).val().replace(/\D/g, ''); // Remove non-numeric characters
                 if (value.length > 4) value = value.slice(0, 4) + '-' + value.slice(4);
@@ -280,6 +117,197 @@
                 $(this).val(value);
             });
         });
+
+        function assignPosition(id, empName, empID) {
+            const modal = new bootstrap.Modal(document.getElementById('assignPositionModal'));
+            modal.show();
+
+            // Set static fields
+            document.getElementById('assignEmpID').value = id;
+            document.getElementById('empIDModal').value = empID;
+            document.getElementById('empIDHidden').value = empID;
+            document.getElementById('employeeName').value = empName;
+
+            const tbody = document.getElementById('assignedPositionsBody');
+            tbody.innerHTML = `
+        <tr>
+            <td colspan="5" class="text-center text-muted">Loading...</td>
+        </tr>
+    `;
+
+            // Fetch positions
+            fetch(`/employee/${id}/positions`)
+                .then(res => res.json())
+                .then(data => {
+                    if (data.length > 0) {
+                        tbody.innerHTML = ''; // Clear loading
+                        data.forEach((assignment, index) => {
+                            const row = `
+                        <tr>
+                            <td class="text-center">${index + 1}</td>
+                            <td>${assignment.positionName}</td>
+                            <td class="text-center">${assignment.empAssAppointedDate}</td>
+                            <td class="text-center">${assignment.empAssEndDate}</td>
+                            <td class="text-center">
+                                <button class="btn btn-danger btn-sm" onclick="removePosition(${assignment.empAssID})">
+                                    <i class="ri-delete-bin-5-line"></i>
+                                </button>
+                            </td>
+                        </tr>`;
+                            tbody.insertAdjacentHTML('beforeend', row);
+                        });
+                    } else {
+                        tbody.innerHTML = `
+                    <tr>
+                        <td colspan="5" class="text-center text-muted">No position assignments found.</td>
+                    </tr>`;
+                    }
+                })
+                .catch(error => {
+                    console.error("Fetch error:", error);
+                    tbody.innerHTML = `
+                <tr>
+                    <td colspan="5" class="text-danger text-center">Failed to load positions.</td>
+                </tr>`;
+                });
+        }
+
+        function removePosition(empAssID) {
+            if (!confirm("Are you sure you want to remove this position assignment?")) return;
+
+            fetch(`/employee/assignment/${empAssID}/delete`, {
+                    method: 'DELETE',
+                    headers: {
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                        'Content-Type': 'application/json'
+                    }
+                })
+                .then(res => {
+                    if (!res.ok) throw new Error('Failed to delete');
+                    return res.json(); // Make sure to return the response
+                })
+                .then(data => {
+                    if (data.success) {
+                        showToast("Success", "Position removed successfully.");
+                    } else {
+                        showToast("Error", data.message || "Delete failed.", 'danger');
+                    }
+
+                    // 🟡 Reload the assignment list only, not the entire modal
+                    assignPosition(
+                        document.getElementById('assignEmpID').value,
+                        document.getElementById('employeeName').value,
+                        document.getElementById('empID').value
+                    );
+                })
+                .catch(err => {
+                    showToast("Error", "Something went wrong while deleting.", 'danger');
+                    console.error(err);
+                });
+        }
+
+
+
+
+        function cancelAssign() {
+            $('#assignPositionForm').hide();
+            $('#assignEmpID').val('');
+            $('#employeeForm').show();
+        }
+
+        document.addEventListener("DOMContentLoaded", function() {
+            const form = document.getElementById("employeeForm");
+
+            form.addEventListener("submit", function(e) {
+                let isValid = true;
+                let requiredFields = [
+                    "empID",
+                    "empFname",
+                    "empLname",
+                ];
+
+                // Check if required fields are empty
+                requiredFields.forEach(field => {
+                    const input = document.getElementById(field);
+                    if (!input.value.trim()) {
+                        isValid = false;
+                        // Show a toast message
+                        showToast("Error", `${input.placeholder} is required.`, "danger");
+                    }
+                });
+
+                // If form is invalid, prevent submission
+                if (!isValid) {
+                    e.preventDefault();
+                }
+            });
+
+
+        });
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const form = document.getElementById('employeeForm');
+            const genderInputs = document.getElementsByName('empGender');
+            const birthdateInput = document.getElementById('empBirthdate');
+
+            form.addEventListener('submit', function(event) {
+                let isValid = true;
+
+                // Check if gender is selected
+                const genderSelected = Array.from(genderInputs).some(input => input.checked);
+                if (!genderSelected) {
+                    isValid = false;
+                    showToast('Error', 'Please select a gender.', 'danger');
+                }
+
+                // Check if birthdate has a value
+                if (!birthdateInput.value) {
+                    isValid = false;
+                    showToast('Error', 'Please select a birthdate.', 'danger');
+                }
+
+                // Prevent form submission if validation fails
+                if (!isValid) {
+                    event.preventDefault();
+                }
+            });
+        });
+
+        function showToast(title, message, type = 'success') {
+            const toastEl = document.getElementById('liveToast');
+            const toastHeader = document.getElementById('toast-header');
+            const toastTitle = document.getElementById('toast-title');
+            const toastMessage = document.getElementById('toast-message');
+            const toastIcon = document.getElementById('toast-icon');
+
+            // Reset and keep background white
+            toastEl.className = 'toast align-items-center border border-2 show bg-white';
+
+            const headerColors = {
+                success: 'text-success',
+                danger: 'text-danger',
+                warning: 'text-warning',
+                info: 'text-info'
+            };
+
+            const icons = {
+                success: '✅',
+                danger: '❌',
+                warning: '⚠️',
+                info: 'ℹ️'
+            };
+
+            // Style header and icon
+            toastHeader.className = `toast-header ${headerColors[type] || 'text-dark'}`;
+            toastIcon.textContent = icons[type] || '';
+            toastTitle.textContent = title;
+            toastMessage.textContent = message;
+
+            const toast = new bootstrap.Toast(toastEl, {
+                delay: 10000
+            });
+            toast.show();
+        }
     </script>
 </body>
 

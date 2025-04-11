@@ -11,6 +11,8 @@ class LeaveStatus extends Model
 
     // The table associated with the model
     protected $table = 'empLeaveStatus';
+    protected $primaryKey = 'id'; 
+
 
     protected $fillable = [
         'id',
@@ -21,4 +23,9 @@ class LeaveStatus extends Model
         'empLSStatus',
         'empLSRemarks',
     ];
+
+    public function leave()
+    {
+        return $this->belongsTo(Leave::class, 'empLeaveNo', 'empLeaveNo');
+    }
 }

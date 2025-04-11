@@ -14,29 +14,25 @@
         <div class="row">
             <!-- Navigation Section -->
             <div class="col-2">
-                <!-- Include the navbar component -->
                 <x-navbar />
             </div>
+
             <!-- Main Content Section -->
             <div class="col-10">
-                <!-- Include the titlebar component -->
                 <x-titlebar />
+
                 <!-- Profile Section -->
-                <div class="row my-4">
-                    <div class="col">
-                        <div class="card">
-                            <div class="card-body">
-                                <h4 class="card-title">DR. AAAAA A. AAAAAA</h4>
-                                <p class="card-text">Vice President for Academic Affairs</p>
-                                <p class="card-text">Appointed last XXXXXXX XX, XXXX</p>
-                                <a href="#" class="btn btn-link">Update Profile</a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+                <x-myProfile />
+
+                <!-- Include the notification component -->
+                <x-notification />
             </div>
         </div>
     </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
 </body>
 
 </html>

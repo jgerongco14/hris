@@ -13,10 +13,11 @@ return new class extends Migration
     {
         Schema::create('empLeaveStatus', function (Blueprint $table) {
             $table->id();
-            $table->string('empLSNo');
-            $table->unsignedBigInteger('empLeaveNo')->index();
+            $table->string('empLSNo')->unique();
+            $table->string('empLeaveNo')->index();
             $table->string('empLSOffice');
-            $table->unsignedBigInteger('empID')->index();
+            $table->string('empID')->index();
+            $table->string('empPayStatus')->nullable();
             $table->string('empLSStatus');
             $table->string('empLSRemarks');
             $table->timestamps();

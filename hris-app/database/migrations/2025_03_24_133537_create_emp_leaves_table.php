@@ -12,13 +12,15 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('empLeaves', function (Blueprint $table) {
-            $table->id('empLeaveNo');
-            $table->unsignedBigInteger('empID')->index();
+            $table->id();
+            $table->string('empLeaveNo')->unique();
+            $table->string('empID')->index();
             $table->date('empLeaveDateApplied');
             $table->string('leaveType');
             $table->date('empLeaveStartDate');
             $table->date('empLeaveEndDate');
             $table->string('empLeaveDescription');
+            $table->string('empLeaveAttachment')->nullable();
             $table->timestamps();
 
             $table->foreign('empID')->references('empID')->on('employees');
@@ -30,6 +32,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('emp_leaves');
+        Schema::dropIfExists('emp_Leaves');
     }
 };
