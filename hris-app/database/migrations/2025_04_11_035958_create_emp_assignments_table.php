@@ -18,10 +18,14 @@ return new class extends Migration
             $table->string('positionID')->index();
             $table->date('empAssAppointedDate');
             $table->date('empAssEndDate');
+            $table->string('officeCode',100)->nullable()->index();
+            $table->string('departmentCode',100)->nullable()->index();
             $table->timestamps();
 
             $table->foreign('empID')->references('empID')->on('employees');
             $table->foreign('positionID')->references('positionID')->on('positions');
+            $table->foreign('officeCode')->references('officeCode')->on('offices');
+            $table->foreign('departmentCode')->references('departmentCode')->on('departments');
         });
     }
 
@@ -30,6 +34,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('empAssignment');
+        Schema::dropIfExists('empAssignments');
     }
 };
