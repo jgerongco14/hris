@@ -20,4 +20,8 @@ class Offices extends Model
     {
       return $this->belongsTo(Employee::class, 'officeHead', 'empID');
     }
+    public function employees()
+    {
+        return $this->hasMany(Employee::class, 'officeCode', 'officeCode');
+    }
 }

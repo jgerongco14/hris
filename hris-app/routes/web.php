@@ -48,6 +48,8 @@ Route::get('/admin/position_management', [AssignmentController::class, 'showPosi
 Route::post('/admin/position_management', [AssignmentController::class, 'storePosition'])->name('assignment.storePosition');
 Route::put('/admin/position_management/{id}', [AssignmentController::class, 'updatePosition'])->name('assignment.updatePosition');
 Route::delete('/admin/position_management/{id}', [AssignmentController::class, 'deletePosition'])->name('assignment.delete');
+Route::post('/admin/import-positions', [AssignmentController::class, 'importPosition'])->name('assignment.importPosition');
+
 
 
 //Employee
@@ -89,11 +91,11 @@ Route::get('/attendance_management', function () {
 Route::get('/attendance-management', [AttendanceController::class, 'showAttendance'])->name('attendance_management');
 Route::post('/attendance/import', [AttendanceController::class, 'import'])->name('attendance.import');
 
+
 // Position Assignment
-Route::post('/hr/assign-position', [AssignEmpController::class, 'assignPosition'])->name('assignPosition');
+Route::post('/hr/assign-position', [AssignEmpController::class, 'empAssignment'])->name('empAssignment');
 Route::get('/employee/{id}/positions', [AssignEmpController::class, 'getPositions'])->name('employee.positions');
 Route::delete('/employee/assignment/{id}/delete', [AssignEmpController::class, 'deleteAssignment']);
-Route::post('/admin/import-positions', [AssignmentController::class, 'importPosition'])->name('assignment.importPosition');
 
 
 // Employee Contribution
@@ -101,36 +103,26 @@ Route::post('/admin/import-positions', [AssignmentController::class, 'importPosi
 Route::post('/contribution', [EmpContributionController::class, 'store'])->name('contribution.store');
 Route::post('/contribution/import', [EmpContributionController::class, 'importContributions'])->name('importContributions');
 Route::get('/contribution_management', [EmpContributionController::class, 'showContributionManagement'])->name('contribution_management');
-
 Route::get('/contribution-management', [EmpContributionController::class, 'showContributionManagement'])->name('contribution.management');
-
 // Delete Contribution
 Route::delete('/contribution/{contribution}', [EmpContributionController::class, 'destroy'])->name('contribution.destroy');
-
-
 // Export Contribution
 Route::get('/contributions/export-word', [EmpContributionController::class, 'exportWord'])->name('contribution.exportWord');
-
-// Edit Update Contribution
 Route::get('/contributions/{id}/edit', [EmpContributionController::class, 'edit'])->name('contribution.edit');
 Route::put('/contributions/{id}', [EmpContributionController::class, 'update'])->name('contribution.update');
-
-//Employee Contribution
 Route::get('/contribution', [EmpContributionController::class, 'employeeContribution'])->name('contribution.show');
 
 
 // User Profile
-
 Route::get('/myProfile', [ProfileController::class, 'index'])->name('myProfile');
 Route::post('/myProfile', [ProfileController::class, 'update'])->name('profile.update');
 
 
-// Departments and Offices Management
 
+
+// Departments and Offices Management
 Route::get('/departments_offices_management', [DepartmentController::class, 'displayManagementPage'])
     ->name('departments_offices_management');
-
-
 // Departments Routes
 Route::prefix('departments')->group(function () {
     Route::get('/', [DepartmentController::class, 'displayDepartmentList'])->name('departments.index');

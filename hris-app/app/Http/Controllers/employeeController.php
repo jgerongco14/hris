@@ -11,6 +11,8 @@ use Illuminate\Support\Facades\Storage;
 use App\Models\User;
 use App\Models\Position;
 use Illuminate\Support\Facades\Hash;
+use App\Models\Departments;
+use App\Models\Offices;
 
 class EmployeeController extends Controller
 {
@@ -233,6 +235,9 @@ class EmployeeController extends Controller
                 });
             }
 
+            $departments = Departments::with('programs')->get();
+            $offices = Offices::all();
+
             // Paginate results
             $employees = $query->paginate(10);
             $positions = Position::all();
@@ -240,6 +245,8 @@ class EmployeeController extends Controller
             return view('pages.hr.employee_management', [
                 'employees' => $employees,
                 'positions' => $positions,
+                'departments' => $departments,
+                'offices' => $offices,
             ]);
         } catch (Exception $e) {
             logger()->error('Failed to fetch employees: ' . $e->getMessage());

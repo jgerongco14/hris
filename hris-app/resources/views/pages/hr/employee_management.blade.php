@@ -38,8 +38,12 @@
                         @include('pages.hr.components.employee_list')
                     </div>
                 </div>
+                @include('pages.hr.components.assign_position', [
+                'departments' => $departments,
+                'offices' => $offices,
+                'positions' => $positions
+                ])
 
-                @include('pages.hr.components.assign_position', ['positions' => $positions])
 
             </div>
         </div>
@@ -63,10 +67,10 @@
         }
 
 
-        document.getElementById('editPositionBtn').addEventListener('click', function() {
+        document.getElementById('editAssignmentBtn').addEventListener('click', function() {
             $('#editChoiceModal').modal('hide');
             // Show the assign position form/modal instead
-            assignPosition(selectedEmployeeId, selectedEmployeeName, selectedEmpID);
+            empAssignment(selectedEmployeeId, selectedEmployeeName, selectedEmpID);
         });
 
         $(document).ready(function() {
@@ -118,15 +122,18 @@
             });
         });
 
-        function assignPosition(id, empName, empID) {
-            const modal = new bootstrap.Modal(document.getElementById('assignPositionModal'));
+        function empAssignment(id, empName, empID) {
+            const modal = new bootstrap.Modal(document.getElementById('empAssignmentModal'));
             modal.show();
-
             // Set static fields
-            document.getElementById('assignEmpID').value = id;
-            document.getElementById('empIDModal').value = empID;
-            document.getElementById('empIDHidden').value = empID;
-            document.getElementById('employeeName').value = empName;
+            document.getElementById('assignEmpID').value = id; // Hidden field for employee ID
+            document.getElementById('empIDDisplay').value = empID;
+            document.getElementById('empIDHidden').value = empID; // Hidden input for form submission
+            document.getElementById('employeeName').value = empName; // Employee Name field
+            document.getElementById('hiddenDepartmentID').value = document.getElementById('departmentID').value;
+            document.getElementById('hiddenOfficeID').value = document.getElementById('officeID').value;
+
+
 
             const tbody = document.getElementById('assignedPositionsBody');
             tbody.innerHTML = `
@@ -194,7 +201,7 @@
                     }
 
                     // 🟡 Reload the assignment list only, not the entire modal
-                    assignPosition(
+                    empAssignment(
                         document.getElementById('assignEmpID').value,
                         document.getElementById('employeeName').value,
                         document.getElementById('empID').value
@@ -210,7 +217,7 @@
 
 
         function cancelAssign() {
-            $('#assignPositionForm').hide();
+            $('#empAssignmentForm').hide();
             $('#assignEmpID').val('');
             $('#employeeForm').show();
         }

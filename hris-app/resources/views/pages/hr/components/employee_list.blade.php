@@ -190,6 +190,7 @@
                     <th class="align-middle">EmpID</th>
                     <th class="align-middle">Full Name</th>
                     <th class="align-middle">Position</th>
+                    <th class="align-middle">Department/Office</th>
                     <th class="align-middle">Benefits</th>
                     <th class="align-middle">Actions</th>
                 </tr>
@@ -244,6 +245,20 @@
                         @endforelse
                     </td>
                     <td class="align-middle">
+                        @forelse ($employee->assignments as $assignment)
+                        <div>
+                            @if ($assignment->departmentCode)
+                            <strong>Department:</strong> {{ $assignment->department->departmentName ?? 'N/A' }}<br>
+                            @endif
+                            @if ($assignment->officeCode)
+                            <strong>Office:</strong> {{ $assignment->office->officeName ?? 'N/A' }}
+                            @endif
+                        </div>
+                        @empty
+                        <span class="text-muted">Not Belong to any Department or Office</span>
+                        @endforelse
+                    </td>
+                    <td class="align-middle">
                         <ul class="list-unstyled mb-0">
                             <li>SSS: {{ $employee->empSSSNum ?? 'N/A' }}</li>
                             <li>TIN: {{ $employee->empTinNum ?? 'N/A' }}</li>
@@ -295,7 +310,7 @@
             <div class="modal-body text-center">
                 <p>What would you like to update?</p>
                 <button class="btn btn-primary m-2" id="editInfoBtn">Employee Information</button>
-                <button class="btn btn-secondary m-2" id="editPositionBtn">Position Assignment</button>
+                <button class="btn btn-secondary m-2" id="editAssignmentBtn">Assignment</button>
             </div>
         </div>
     </div>

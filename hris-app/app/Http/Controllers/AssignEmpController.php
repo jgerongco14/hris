@@ -6,30 +6,59 @@ use Illuminate\Http\Request;
 use App\Models\EmpAssignment;
 use App\Models\Employee;
 use App\Models\Position;
+use App\Models\Departments;
+use App\Models\Offices;
+
+
 
 class AssignEmpController extends Controller
 {
-    public function assignPosition(Request $request)
+    public function empAssignment(Request $request)
     {
         try {
-            $empID = $request->input('empID');
-            $positionID = $request->input('positionID');
-            $appointedDate = $request->input('empAssAppointedDate');
-
-            $empAssNo = $positionID . '-' . $empID . '-' . date('Y', strtotime($appointedDate));
-
-            $existingAssignment = EmpAssignment::where('empAssNo', $empAssNo)->first();
-            if ($existingAssignment) {
-                return redirect()->back()->with('error', 'Position already assigned to this employee.');
-            }
-
-            EmpAssignment::create([
-                'empAssNo' => $empAssNo,
-                'empID' => $empID,
-                'positionID' => $positionID,
-                'empAssAppointedDate' => $appointedDate,
-                'empAssEndDate' => $request->input('empAssEndDate'),
+            $request->validate([
+                'empID' => 'required|exists:employees,empID',
+                'positions' => 'required|array',
+                'positions.*.positionID' => 'required|exists:positions,positionID',
+                'positions.*.empAssAppointedDate' => 'required|date',
+                'positions.*.empAssEndDate' => 'nullable|date|after_or_equal:positions.*.empAssAppointedDate',
+                'departmentID' => 'nullable|exists:departments,departmentCode',
+                'officeID' => 'nullable|exists:offices,officeCode',
+                'makeHead' => 'nullable|boolean',
             ]);
+
+            $empID = $request->input('empID');
+            $positions = $request->input('positions'); // Array of positions
+            $appointedDate = $request->input('empAssAppointedDate');
+            $departmentCode = $request->input('departmentID'); // Department Code
+            $officeCode = $request->input('officeID'); // Office Code
+            $empHead = $request->input('makeHead'); // Checkbox for Head of Office
+
+            foreach ($positions as $position) {
+                $positionID = $position['positionID'];
+                $appointedDate = $position['empAssAppointedDate'];
+                $endDate = $position['empAssEndDate'];
+
+                $empAssNo = $positionID . '-' . $empID . '-' . date('Y', strtotime($appointedDate));
+
+                // Check if the assignment already exists
+                $existingAssignment = EmpAssignment::where('empAssNo', $empAssNo)->first();
+                if ($existingAssignment) {
+                    return redirect()->back()->with('error', 'Position already assigned to this employee: ' . $positionID);
+                }
+
+                // Create the new assignment
+                EmpAssignment::create([
+                    'empAssNo' => $empAssNo,
+                    'empID' => $empID,
+                    'positionID' => $positionID,
+                    'empAssAppointedDate' => $appointedDate,
+                    'empAssEndDate' => $endDate,
+                    'officeCode' => $officeCode,
+                    'departmentCode' => $departmentCode,
+                    'empHead' => $empHead ? true : false, 
+                ]);
+            }
 
             return redirect()->back()->with('success', 'Position successfully assigned.');
         } catch (\Exception $e) {
@@ -63,4 +92,6 @@ class AssignEmpController extends Controller
 
         return response()->json(['success' => true]);
     }
+
+    
 }
