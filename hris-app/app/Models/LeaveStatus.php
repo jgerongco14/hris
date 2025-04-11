@@ -21,6 +21,7 @@ class LeaveStatus extends Model
         'empLSOffice',
         'empID',
         'empLSStatus',
+        'empPayStatus',
         'empLSRemarks',
     ];
 
