@@ -201,6 +201,8 @@ class EmpLeaveController extends Controller
     }
 
     //For leave application page update request leave status
+    // ✅ FIX: Leave Approval Submission Endpoint
+
     public function approval(Request $request)
     {
         try {
@@ -212,8 +214,9 @@ class EmpLeaveController extends Controller
             ]);
 
             $leaveStatus = LeaveStatus::where('empLeaveNo', $request->empLeaveNo)->firstOrFail();
+            $user = Auth::user();
+            $userAssignments = $user->employee?->assignments;
 
-            // Decode current office status and remarks
             $officeStatuses = collect(json_decode($leaveStatus->empLSOffice, true) ?? [])
                 ->mapWithKeys(fn($status, $office) => [strtoupper($office) => strtolower($status)])
                 ->toArray();
@@ -222,53 +225,64 @@ class EmpLeaveController extends Controller
                 ->mapWithKeys(fn($remark, $office) => [strtoupper($office) => $remark])
                 ->toArray();
 
-
-            // Get current user's position(s)
-            $positions = Auth::user()->employee?->assignments()
-                ->with('position')
-                ->get()
-                ->pluck('position.positionName')
-                ->map(fn($name) => strtoupper($name))
-                ->toArray();
-
             $positionMap = [
                 'VICE PRESIDENT OF ACADEMIC AFFAIRS' => 'VPAA',
-                'HEAD OFFICE' => 'HEAD OFFICE',
                 'VP FINANCE' => 'VP FINANCE',
                 'PRESIDENT' => 'PRESIDENT',
             ];
 
+            $leaveEmployee = $leaveStatus->leave->employee;
+            $leaveAssignments = $leaveEmployee?->assignments;
+
             $updated = false;
 
-            foreach ($positions as $pos) {
-                $mapped = strtoupper($positionMap[$pos] ?? $pos);
+            foreach ($userAssignments as $assignment) {
+                $positionName = strtoupper($assignment->position?->positionName ?? '');
 
-                if (isset($officeStatuses[$mapped]) && $officeStatuses[$mapped] === 'pending') {
-                    $officeStatuses[$mapped] = strtolower($request->status);
-                    $officeRemarks[$mapped] = $request->remarks ?? 'N/A';
-                    $updated = true;
+                // VP or President
+                if (isset($positionMap[$positionName])) {
+                    $mappedOffice = $positionMap[$positionName];
+                    if (isset($officeStatuses[$mappedOffice]) && strtolower($officeStatuses[$mappedOffice]) === 'pending') {
+                        // Always use uppercase for VP and President statuses
+                        $officeStatuses[$mappedOffice] = strtoupper($request->status);
+                        $officeRemarks[$mappedOffice] = $request->remarks ?? 'N/A';
+                        $updated = true;
+                        break;
+                    }
+                }
+
+                // HEAD logic - always use lowercase for head office status
+                if ($assignment->empHead == 1) {
+                    foreach ($leaveAssignments as $leaveAssignment) {
+                        if (
+                            $assignment->departmentCode === $leaveAssignment->departmentCode ||
+                            $assignment->programCode === $leaveAssignment->programCode ||
+                            $assignment->officeCode === $leaveAssignment->officeCode
+                        ) {
+                            if (isset($officeStatuses['HEAD OFFICE']) && strtolower($officeStatuses['HEAD OFFICE']) === 'pending') {
+                                $officeStatuses['HEAD OFFICE'] = strtolower($request->status);
+                                $officeRemarks['HEAD OFFICE'] = $request->remarks ?? 'N/A';
+                                $updated = true;
+                                break 2;
+                            }
+                        }
+                    }
                 }
             }
 
-
             if (!$updated) {
                 return response()->json([
-                    'error' => 'You have already acted on this request or do not have permission.'
+                    'error' => 'Unauthorized or already acted upon.',
+                    'message' => 'You have already acted on this request or do not have the permission.'
                 ], 403);
             }
 
-            // Determine final status
+            // Convert all statuses to lowercase for final evaluation
             $statuses = array_map('strtolower', $officeStatuses);
+            $finalStatus = in_array('declined', $statuses)
+                ? 'declined'
+                : (count(array_filter($statuses, fn($s) => $s === 'approved')) === count($officeStatuses) ? 'approved' : 'pending');
 
-            if (in_array('declined', $statuses)) {
-                $finalStatus = 'declined';
-            } elseif (count(array_filter($statuses, fn($s) => $s === 'approved')) === count($officeStatuses)) {
-                $finalStatus = 'approved';
-            } else {
-                $finalStatus = 'pending';
-            }
-
-            // Save
             $leaveStatus->update([
                 'empLSOffice' => json_encode($officeStatuses),
                 'empLSRemarks' => json_encode($officeRemarks),
@@ -289,7 +303,6 @@ class EmpLeaveController extends Controller
             ], 500);
         }
     }
-
     public function store(Request $request)
     {
         try {

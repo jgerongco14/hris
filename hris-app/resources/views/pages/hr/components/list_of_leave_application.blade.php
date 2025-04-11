@@ -36,51 +36,53 @@
                         </thead>
                         <tbody class="align-middle">
                             @forelse($tabConfig['data'] as $status)
-                            <tr>
-                                <!-- Date Applied -->
-                                <td>{{ \Carbon\Carbon::parse($status->leave->empLeaveDateApplied)->format('M d, Y') }}</td>
+                            @php
+                            $offices = json_decode($status->empLSOffice, true);
+                            $user = Auth::user();
+                            $userAssignments = $user->employee?->assignments;
 
-                                <!-- Employee -->
+                            $positionMap = [
+                            'VICE PRESIDENT OF ACADEMIC AFFAIRS' => 'VPAA',
+                            'VP FINANCE' => 'VP FINANCE',
+                            'PRESIDENT' => 'PRESIDENT',
+                            ];
+
+                            $userPositions = $userAssignments
+                            ->map(fn($a) => strtoupper($a->position?->positionName ?? ''))
+                            ->map(fn($p) => $positionMap[$p] ?? $p)
+                            ->filter()
+                            ->unique()
+                            ->values()
+                            ->toArray();
+
+                            $canSeeAll = collect($userPositions)->intersect(['VPAA', 'VP FINANCE', 'PRESIDENT'])->isNotEmpty();
+
+                            $employee = $status->leave->employee ?? null;
+                            $employeeDepartmentCode = $employee?->assignments?->first()?->departmentCode ?? null;
+                            $viewerDepartmentCodes = $userAssignments?->filter(fn($a) => $a->empHead == 1)->pluck('departmentCode')->toArray() ?? [];
+
+                            $canSeeLeave = $canSeeAll || in_array($employeeDepartmentCode, $viewerDepartmentCodes);
+                            @endphp
+
+                            @if($canSeeLeave)
+                            <tr>
+                                <td>{{ \Carbon\Carbon::parse($status->leave->empLeaveDateApplied)->format('M d, Y') }}</td>
                                 <td class="text-center">
                                     @php
-                                    $employee = $status->leave->employee ?? null;
                                     $photo = $employee->photo ?? null;
                                     $isExternal = $photo && Str::startsWith($photo, ['http://', 'https://']);
                                     @endphp
-
                                     <div class="col d-flex align-items-center gap-2">
-                                        <img src="{{ $photo ? ($isExternal ? $photo : asset('storage/' . $photo)) : '/images/default-user.png' }}"
-                                            alt="Avatar"
-                                            width="40"
-                                            height="40"
-                                            class="{{ $photo ? 'rounded-circle' : 'rounded' }}"
-                                            onerror="this.onerror=null; this.src='/images/default-user.png';">
-
-                                        <span>
-                                            {{ $employee->empFname ?? '' }} {{ $employee->empMname ?? '' }} {{ $employee->empLname ?? '' }}
-                                        </span>
+                                        <img src="{{ $photo ? ($isExternal ? $photo : asset('storage/' . $photo)) : '/images/default-user.png' }}" alt="Avatar" width="40" height="40" class="{{ $photo ? 'rounded-circle' : 'rounded' }}" onerror="this.onerror=null; this.src='/images/default-user.png';">
+                                        <span>{{ $employee->empFname ?? '' }} {{ $employee->empMname ?? '' }} {{ $employee->empLname ?? '' }}</span>
                                     </div>
                                 </td>
-
-                                <!-- Type of Leave -->
                                 <td>{{ $status->leave->leaveType }}</td>
-
-                                <!-- Date Range -->
                                 <td>
-                                    {{ \Carbon\Carbon::parse($status->leave->empLeaveStartDate)->format('M d, Y') }}
-                                    -
-                                    {{ \Carbon\Carbon::parse($status->leave->empLeaveEndDate)->format('M d, Y') }}
+                                    {{ \Carbon\Carbon::parse($status->leave->empLeaveStartDate)->format('M d, Y') }} - {{ \Carbon\Carbon::parse($status->leave->empLeaveEndDate)->format('M d, Y') }}
                                 </td>
-
-                                <!-- Reason -->
                                 <td>{{ $status->leave->empLeaveDescription }}</td>
-
-                                <!-- Offices -->
                                 <td>
-                                    @php
-                                    $offices = json_decode($status->empLSOffice, true);
-                                    @endphp
-
                                     @if($offices && is_array($offices))
                                     <ul class="list-unstyled mb-0">
                                         @foreach($offices as $office => $empLSOffice)
@@ -102,67 +104,126 @@
                                     <span class="text-muted">No status available.</span>
                                     @endif
                                 </td>
-
-                                @php
-                                $offices = json_decode($status->empLSOffice, true);
-                                $user = Auth::user();
-
-                                $positionMap = [
-                                'HEAD OFFICE' => 'HEAD OFFICE',
-                                'VICE PRESIDENT OF ACADEMIC AFFAIRS' => 'VPAA',
-                                'VP FINANCE' => 'VP FINANCE',
-                                'PRESIDENT' => 'PRESIDENT',
-                                ];
-
-                                // Load assignments + their position names
-                                $userPositions = $user->employee?->assignments
-                                ->map(fn($a) => strtoupper($a->position?->positionName ?? ''))
-                                ->map(fn($p) => $positionMap[$p] ?? $p)
-                                ->filter()
-                                ->unique()
-                                ->values()
-                                ->toArray();
-
-                                $matchedStatus = null;
-
-                                foreach ($offices ?? [] as $office => $statusValue) {
-                                if (in_array(strtoupper($office), $userPositions)) {
-                                $matchedStatus = $statusValue;
-                                break;
-                                }
-                                }
-
-                                $badgeClass = match(strtolower($matchedStatus)) {
-                                'pending' => 'bg-secondary',
-                                'approved' => 'bg-success',
-                                'declined' => 'bg-danger',
-                                default => 'bg-light text-dark',
-                                };
-                                @endphp
-
-
                                 <!-- Status -->
                                 <td class="text-center">
-                                    @if($matchedStatus)
-                                    <span class="badge {{ $badgeClass }}">{{ strtoupper($matchedStatus) }}</span>
-                                    @else
-                                    <span class="text-muted">N/A</span>
-                                    @endif
+                                    @php
+                                    $user = Auth::user();
+                                    $userAssignments = $user->employee?->assignments;
+
+                                    $positionMap = [
+                                    'VICE PRESIDENT OF ACADEMIC AFFAIRS' => 'VPAA',
+                                    'VP FINANCE' => 'VP FINANCE',
+                                    'PRESIDENT' => 'PRESIDENT',
+                                    ];
+
+                                    $userOffices = collect($userAssignments)
+                                    ->map(fn($a) => strtoupper($a->position?->positionName ?? ''))
+                                    ->map(fn($p) => $positionMap[$p] ?? null)
+                                    ->filter()
+                                    ->unique()
+                                    ->values()
+                                    ->toArray();
+
+                                    $offices = json_decode($status->empLSOffice, true);
+                                    $currentStatus = null;
+                                    $showActions = false;
+
+                                    // Check VP/President offices first
+                                    foreach ($userOffices as $mappedOffice) {
+                                    if (isset($offices[$mappedOffice])) {
+                                    $currentStatus = strtoupper($offices[$mappedOffice]);
+                                    $showActions = ($currentStatus === 'PENDING');
+                                    break;
+                                    }
+                                    }
+
+                                    // Check Head of Department if no VP/President match
+                                    if (is_null($currentStatus)) {
+                                    foreach ($userAssignments as $assignment) {
+                                    if ($assignment->empHead == 1) {
+                                    $leaveEmployee = $status->leave->employee ?? null;
+                                    $leaveAssignments = $leaveEmployee?->assignments;
+
+                                    foreach ($leaveAssignments as $leaveAssignment) {
+                                    if (
+                                    $assignment->departmentCode === $leaveAssignment->departmentCode ||
+                                    $assignment->programCode === $leaveAssignment->programCode ||
+                                    $assignment->officeCode === $leaveAssignment->officeCode
+                                    ) {
+                                    if (isset($offices['HEAD OFFICE'])) {
+                                    $currentStatus = strtoupper($offices['HEAD OFFICE']);
+                                    $showActions = ($currentStatus === 'PENDING');
+                                    break 2;
+                                    }
+                                    }
+                                    }
+                                    }
+                                    }
+                                    }
+
+                                    // Default to PENDING if no status found
+                                    $currentStatus = $currentStatus ?? 'PENDING';
+                                    $badgeClass = match($currentStatus) {
+                                    'APPROVED' => 'bg-success',
+                                    'PENDING' => 'bg-secondary',
+                                    'DECLINED' => 'bg-danger',
+                                    default => 'bg-light text-dark',
+                                    };
+                                    @endphp
+
+                                    <span class="badge {{ $badgeClass }}">{{ $currentStatus }}</span>
                                 </td>
 
                                 <!-- Actions -->
                                 <td class="text-center">
-                                    @if($tabConfig['show_actions'] && strtolower($matchedStatus) === 'pending')
-                                    <a href="javascript:void(0);"
-                                        class="btn btn-sm"
-                                        onclick="fetchLeaveData('{{ $status->empLeaveNo }}')"
-                                        title="Edit Leave Application"
-                                        data-bs-toggle="tooltip" data-bs-placement="top">
+                                    @php
+                                    $actionAvailable = false;
+
+                                    // Normalize office status keys to uppercase
+                                    $normalizedOffices = collect($offices ?? [])->mapWithKeys(fn($val, $key) => [strtoupper($key) => strtolower($val)]);
+
+                                    // Check for VPAA / VP FINANCE / PRESIDENT
+                                    foreach ($userPositions as $userOffice) {
+                                    if (isset($normalizedOffices[$userOffice]) && $normalizedOffices[$userOffice] === 'pending') {
+                                    $actionAvailable = true;
+                                    break;
+                                    }
+                                    }
+
+                                    // Fallback: Check for HEAD OFFICE if user is a department head
+                                    if (!$actionAvailable && $userAssignments) {
+                                    foreach ($userAssignments as $assignment) {
+                                    if ($assignment->empHead == 1) {
+                                    $leaveAssignments = $employee?->assignments ?? [];
+                                    foreach ($leaveAssignments as $leaveAssignment) {
+                                    if (
+                                    $assignment->departmentCode === $leaveAssignment->departmentCode ||
+                                    $assignment->programCode === $leaveAssignment->programCode ||
+                                    $assignment->officeCode === $leaveAssignment->officeCode
+                                    ) {
+                                    if (isset($normalizedOffices['HEAD OFFICE']) && $normalizedOffices['HEAD OFFICE'] === 'pending') {
+                                    $actionAvailable = true;
+                                    break 2;
+                                    }
+                                    }
+                                    }
+                                    }
+                                    }
+                                    }
+                                    @endphp
+
+                                    @if($actionAvailable)
+                                    <a href="javascript:void(0);" class="btn btn-sm btn-primary" onclick="fetchLeaveData('{{ $status->empLeaveNo }}')" title="Edit Leave Application" data-bs-toggle="tooltip" data-bs-placement="top">
                                         <i class="ri-pencil-line"></i>
                                     </a>
+                                    @else
+                                    <span class="text-muted">No Actions</span>
                                     @endif
                                 </td>
-                                @empty
+
+                            </tr>
+                            @endif
+                            @empty
                             <tr>
                                 <td colspan="8" class="text-center text-muted">{{ $tabConfig['empty'] }}</td>
                             </tr>
@@ -172,19 +233,14 @@
 
                     @if($tabConfig['data']->hasPages())
                     <div class="d-flex flex-column align-items-center mt-4 gap-2">
-                        {{-- Pagination links --}}
                         <div>
                             {{ $tabConfig['data']->links('pagination::bootstrap-5') }}
                         </div>
-
-                        {{-- Showing text --}}
                         <div class="text-muted small">
                             Showing {{ $tabConfig['data']->firstItem() }} to {{ $tabConfig['data']->lastItem() }} of {{ $tabConfig['data']->total() }} results
                         </div>
                     </div>
                     @endif
-
-
                 </div>
                 @endforeach
             </div>
