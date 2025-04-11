@@ -13,7 +13,7 @@
 
                 <div class="mb-3">
                     <label for="empID" class="form-label">Employee ID:</label>
-                    <input type="text" class="form-control" id="empID" name="empID" readonly>
+                   <input type="text" class="form-control" id="empIDModal" name="empID" readonly>
                 </div>
 
                 <div class="mb-3">

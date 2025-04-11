@@ -61,7 +61,7 @@
                             <tbody>
                                 @if($positions->isEmpty())
                                 <tr>
-                                    <td colspan="5" class="text-center">No positions available.</td>
+                                    <td colspan="6" class="text-center">No positions available.</td>
                                 </tr>
                                 @else
                                 @foreach($positions as $position)

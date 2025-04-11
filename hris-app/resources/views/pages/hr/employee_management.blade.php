@@ -124,14 +124,14 @@
 
             // Set static fields
             document.getElementById('assignEmpID').value = id;
-            document.getElementById('empID').value = empID;
+            document.getElementById('empIDModal').value = empID;
             document.getElementById('empIDHidden').value = empID;
             document.getElementById('employeeName').value = empName;
 
             const tbody = document.getElementById('assignedPositionsBody');
             tbody.innerHTML = `
         <tr>
-            <td colspan="4" class="text-center text-muted">Loading...</td>
+            <td colspan="5" class="text-center text-muted">Loading...</td>
         </tr>
     `;
 
