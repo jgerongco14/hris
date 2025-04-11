@@ -78,5 +78,10 @@ class Employee extends Model
         return $this->hasMany(Departments::class, 'departmentHead', 'empID');
     }
 
+    public function office()
+    {
+        return $this->hasMany(Offices::class, 'officeHead', 'empID');
+    }
+
    
 }
