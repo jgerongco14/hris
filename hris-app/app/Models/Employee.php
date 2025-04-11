@@ -72,4 +72,11 @@ class Employee extends Model
             return in_array($assignment->position?->positionName, $positions);
         });
     }
+
+    public function department()
+    {
+        return $this->hasMany(Departments::class, 'departmentHead', 'empID');
+    }
+
+   
 }
