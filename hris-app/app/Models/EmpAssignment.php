@@ -18,6 +18,8 @@ class EmpAssignment extends Model
         'empAssEndDate',
         'officeCode',
         'departmentCode',
+        'programCode',
+        'empHead',
     ];
     public function position()
     {
@@ -34,5 +36,9 @@ class EmpAssignment extends Model
     public function office()
     {
         return $this->belongsTo(Offices::class, 'officeCode', 'officeCode');
+    }
+    public function program()
+    {
+        return $this->belongsTo(Programs::class, 'programCode', 'programCode');
     }
 }

@@ -18,4 +18,8 @@ class Programs extends Model
     {
         return $this->belongsToMany(Departments::class, 'department_program', 'program_id', 'department_id');
     }
+    public function empAssignments()
+    {
+        return $this->hasMany(EmpAssignment::class, 'programCode', 'programCode');
+    }
 }
