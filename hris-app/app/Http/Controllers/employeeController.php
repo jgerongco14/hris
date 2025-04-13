@@ -47,8 +47,15 @@ class EmployeeController extends Controller
                 );
             }
 
+          $user = User::create([
+                'empID' => $request->input('empID', null),
+                'role' => 'employee',
+                'password' => Hash::make('temppass'),
+            ]);
+
             // Create employee record with explicit field mapping
             Employee::create([
+                'user_id' => $user->id,
                 'empID' => $request->input('empID', null),
                 'empPrefix' => $request->input('empPrefix', null),
                 'empSuffix' => $request->input('empSuffix', null),
@@ -66,6 +73,8 @@ class EmployeeController extends Controller
                 'empPagIbigNum' => $request->input('empPagIbigNum', null),
                 'photo' => $photoPath,
             ]);
+
+            
 
             // Return JSON if it's an AJAX request
             if ($request->expectsJson()) {

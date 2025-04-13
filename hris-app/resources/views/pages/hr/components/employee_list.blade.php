@@ -15,6 +15,7 @@
 <!-- The Form (Initially Hidden) -->
 <form method="POST" action="{{ route('addEmployee.store') }}" enctype="multipart/form-data" id="employeeForm" style="display: none;" class="container mt-4">
     @csrf
+    <input type="hidden" name="_method" id="formMethod" value="POST">
     <div class="card ">
         <div class="card-header d-flex justify-content-between align-items-center">
             <h5 class="mb-0">Add Employee</h5>
@@ -146,6 +147,7 @@
         </div>
     </div>
 </form>
+
 <!-- Search Form -->
 <form method="GET" action="{{ route('employee_management') }}" class="d-flex align-items-end gap-3 my-4" id="filterForm">
     <!-- Filter by Position -->
@@ -284,7 +286,7 @@
                     </td>
                     <td class="align-middle text-center">
                         <!-- Updated edit button -->
-                        <button class="btn btn-sm btn-primary mx-1" onclick="showEditOptions('{{ $employee->id }}','{{ $employee->empFname }} {{ $employee->empLname }}', '{{ $employee->empID }}')">
+                        <button class="btn btn-sm btn-primary mx-1" onclick="editEmployee('{{ $employee->id }}')">
                             <i class="ri-pencil-line"></i>
                         </button>
 

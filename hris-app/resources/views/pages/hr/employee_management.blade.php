@@ -78,9 +78,13 @@
 
 
             $('#addIndividualBtn').click(function() {
-                $('#employeeForm').show(); // Always show the form
-                $('#addEmployee').modal('hide'); // Close the import modal if it's open
+                $('#employeeForm')[0].reset();
+                $('#employeeForm').attr('action', '{{ route("addEmployee.store") }}');
+                $('#formMethod').val('POST');
+                $('#empID').prop('readonly', false);
+                $('#employeeForm').show();
             });
+
 
 
             // Initialize the datepicker
@@ -282,6 +286,48 @@
                 }
             });
         });
+
+        function editEmployee(id) {
+            fetch(`/employee/${id}/edit`)
+                .then(response => response.json())
+                .then(employee => {
+                    // Show and configure form
+                    $('#employeeForm').show();
+                    $('#employeeForm')[0].reset();
+
+                    // Set form to update mode
+                    $('#employeeForm').attr('action', `/employee/${id}`);
+                    $('#formMethod').val('PUT');
+                    $('#empID').prop('readonly', true); // prevent changing empID
+
+                    // Populate fields
+                    $('#empID').val(employee.empID);
+                    $('#empPrefix').val(employee.empPrefix);
+                    $('#empFname').val(employee.empFname);
+                    $('#empMname').val(employee.empMname);
+                    $('#empLname').val(employee.empLname);
+                    $('#empSuffix').val(employee.empSuffix);
+                    $('#address').val(employee.address);
+                    $('#province').val(employee.province);
+                    $('#city').val(employee.city);
+                    $('#barangay').val(employee.barangay);
+                    $('#empSSSNum').val(employee.empSSSNum);
+                    $('#empTinNum').val(employee.empTinNum);
+                    $('#empPagIbigNum').val(employee.empPagIbigNum);
+                    $('#empBirthdate').val(employee.empBirthdate);
+
+                    if (employee.empGender === 'male') {
+                        $('#male').prop('checked', true);
+                    } else if (employee.empGender === 'female') {
+                        $('#female').prop('checked', true);
+                    }
+                })
+                .catch(error => {
+                    showToast('Error', 'Failed to load employee data', 'danger');
+                    console.error(error);
+                });
+        }
+
 
         function showToast(title, message, type = 'success') {
             const toastEl = document.getElementById('liveToast');
