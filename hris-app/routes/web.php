@@ -13,6 +13,7 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\DepartmentController;
 use App\Http\Controllers\OfficeController;
 use App\Http\Controllers\ReportsController;
+use App\Http\Controllers\TrainingsController;
 
 Route::get('/', function () {
     return redirect()->route('login');
@@ -65,6 +66,19 @@ Route::get('/attendance', function () {
     return view('pages.employee.attendance');
 })->name('attendance');
 Route::get('/attendance', [AttendanceController::class, 'showEmployeeAttendance'])->name('attendance');
+
+
+// Employee Training
+
+Route::prefix('training')->group(function () {
+    Route::get('/', [TrainingsController::class, 'showTrainings'])->name('training');
+    Route::post('/', [TrainingsController::class, 'createTraining'])->name('training.store');
+    Route::delete('/{id}', [TrainingsController::class, 'deleteTraining'])->name('training.delete');
+    Route::get('/{id}', [TrainingsController::class, 'editTraining'])->name('training.edit');
+    Route::put('/{id}', [TrainingsController::class, 'updateTraining'])->name('training.update');
+});
+
+
 
 //HR
 //Employee Management

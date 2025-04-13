@@ -61,6 +61,11 @@
                 <i class="bi bi-cash-stack me-2"></i> Reports
             </a>
         </li>
+        <li>
+            <a href="{{ route('training') }}" class="nav-link {{ request()->routeIs('training') ? 'active' : 'link-dark' }}">
+                <i class="bi bi-file-earmark-text me-2"></i> Trainings
+            </a>
+        </li>
 
         @elseif(Auth::user()->role === 'employee')
         @php
@@ -80,6 +85,11 @@
         <li>
             <a href="{{ route('contribution.show') }}" class="nav-link {{ request()->routeIs('contribution.show') ? 'active' : 'link-dark' }}">
                 <i class="bi bi-wallet2 me-2"></i> Contribution
+            </a>
+        </li>
+        <li>
+            <a href="{{ route('training') }}" class="nav-link {{ request()->routeIs('training') ? 'active' : 'link-dark' }}">
+                <i class="bi bi-file-earmark-text me-2"></i> Trainings
             </a>
         </li>
         @if($hasVPAccess || $isHeadOfOffice)

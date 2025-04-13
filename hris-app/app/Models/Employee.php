@@ -89,5 +89,9 @@ class Employee extends Model
         return $this->hasMany(Reports::class, 'empID', 'empID');
     }
 
+    public function trainings()
+    {
+        return $this->hasMany(Trainings::class, 'empID', 'empID');
+    }
    
 }

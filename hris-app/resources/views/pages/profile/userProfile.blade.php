@@ -15,7 +15,7 @@
             <!-- Navigation Section -->
             <div class="col-2 p-0">
                 <div class="sidebar h-100">
-                    <x-navbar />
+                    @include('components.sidebar')
                 </div>
             </div>
 
