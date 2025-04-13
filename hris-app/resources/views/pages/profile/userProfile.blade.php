@@ -13,8 +13,10 @@
     <div class="container-fluid">
         <div class="row">
             <!-- Navigation Section -->
-            <div class="col-2">
-                <x-navbar />
+            <div class="col-2 p-0">
+                <div class="sidebar h-100">
+                    <x-navbar />
+                </div>
             </div>
 
             <!-- Main Content Section -->
