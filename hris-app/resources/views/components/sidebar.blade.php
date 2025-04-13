@@ -3,6 +3,12 @@
     <div class="d-flex justify-content-center align-items-center mb-4 p-3">
         <img src="{{ asset('assets/lourdes_logo.png') }}" alt="Login Image" class="img-fluid">
     </div>
+    @php
+    $role = Auth::user()->role;
+    $showAll = $role === 'superadmin';
+    $isHeadOfOffice = Auth::user()->employee?->assignments()->where('empHead', 1)->exists();
+    $hasVPAccess = Auth::user()->employee?->hasPosition(['President', 'Vice President of Academic Affairs', 'VP Finance']);
+    @endphp
 
     <ul class="nav nav-pills flex-column mb-auto">
         <!-- Always visible -->
@@ -12,8 +18,8 @@
             </a>
         </li>
 
-        @if(Auth::check())
-        @if(Auth::user()->role === 'admin')
+        {{-- Admin --}}
+        @if($role === 'admin' || $showAll)
         <li>
             <a href="{{ route('user_management') }}" class="nav-link {{ request()->routeIs('user_management') ? 'active' : 'link-dark' }}">
                 <i class="bi bi-people me-2"></i> User Management
@@ -29,8 +35,10 @@
                 <i class="bi bi-building me-2"></i> Departments & Offices
             </a>
         </li>
+        @endif
 
-        @elseif(Auth::user()->role === 'hr')
+        {{-- HR --}}
+        @if($role === 'hr' || $showAll)
         <li>
             <a href="{{ route('leave_application') }}" class="nav-link {{ request()->routeIs('leave_application') ? 'active' : 'link-dark' }}">
                 <i class="bi bi-calendar-check me-2"></i> Leave
@@ -66,12 +74,10 @@
                 <i class="bi bi-file-earmark-text me-2"></i> Trainings
             </a>
         </li>
+        @endif
 
-        @elseif(Auth::user()->role === 'employee')
-        @php
-        $isHeadOfOffice = Auth::user()->employee?->assignments()->where('empHead', 1)->exists();
-        $hasVPAccess = Auth::user()->employee?->hasPosition(['President', 'Vice President of Academic Affairs', 'VP Finance']);
-        @endphp
+        {{-- Employee --}}
+        @if($role === 'employee' || $showAll)
         <li>
             <a href="{{ route('leave_application') }}" class="nav-link {{ request()->routeIs('leave_application') ? 'active' : 'link-dark' }}">
                 <i class="bi bi-calendar-check me-2"></i> Leave
@@ -98,7 +104,6 @@
                 <i class="bi bi-folder-check me-2"></i> Leave Management
             </a>
         </li>
-        @endif
         @endif
         @endif
     </ul>
