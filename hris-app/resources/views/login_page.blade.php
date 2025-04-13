@@ -12,7 +12,7 @@
 <body>
     <div class="container-fluid mt-5">
         <x-notification />
-        <div class="row align-items-center">
+        <div class="row align-items-center" style="height: 80vh;">
             <div class="col-xl-7 col-lg-5 col-md-4 col-sm-3">
                 <div class="login-card mx-5">
                     <h2 class="mb-5">HUMAN RESOURCE INFORMATION SYSTEM</h2>
@@ -53,8 +53,8 @@
                     {{-- Forgot Password Link --}}
                 </div>
             </div>
-            <div class="col-5">
-                <img src="{{ asset('assets/9898504.jpg') }}" alt="Login Image" class="img-fluid">
+            <div class="col-5 d-flex justify-content-center align-items-center">
+                <img src="{{ asset('assets/lourdes_logo.png') }}" alt="Login Image" class="img-fluid">
             </div>
         </div>
     </div>
