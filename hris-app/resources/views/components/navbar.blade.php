@@ -1,4 +1,3 @@
-
 <!-- Sidebar Start -->
 <div class="d-flex flex-column flex-shrink-0 p-3 bg-light border-end vh-100" style="width: 270px; position: fixed;">
     <div class="d-flex justify-content-center align-items-center mb-4 p-3">
@@ -55,6 +54,11 @@
         <li>
             <a href="{{ route('contribution_management') }}" class="nav-link {{ request()->routeIs('contribution_management') ? 'active' : 'link-dark' }}">
                 <i class="bi bi-cash-stack me-2"></i> Contribution Management
+            </a>
+        </li>
+        <li>
+            <a href="{{ route('reports') }}" class="nav-link {{ request()->routeIs('reports') ? 'active' : 'link-dark' }}">
+                <i class="bi bi-cash-stack me-2"></i> Reports
             </a>
         </li>
 
