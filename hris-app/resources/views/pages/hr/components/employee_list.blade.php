@@ -290,9 +290,21 @@
                             <i class="ri-pencil-line"></i>
                         </button>
 
-                        <button class="btn btn-sm btn-danger mx-1" onclick="deleteEmployee('{{ $employee->id }}')">
-                            <i class="ri-delete-bin-line"></i>
+                        <!-- Assign Position Button -->
+                        <button class="btn btn-sm btn-warning mx-1"
+                            onclick="empAssignment('{{ $employee->id }}', '{{ $employee->empFname }} {{ $employee->empLname }}', '{{ $employee->empID }}')">
+                            <i class="ri-user-add-line"></i>
                         </button>
+
+
+                        <form action="{{ route('employee.destroy', $employee->id) }}" method="POST" onsubmit="return confirm('Are you sure you want to delete this employee?')" style="display: inline;">
+                            @csrf
+                            @method('DELETE')
+                            <button type="submit" class="btn btn-sm btn-danger">
+                                <i class="ri-delete-bin-line"></i>
+                            </button>
+                        </form>
+
                     </td>
                 </tr>
                 @endforeach

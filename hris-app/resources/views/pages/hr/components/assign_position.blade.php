@@ -51,6 +51,9 @@
                     <input type="hidden" name="empID" id="empIDHidden">
                     <div id="positionsContainer">
                         <div class="position-item row d-flex justify-content-between mt-4">
+                            <input type="hidden" name="positions[0][empAssID]" value="{{ $assignment->id ?? '' }}">
+
+
                             <div class="col mb-3">
                                 <label for="positionID" class="form-label">Position</label>
                                 <select class="form-select" id="positionID" name="positions[0][positionID]" required>
@@ -145,6 +148,7 @@
         const positionItem = document.createElement('div');
         positionItem.classList.add('position-item', 'row', 'd-flex', 'justify-content-between', 'mt-4');
         positionItem.innerHTML = `
+          <input type="hidden" name="positions[${positionIndex}][empAssID]" value="">
         <div class="col mb-3">
             <label for="positionID" class="form-label">Position</label>
             <select class="form-select" name="positions[${positionIndex}][positionID]" required>

@@ -36,7 +36,8 @@
 
                 <div class="card my-5">
                     <div class="card-body">
-                        @include('pages.hr.components.employee_list')
+                        @include('pages.hr.components.employee_list', [
+                        'employees' => $employees,])
                     </div>
                 </div>
                 @include('pages.hr.components.assign_position', [
@@ -73,6 +74,87 @@
             // Show the assign position form/modal instead
             empAssignment(selectedEmployeeId, selectedEmployeeName, selectedEmpID);
         });
+
+        function empAssignment(employeeId, employeeName, empID) {
+            // Set basic modal fields
+            $('#assignEmpID').val(employeeId);
+            $('#empIDModal').val(empID);
+            $('#empIDHidden').val(empID);
+            $('#empIDDisplay').val(empID);
+            $('#employeeName').val(employeeName);
+
+            // Clear existing fields before repopulating
+            $('#positionsContainer').html('');
+            $('#assignedPositionsBody').html('');
+
+            // Fetch existing positions using your route
+            fetch(`/employee/${employeeId}/positions`)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
+                .then(assignments => {
+                    if (assignments.length > 0) {
+                        assignments.forEach((assignment, index) => {
+                            // Add to editable position fields
+                            $('#positionsContainer').append(`
+                        <div class="position-item row d-flex justify-content-between mt-4">
+                            <input type="hidden" name="positions[${index}][empAssID]" value="${assignment.empAssID}">
+                            <div class="col mb-3">
+                                <label class="form-label">Position</label>
+                                <select class="form-select" name="positions[${index}][positionID]" required>
+                                    <option value="" disabled>Select a position</option>
+                                    ${generatePositionOptions(assignment.positionID)}
+                                </select>
+                            </div>
+                            <div class="col mb-3">
+                                <label class="form-label">Appointed Date</label>
+                                <input type="date" class="form-control" name="positions[${index}][empAssAppointedDate]" value="${assignment.empAssAppointedDate}" required>
+                            </div>
+                            <div class="col mb-3">
+                                <label class="form-label">End Date</label>
+                                <input type="date" class="form-control" name="positions[${index}][empAssEndDate]" value="${assignment.empAssEndDate !== 'Present' ? assignment.empAssEndDate : ''}">
+                            </div>
+                            <div class="col-auto d-flex align-items-end mb-3">
+                                <button type="button" class="btn btn-danger btn-sm" onclick="removePositionField(this)">Remove</button>
+                            </div>
+                        </div>
+                    `);
+
+                            // Also display in the Assigned Positions table (view only)
+                            $('#assignedPositionsBody').append(`
+                        <tr class="text-center">
+                            <td>${index + 1}</td>
+                            <td>${assignment.positionName}</td>
+                            <td>${assignment.empAssAppointedDate}</td>
+                            <td>${assignment.empAssEndDate}</td>
+                            <td>
+                                <form method="POST" action="/employee/assignment/${assignment.empAssID}/delete" onsubmit="return confirm('Are you sure you want to delete this assignment?')">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="btn btn-sm btn-danger">Delete</button>
+                                </form>
+                            </td>
+                        </tr>
+                    `);
+                        });
+                    } else {
+                        // If no assignments, add one blank field
+                        addPositionField();
+                    }
+
+                    $('#empAssignmentModal').modal('show');
+                })
+                .catch(err => {
+                    console.error('Failed to load assignments:', err);
+                    showToast('Error', 'Failed to fetch assignments.', 'danger');
+                });
+        }
+
+
+
 
         $(document).ready(function() {
 
@@ -126,101 +208,6 @@
                 $(this).val(value);
             });
         });
-
-        function empAssignment(id, empName, empID) {
-            const modal = new bootstrap.Modal(document.getElementById('empAssignmentModal'));
-            modal.show();
-            // Set static fields
-            document.getElementById('assignEmpID').value = id; // Hidden field for employee ID
-            document.getElementById('empIDDisplay').value = empID;
-            document.getElementById('empIDHidden').value = empID; // Hidden input for form submission
-            document.getElementById('employeeName').value = empName; // Employee Name field
-            document.getElementById('hiddenDepartmentID').value = document.getElementById('departmentID').value;
-            document.getElementById('hiddenProgramCode').value = document.getElementById('programCode').value;
-            document.getElementById('hiddenOfficeID').value = document.getElementById('officeID').value;
-
-
-
-
-            const tbody = document.getElementById('assignedPositionsBody');
-            tbody.innerHTML = `
-        <tr>
-            <td colspan="5" class="text-center text-muted">Loading...</td>
-        </tr>
-    `;
-
-            // Fetch positions
-            fetch(`/employee/${id}/positions`)
-                .then(res => res.json())
-                .then(data => {
-                    if (data.length > 0) {
-                        tbody.innerHTML = ''; // Clear loading
-                        data.forEach((assignment, index) => {
-                            const row = `
-                        <tr>
-                            <td class="text-center">${index + 1}</td>
-                            <td>${assignment.positionName}</td>
-                            <td class="text-center">${assignment.empAssAppointedDate}</td>
-                            <td class="text-center">${assignment.empAssEndDate}</td>
-                            <td class="text-center">
-                                <button class="btn btn-danger btn-sm" onclick="removePosition(${assignment.empAssID})">
-                                    <i class="ri-delete-bin-5-line"></i>
-                                </button>
-                            </td>
-                        </tr>`;
-                            tbody.insertAdjacentHTML('beforeend', row);
-                        });
-                    } else {
-                        tbody.innerHTML = `
-                    <tr>
-                        <td colspan="5" class="text-center text-muted">No position assignments found.</td>
-                    </tr>`;
-                    }
-                })
-                .catch(error => {
-                    console.error("Fetch error:", error);
-                    tbody.innerHTML = `
-                <tr>
-                    <td colspan="5" class="text-danger text-center">Failed to load positions.</td>
-                </tr>`;
-                });
-        }
-
-        function removePosition(empAssID) {
-            if (!confirm("Are you sure you want to remove this position assignment?")) return;
-
-            fetch(`/employee/assignment/${empAssID}/delete`, {
-                    method: 'DELETE',
-                    headers: {
-                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                        'Content-Type': 'application/json'
-                    }
-                })
-                .then(res => {
-                    if (!res.ok) throw new Error('Failed to delete');
-                    return res.json(); // Make sure to return the response
-                })
-                .then(data => {
-                    if (data.success) {
-                        showToast("Success", "Position removed successfully.");
-                    } else {
-                        showToast("Error", data.message || "Delete failed.", 'danger');
-                    }
-
-                    // 🟡 Reload the assignment list only, not the entire modal
-                    empAssignment(
-                        document.getElementById('assignEmpID').value,
-                        document.getElementById('employeeName').value,
-                        document.getElementById('empID').value
-                    );
-                })
-                .catch(err => {
-                    showToast("Error", "Something went wrong while deleting.", 'danger');
-                    console.error(err);
-                });
-        }
-
-
 
 
         function cancelAssign() {
