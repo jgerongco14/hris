@@ -53,6 +53,11 @@
                     Contribution Management
                 </a>
             </li>
+            <li class="nav-item">
+                <a class="nav-link {{ request()->routeIs('reports') ? 'active' : '' }}" href="{{ route('reports') }}">
+                    Reports
+                </a>
+            </li>
             @elseif(Auth::user()->role === 'employee')
             @php
             $isHeadOfOffice = Auth::user()->employee?->assignments()->where('empHead', 1)->exists();

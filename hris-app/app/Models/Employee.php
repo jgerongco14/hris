@@ -37,6 +37,7 @@ class Employee extends Model
         'empPagIbigNum',
         'photo',
         'role',
+        'status',
     ];
 
     // If you want to handle dates properly for 'empBirthdate'

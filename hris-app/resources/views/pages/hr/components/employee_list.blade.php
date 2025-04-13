@@ -203,7 +203,16 @@
                 @else
                 @foreach($employees as $employee)
                 <tr>
-                    <td class="text-center align-middle">{{ $employee->empID }}</td>
+                    <td class="text-center align-middle d-flex flex-column">
+                        {{ $employee->empID }}
+
+                        @php
+                        $rawStatus = strtolower($employee->status ?? 'active'); // default to 'active' if null
+                        $badgeClass = $rawStatus === 'resigned' ? 'bg-danger' : 'bg-success';
+                        $statusLabel = ucfirst($rawStatus);
+                        @endphp
+                        <span class="badge rounded {{ $badgeClass }}">{{ $statusLabel }}</span>
+                    </td>
                     <td class="align-middle">
                         <div class="d-flex align-items-center gap-2">
                             @php

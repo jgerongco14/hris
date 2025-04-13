@@ -14,10 +14,8 @@ return new class extends Migration
         Schema::create('reports', function (Blueprint $table) {
             $table->id();
             $table->string('empID')->index();
-            $table->string('status')->default('resigned');
             $table->string('semester')->nullable();
             $table->string('year')->nullable();
-            $table->string('empTurnOverRate')->nullable();
             $table->string('reason')->nullable();
             $table->string('attachments')->nullable();
             $table->timestamps();

@@ -12,6 +12,7 @@ use App\Http\Controllers\EmpContributionController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\DepartmentController;
 use App\Http\Controllers\OfficeController;
+use App\Http\Controllers\ReportsController;
 
 Route::get('/', function () {
     return redirect()->route('login');
@@ -96,6 +97,18 @@ Route::post('/attendance/import', [AttendanceController::class, 'import'])->name
 Route::post('/hr/assign-position', [AssignEmpController::class, 'empAssignment'])->name('empAssignment');
 Route::get('/employee/{id}/positions', [AssignEmpController::class, 'getPositions'])->name('employee.positions');
 Route::delete('/employee/assignment/{id}/delete', [AssignEmpController::class, 'deleteAssignment']);
+
+
+// Reports
+Route::get('/reports', function () {
+    return view('pages.reports');
+})->name('reports');
+
+Route::prefix('reports')->group(function () {
+    Route::get('/', [ReportsController::class, 'viewReport'])->name('reports');
+    Route::post('/', [ReportsController::class, 'createReport'])->name('reports.create');
+    Route::delete('/{id}', [ReportsController::class, 'deleteReport'])->name('reports.delete');
+});
 
 
 // Employee Contribution

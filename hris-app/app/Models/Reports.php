@@ -13,11 +13,10 @@ class Reports extends Model
     protected $fillable = [
         'id',
         'empID',
-        'status',
         'semester',
         'year',
-        'empTurnOverRate',
-        'reason'
+        'reason',
+        'attachments',
     ];
 
     public function employee()
