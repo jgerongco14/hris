@@ -40,12 +40,23 @@
                         'employees' => $employees,])
                     </div>
                 </div>
+                @foreach($employees as $employee)
+                @php
+                $assignedPositions = \App\Models\EmpAssignment::with('position')
+                ->where('empID', $employee->empID)
+                ->get();
+                @endphp
+
                 @include('pages.hr.components.assign_position', [
+                'employee' => $employee,
+                'assignedPositions' => $assignedPositions,
                 'departments' => $departments,
                 'offices' => $offices,
                 'positions' => $positions
                 ])
+                @endforeach
 
+                <div id="empAssignmentModalContainer"></div>
 
             </div>
         </div>
@@ -76,80 +87,26 @@
         });
 
         function empAssignment(employeeId, employeeName, empID) {
-            // Set basic modal fields
+
             $('#assignEmpID').val(employeeId);
             $('#empIDModal').val(empID);
             $('#empIDHidden').val(empID);
             $('#empIDDisplay').val(empID);
             $('#employeeName').val(employeeName);
 
-            // Clear existing fields before repopulating
-            $('#positionsContainer').html('');
-            $('#assignedPositionsBody').html('');
+            fetch(`/employee/${empID}/positions`)
+                .then(res => res.text())
+                .then(html => {
+                    document.getElementById('empAssignmentModalContainer').innerHTML = html;
 
-            // Fetch existing positions using your route
-            fetch(`/employee/${employeeId}/positions`)
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error('Network response was not ok');
-                    }
-                    return response.json();
-                })
-                .then(assignments => {
-                    if (assignments.length > 0) {
-                        assignments.forEach((assignment, index) => {
-                            // Add to editable position fields
-                            $('#positionsContainer').append(`
-                        <div class="position-item row d-flex justify-content-between mt-4">
-                            <input type="hidden" name="positions[${index}][empAssID]" value="${assignment.empAssID}">
-                            <div class="col mb-3">
-                                <label class="form-label">Position</label>
-                                <select class="form-select" name="positions[${index}][positionID]" required>
-                                    <option value="" disabled>Select a position</option>
-                                    ${generatePositionOptions(assignment.positionID)}
-                                </select>
-                            </div>
-                            <div class="col mb-3">
-                                <label class="form-label">Appointed Date</label>
-                                <input type="date" class="form-control" name="positions[${index}][empAssAppointedDate]" value="${assignment.empAssAppointedDate}" required>
-                            </div>
-                            <div class="col mb-3">
-                                <label class="form-label">End Date</label>
-                                <input type="date" class="form-control" name="positions[${index}][empAssEndDate]" value="${assignment.empAssEndDate !== 'Present' ? assignment.empAssEndDate : ''}">
-                            </div>
-                            <div class="col-auto d-flex align-items-end mb-3">
-                                <button type="button" class="btn btn-danger btn-sm" onclick="removePositionField(this)">Remove</button>
-                            </div>
-                        </div>
-                    `);
-
-                            // Also display in the Assigned Positions table (view only)
-                            $('#assignedPositionsBody').append(`
-                        <tr class="text-center">
-                            <td>${index + 1}</td>
-                            <td>${assignment.positionName}</td>
-                            <td>${assignment.empAssAppointedDate}</td>
-                            <td>${assignment.empAssEndDate}</td>
-                            <td>
-                                <form method="POST" action="/employee/assignment/${assignment.empAssID}/delete" onsubmit="return confirm('Are you sure you want to delete this assignment?')">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="submit" class="btn btn-sm btn-danger">Delete</button>
-                                </form>
-                            </td>
-                        </tr>
-                    `);
-                        });
-                    } else {
-                        // If no assignments, add one blank field
-                        addPositionField();
-                    }
-
-                    $('#empAssignmentModal').modal('show');
+                    // Now find the modal inside the injected HTML and show it
+                    const modalEl = document.getElementById('empAssignmentModal');
+                    const modal = new bootstrap.Modal(modalEl);
+                    modal.show();
                 })
                 .catch(err => {
-                    console.error('Failed to load assignments:', err);
-                    showToast('Error', 'Failed to fetch assignments.', 'danger');
+                    console.error('Failed to load modal', err);
+                    showToast("Error", "Failed to fetch position assignment data.", "danger");
                 });
         }
 

@@ -84,23 +84,38 @@ class AssignEmpController extends Controller
     }
 
 
-    public function getPositions($id)
+    public function getPositions($empID)
     {
-        $employee = Employee::with(['assignments' => function ($query) {
-            $query->with('position')->orderBy('empAssAppointedDate', 'desc');
-        }])->where('id', $id)->firstOrFail();
+        try {
+            // Fetch the employee with assignments filtered by empID
+            $assignedPositions = EmpAssignment::with('position')
+                ->where('empID', $empID)
+                ->get();
 
-        return response()->json(
-            $employee->assignments->map(function ($assignment) {
-                return [
-                    'empAssID' => $assignment->id,
-                    'positionID' => $assignment->positionID,
-                    'positionName' => $assignment->position->positionName ?? 'N/A',
-                    'empAssAppointedDate' => $assignment->empAssAppointedDate,
-                    'empAssEndDate' => $assignment->empAssEndDate ?? 'Present',
-                ];
-            })
-        );
+            // Fetch all positions, departments, and offices
+            $positions = Position::all();
+            $departments = Departments::all();
+            $offices = Offices::all();
+
+            // Return the view with the fetched data
+            return view('pages.hr.employee_management', compact('assignedPositions', 'positions', 'departments', 'offices'));
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Error occurred while fetching positions: ' . $e->getMessage());
+        }
+    }
+
+
+
+    public function deletePosition($id)
+    {
+        $assignment = EmpAssignment::findOrFail($id);
+        $assignment->update([
+            'positionID' => null,
+            'empAssAppointedDate' => null,
+            'empAssEndDate' => null,
+        ]);
+
+        return response()->json(['success' => true]);
     }
 
 

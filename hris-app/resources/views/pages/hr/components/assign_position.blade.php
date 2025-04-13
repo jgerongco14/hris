@@ -37,8 +37,29 @@
                                     <th>Actions</th>
                                 </tr>
                             </thead>
-                            <tbody id="assignedPositionsBody">
-                                <!-- Loaded dynamically via JS -->
+                            <tbody class="text-center">
+                                @foreach($assignedPositions as $index => $position)
+                                <tr>
+                                    <td>{{ $index + 1 }}</td>
+                                    <td>{{ $position->position->positionName }}</td>
+                                    <td>{{ $position->empAssAppointedDate }}</td>
+                                    <td>{{ $position->empAssEndDate ?? 'N/A' }}</td>
+                                    <td>
+                                        <form action="/employee/assignment/{{ $position->empAssID }}/delete" method="POST">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" class="btn btn-danger btn-sm">
+                                                <i class="ri-delete-bin-line"></i> <!-- Delete Icon -->
+                                            </button>
+                                        </form>
+                                    </td>
+                                </tr>
+                                @endforeach
+                                @if($assignedPositions->isEmpty())
+                                <tr>
+                                    <td colspan="5" class="text-center">No assigned positions found.</td>
+                                </tr>
+                                @endif
                             </tbody>
 
                         </table>
