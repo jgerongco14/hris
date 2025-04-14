@@ -106,23 +106,24 @@ class AssignEmpController extends Controller
 
 
 
-    public function getPositions($empID)
+    public function getAssignments($empID)
     {
         try {
-            // Fetch the employee with assignments filtered by empID
-            $assignedPositions = EmpAssignment::with('position')
+            $employee = Employee::with('assignments.position', 'assignments.department', 'assignments.office', 'assignments.program')
                 ->where('empID', $empID)
-                ->get();
+                ->firstOrFail();
 
-            // Fetch all positions, departments, and offices
-            $positions = Position::all();
-            $departments = Departments::all();
+            $departments = Departments::with('programs')->get();
             $offices = Offices::all();
+            $positions = Position::all();
 
-            // Return the view with the fetched data
-            return view('pages.hr.employee_management', compact('assignedPositions', 'positions', 'departments', 'offices'));
+            return view('pages.hr.employee_management', compact('employee', 'departments', 'offices', 'positions'));
         } catch (\Exception $e) {
-            return redirect()->back()->with('error', 'Error occurred while fetching positions: ' . $e->getMessage());
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Failed to retrieve employee assignments.',
+                'error' => $e->getMessage()
+            ], 500);
         }
     }
 

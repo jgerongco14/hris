@@ -1,10 +1,10 @@
 <!-- Assign Position Modal -->
-<div class="modal fade" id="empAssignmentModal" tabindex="-1" aria-labelledby="empAssignmentModalLabel" aria-hidden="true">
+<div class="modal fade" id="{{ $modalId }}" tabindex="-1" aria-labelledby="empAssignmentModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
 
             <input type="hidden" name="assignEmpID" id="assignEmpID">
-            <input type="hidden" name="empID" id="empIDModal">
+            <input type="hidden" name="empID" value="{{ $employee->empID }}">
 
             <div class="modal-header">
                 <h5 class="modal-title">Assign</h5>
@@ -13,16 +13,18 @@
 
             <div class="modal-body">
 
-                <!-- Display-Only Fields (outside form) -->
+                <!-- Employee ID -->
                 <div class="mb-3">
-                    <label for="empIDDisplay" class="form-label">Employee ID:</label>
-                    <input type="text" class="form-control" id="empIDDisplay" readonly>
+                    <label class="form-label">Employee ID:</label>
+                    <input type="text" class="form-control" value="{{ $employee->empID }}" readonly>
                 </div>
 
+                <!-- Employee Name -->
                 <div class="mb-3">
-                    <label for="employeeName" class="form-label">Employee Name:</label>
-                    <input type="text" class="form-control" id="employeeName" readonly>
+                    <label class="form-label">Employee Name:</label>
+                    <input type="text" class="form-control" value="{{ $employee->empLname }}, {{ $employee->empFname }} {{ $employee->empMname }}" readonly>
                 </div>
+
                 <!-- Assigned Positions Table -->
                 <div id="assignedPositions" class="mt-4">
                     <h6>Assigned Positions</h6>
@@ -65,6 +67,9 @@
                         </table>
                     </div>
                 </div>
+                @php
+                $latest = $assignedPositions->last();
+                @endphp
 
                 <form method="POST" action="{{ route('empAssignment') }}">
                     @csrf
@@ -108,10 +113,13 @@
                     <div class="row d-flex justify-content-between mt-4">
                         <div class="col mb-3">
                             <label for="departmentID" class="form-label">Department (Optional)</label>
-                            <select class="form-select" id="departmentID" name="departmentID">
-                                <option value="" selected>None</option>
+                            <select class="form-select" name="departmentID">
+                                <option value="">None</option>
                                 @foreach($departments as $department)
-                                <option value="{{ $department->departmentCode }}" data-programs='@json($department->programs)'>
+                                <option
+                                    value="{{ $department->departmentCode }}"
+                                    data-programs='@json($department->programs)'
+                                    {{ $latest && $latest->departmentCode === $department->departmentCode ? 'selected' : '' }}>
                                     {{ $department->departmentName }}
                                 </option>
                                 @endforeach
@@ -121,29 +129,41 @@
                         <!-- Program Selection -->
                         <div class="col mb-3">
                             <label for="programCode" class="form-label">Program (Optional)</label>
-                            <select class="form-select" id="programCode" name="programCode">
-                                <option value="" selected>None</option>
+                            <select class="form-select" name="programCode">
+                                <option value="">None</option>
+                                @if($latest && $latest->department && $latest->department->programs)
+                                @foreach($latest->department->programs as $program)
+                                <option value="{{ $program->programCode }}" {{ $latest->programCode === $program->programCode ? 'selected' : '' }}>
+                                    {{ $program->programName }}
+                                </option>
+                                @endforeach
+                                @endif
                             </select>
                         </div>
 
 
                         <div class="col mb-3">
                             <label for="officeID" class="form-label">Office (Optional)</label>
-                            <select class="form-select" id="officeID" name="officeID">
-                                <option value="" selected>None</option>
+                            <select class="form-select" name="officeID">
+                                <option value="">None</option>
                                 @foreach($offices as $office)
-                                <option value="{{ $office->officeCode }}">{{ $office->officeName }}</option>
+                                <option
+                                    value="{{ $office->officeCode }}"
+                                    {{ $latest && $latest->officeCode === $office->officeCode ? 'selected' : '' }}>
+                                    {{ $office->officeName }}
+                                </option>
                                 @endforeach
                             </select>
+
                         </div>
                     </div>
 
 
 
                     <!-- Make Head of the Office Checkbox -->
-                    <div class="form-check mb-3" id="makeHeadContainer" style="display: none;">
-                        <input class="form-check-input" type="checkbox" id="makeHead" name="makeHead" value="1">
-                        <label class="form-check-label" for="makeHead">Make Head of the Office</label>
+                    <div class="form-check mb-3 {{ $latest && ($latest->officeCode || $latest->departmentCode) ? '' : 'd-none' }}">
+                        <input class="form-check-input" type="checkbox" name="makeHead" value="1" {{ $latest && $latest->empHead ? 'checked' : '' }}>
+                        <label class="form-check-label">Make Head of the Office</label>
                     </div>
 
 

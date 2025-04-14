@@ -291,10 +291,10 @@
                         </button>
 
                         <!-- Assign Position Button -->
-                        <button class="btn btn-sm btn-warning mx-1"
-                            onclick="empAssignment('{{ $employee->id }}', '{{ $employee->empFname }} {{ $employee->empLname }}', '{{ $employee->empID }}')">
+                        <button class="btn btn-sm btn-success" data-bs-toggle="modal" data-bs-target="#assignModal_{{ $employee->empID }}">
                             <i class="ri-user-add-line"></i>
                         </button>
+
 
 
                         <form action="{{ route('employee.destroy', $employee->id) }}" method="POST" onsubmit="return confirm('Are you sure you want to delete this employee?')" style="display: inline;">

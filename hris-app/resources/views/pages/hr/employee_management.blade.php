@@ -52,11 +52,11 @@
                 'assignedPositions' => $assignedPositions,
                 'departments' => $departments,
                 'offices' => $offices,
-                'positions' => $positions
+                'positions' => $positions,
+                'modalId' => 'assignModal_' . $employee->empID
                 ])
                 @endforeach
 
-                <div id="empAssignmentModalContainer"></div>
 
             </div>
         </div>
@@ -68,49 +68,6 @@
     <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
 
     <script>
-        let selectedEmployeeId = null;
-        let selectedEmployeeName = null;
-        let selectedEmpID = null;
-
-        function showEditOptions(employeeId, empName, empID) {
-            selectedEmployeeId = employeeId;
-            selectedEmployeeName = empName;
-            selectedEmpID = empID;
-            $('#editChoiceModal').modal('show');
-        }
-
-
-        document.getElementById('editAssignmentBtn').addEventListener('click', function() {
-            $('#editChoiceModal').modal('hide');
-            // Show the assign position form/modal instead
-            empAssignment(selectedEmployeeId, selectedEmployeeName, selectedEmpID);
-        });
-
-        function empAssignment(employeeId, employeeName, empID) {
-
-            $('#assignEmpID').val(employeeId);
-            $('#empIDModal').val(empID);
-            $('#empIDHidden').val(empID);
-            $('#empIDDisplay').val(empID);
-            $('#employeeName').val(employeeName);
-
-            fetch(`/employee/${empID}/positions`)
-                .then(res => res.text())
-                .then(html => {
-                    document.getElementById('empAssignmentModalContainer').innerHTML = html;
-
-                    // Now find the modal inside the injected HTML and show it
-                    const modalEl = document.getElementById('empAssignmentModal');
-                    const modal = new bootstrap.Modal(modalEl);
-                    modal.show();
-                })
-                .catch(err => {
-                    console.error('Failed to load modal', err);
-                    showToast("Error", "Failed to fetch position assignment data.", "danger");
-                });
-        }
-
-
 
 
         $(document).ready(function() {
