@@ -29,7 +29,6 @@ class AssignEmpController extends Controller
                 'makeHead' => 'nullable|boolean',
             ]);
 
-
             $empID = $request->input('empID');
             $positions = $request->input('positions');
             $departmentCode = $request->input('departmentID');
@@ -37,6 +36,30 @@ class AssignEmpController extends Controller
             $officeCode = $request->input('officeID');
             $empHead = $request->input('makeHead') ? true : false;
 
+            if ($departmentCode || $officeCode) {
+                $alreadyAssigned = EmpAssignment::where('empID', $empID)
+                    ->where(function ($query) use ($departmentCode, $officeCode) {
+                        if ($departmentCode) {
+                            $query->where('departmentCode', '!=', null);
+                        }
+
+                        if ($officeCode) {
+                            $query->orWhere('officeCode', '!=', null);
+                        }
+                    })
+                    ->exists();
+
+                if ($alreadyAssigned) {
+                    return redirect()->back()->with('error', 'Employee is already assigned to a department or office.');
+                }
+            }
+            // ✅ Optional: Check for duplicate positionIDs in the request
+            $positionIDs = array_map(fn($p) => $p['positionID'], $positions);
+            if (count($positionIDs) !== count(array_unique($positionIDs))) {
+                return redirect()->back()->with('error', 'Duplicate positions detected in the submission.');
+            }
+
+            // ✅ Loop through all submitted positions
             foreach ($positions as $position) {
                 $positionID = $position['positionID'];
                 $appointedDate = $position['empAssAppointedDate'];
@@ -44,10 +67,9 @@ class AssignEmpController extends Controller
                 $empAssID = $position['empAssID'] ?? null;
 
                 if ($empAssID) {
-                    // Update existing
-                    $existingAssignment = EmpAssignment::find($empAssID);
-                    if ($existingAssignment) {
-                        $existingAssignment->update([
+                    $existing = EmpAssignment::find($empAssID);
+                    if ($existing) {
+                        $existing->update([
                             'positionID' => $positionID,
                             'empAssAppointedDate' => $appointedDate,
                             'empAssEndDate' => $endDate,
@@ -60,7 +82,7 @@ class AssignEmpController extends Controller
                     }
                 }
 
-                // Create new if no empAssID or not found
+                // Generate assignment number
                 $empAssNo = $positionID . '-' . $empID . '-' . date('Y', strtotime($appointedDate));
 
                 EmpAssignment::create([
@@ -76,12 +98,12 @@ class AssignEmpController extends Controller
                 ]);
             }
 
-
             return redirect()->back()->with('success', 'Position assignment(s) saved successfully.');
         } catch (\Exception $e) {
             return redirect()->back()->with('error', 'Error occurred while assigning position: ' . $e->getMessage());
         }
     }
+
 
 
     public function getPositions($empID)
