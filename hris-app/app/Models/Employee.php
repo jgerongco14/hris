@@ -37,6 +37,7 @@ class Employee extends Model
         'empPagIbigNum',
         'photo',
         'role',
+        'status',
     ];
 
     // If you want to handle dates properly for 'empBirthdate'
@@ -83,5 +84,14 @@ class Employee extends Model
         return $this->hasMany(Offices::class, 'officeHead', 'empID');
     }
 
+    public function reports()
+    {
+        return $this->hasMany(Reports::class, 'empID', 'empID');
+    }
+
+    public function trainings()
+    {
+        return $this->hasMany(Trainings::class, 'empID', 'empID');
+    }
    
 }

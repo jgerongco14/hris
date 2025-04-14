@@ -12,6 +12,8 @@ use App\Http\Controllers\EmpContributionController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\DepartmentController;
 use App\Http\Controllers\OfficeController;
+use App\Http\Controllers\ReportsController;
+use App\Http\Controllers\TrainingsController;
 
 Route::get('/', function () {
     return redirect()->route('login');
@@ -65,6 +67,19 @@ Route::get('/attendance', function () {
 })->name('attendance');
 Route::get('/attendance', [AttendanceController::class, 'showEmployeeAttendance'])->name('attendance');
 
+
+// Employee Training
+
+Route::prefix('training')->group(function () {
+    Route::get('/', [TrainingsController::class, 'showTrainings'])->name('training');
+    Route::post('/', [TrainingsController::class, 'createTraining'])->name('training.store');
+    Route::delete('/{id}', [TrainingsController::class, 'deleteTraining'])->name('training.delete');
+    Route::get('/{id}', [TrainingsController::class, 'editTraining'])->name('training.edit');
+    Route::put('/{id}', [TrainingsController::class, 'updateTraining'])->name('training.update');
+});
+
+
+
 //HR
 //Employee Management
 Route::get('/addEmployee', function () {
@@ -73,8 +88,9 @@ Route::get('/addEmployee', function () {
 Route::post('/addEmployee', [EmployeeController::class, 'store'])->name('addEmployee.store');
 Route::get('/employee', [EmployeeController::class, 'index'])->name('employee_management');
 Route::post('/employee/import', [EmployeeController::class, 'importEmp'])->name('employee.import');
-Route::get('/employee/{id}', [EmpLeaveController::class, 'editForm']);
+Route::get('/employee/{id}/edit', [EmployeeController::class, 'edit'])->name('employee.edit');
 Route::put('/employee/{id}', [EmployeeController::class, 'update']);
+Route::delete('/employee/{employee}', [EmployeeController::class, 'destroy'])->name('employee.destroy');
 
 
 
@@ -94,8 +110,21 @@ Route::post('/attendance/import', [AttendanceController::class, 'import'])->name
 
 // Position Assignment
 Route::post('/hr/assign-position', [AssignEmpController::class, 'empAssignment'])->name('empAssignment');
-Route::get('/employee/{id}/positions', [AssignEmpController::class, 'getPositions'])->name('employee.positions');
-Route::delete('/employee/assignment/{id}/delete', [AssignEmpController::class, 'deleteAssignment']);
+Route::get('/employee/{empID}/edit', [EmployeeController::class, 'getAssignments'])->name('employee.getAssignments');
+Route::delete('/employee/assignment/{id}/delete', [AssignEmpController::class, 'deleteAssignment'])->name('deleteAssignment');
+Route::delete('/employee/assignment/{id}', [AssignEmpController::class, 'deletePosition'])->name('deletePosition');
+
+
+// Reports
+Route::get('/reports', function () {
+    return view('pages.reports');
+})->name('reports');
+
+Route::prefix('reports')->group(function () {
+    Route::get('/', [ReportsController::class, 'viewReport'])->name('reports');
+    Route::post('/', [ReportsController::class, 'createReport'])->name('reports.create');
+    Route::delete('/{id}', [ReportsController::class, 'deleteReport'])->name('reports.delete');
+});
 
 
 // Employee Contribution

@@ -1,10 +1,19 @@
+<template id="position-select-template">
+    <select class="form-select position-select">
+        <option value="" disabled selected>Select a position</option>
+        @foreach($positions as $position)
+        <option value="{{ $position->positionID }}">{{ $position->positionName }}</option>
+        @endforeach
+    </select>
+</template>
+
+
 <!-- Assign Position Modal -->
-<div class="modal fade" id="empAssignmentModal" tabindex="-1" aria-labelledby="empAssignmentModalLabel" aria-hidden="true">
+<div class="modal fade" id="{{ $modalId }}" tabindex="-1" aria-labelledby="empAssignmentModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
 
-            <input type="hidden" name="assignEmpID" id="assignEmpID">
-            <input type="hidden" name="empID" id="empIDModal">
+            <input type="hidden" name="empID" value="{{ $employee->empID }}">
 
             <div class="modal-header">
                 <h5 class="modal-title">Assign</h5>
@@ -13,16 +22,18 @@
 
             <div class="modal-body">
 
-                <!-- Display-Only Fields (outside form) -->
+                <!-- Employee ID -->
                 <div class="mb-3">
-                    <label for="empIDDisplay" class="form-label">Employee ID:</label>
-                    <input type="text" class="form-control" id="empIDDisplay" readonly>
+                    <label class="form-label">Employee ID:</label>
+                    <input type="text" class="form-control" value="{{ $employee->empID }}" readonly>
                 </div>
 
+                <!-- Employee Name -->
                 <div class="mb-3">
-                    <label for="employeeName" class="form-label">Employee Name:</label>
-                    <input type="text" class="form-control" id="employeeName" readonly>
+                    <label class="form-label">Employee Name:</label>
+                    <input type="text" class="form-control" value="{{ $employee->empLname }}, {{ $employee->empFname }} {{ $employee->empMname }}" readonly>
                 </div>
+
                 <!-- Assigned Positions Table -->
                 <div id="assignedPositions" class="mt-4">
                     <h6>Assigned Positions</h6>
@@ -37,23 +48,49 @@
                                     <th>Actions</th>
                                 </tr>
                             </thead>
-                            <tbody id="assignedPositionsBody">
-                                <!-- Loaded dynamically via JS -->
+                            <tbody class="text-center">
+                                @foreach($assignedPositions as $index => $position)
+                                <tr>
+                                    <td>{{ $index + 1 }}</td>
+                                    <td>{{ $position->position->positionName }}</td>
+                                    <td>{{ $position->empAssAppointedDate }}</td>
+                                    <td>{{ $position->empAssEndDate ?? 'N/A' }}</td>
+                                    <td>
+                                        <form action="{{ route('deleteAssignment', $position->id) }}" method="POST" onsubmit="return confirm('Are you sure you want to delete this Assignment?')" style="display: inline;">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" class="btn btn-danger btn-sm">
+                                                <i class="ri-delete-bin-line"></i> <!-- Delete Icon -->
+                                            </button>
+                                        </form>
+                                    </td>
+                                </tr>
+                                @endforeach
+                                @if($assignedPositions->isEmpty())
+                                <tr>
+                                    <td colspan="5" class="text-center">No assigned positions found.</td>
+                                </tr>
+                                @endif
                             </tbody>
 
                         </table>
                     </div>
                 </div>
+                @php
+                $latest = $assignedPositions->last();
+                @endphp
 
                 <form method="POST" action="{{ route('empAssignment') }}">
                     @csrf
                     <!-- Add Position Fields -->
-                    <input type="hidden" name="empID" id="empIDHidden">
+                    <input type="hidden" name="empID" id="empIDHidden" value="{{ $employee->empID }}">
                     <div id="positionsContainer">
                         <div class="position-item row d-flex justify-content-between mt-4">
+                            <input type="hidden" name="positions[0][empAssID]" value="{{ $assignment->id ?? '' }}">
+
                             <div class="col mb-3">
-                                <label for="positionID" class="form-label">Position</label>
-                                <select class="form-select" id="positionID" name="positions[0][positionID]" required>
+                                <label class="form-label">Position</label>
+                                <select class="form-select" name="positions[0][positionID]">
                                     <option value="" disabled selected>Select a position</option>
                                     @foreach($positions as $position)
                                     <option value="{{ $position->positionID }}">{{ $position->positionName }}</option>
@@ -63,7 +100,7 @@
 
                             <div class="col mb-3">
                                 <label for="empAssAppointedDate" class="form-label">Appointed Date</label>
-                                <input type="date" class="form-control" id="empAssAppointedDate" name="positions[0][empAssAppointedDate]" required>
+                                <input type="date" class="form-control" id="empAssAppointedDate" name="positions[0][empAssAppointedDate]">
                             </div>
 
                             <div class="col mb-3">
@@ -84,10 +121,13 @@
                     <div class="row d-flex justify-content-between mt-4">
                         <div class="col mb-3">
                             <label for="departmentID" class="form-label">Department (Optional)</label>
-                            <select class="form-select" id="departmentID" name="departmentID">
-                                <option value="" selected>None</option>
+                            <select class="form-select" name="departmentID">
+                                <option value="">None</option>
                                 @foreach($departments as $department)
-                                <option value="{{ $department->departmentCode }}" data-programs='@json($department->programs)'>
+                                <option
+                                    value="{{ $department->departmentCode }}"
+                                    data-programs='@json($department->programs)'
+                                    {{ $latest && $latest->departmentCode === $department->departmentCode ? 'selected' : '' }}>
                                     {{ $department->departmentName }}
                                 </option>
                                 @endforeach
@@ -97,30 +137,44 @@
                         <!-- Program Selection -->
                         <div class="col mb-3">
                             <label for="programCode" class="form-label">Program (Optional)</label>
-                            <select class="form-select" id="programCode" name="programCode">
-                                <option value="" selected>None</option>
+                            <select class="form-select" name="programCode">
+                                <option value="">None</option>
+                                @if($latest && $latest->department && $latest->department->programs)
+                                @foreach($latest->department->programs as $program)
+                                <option value="{{ $program->programCode }}" {{ $latest->programCode === $program->programCode ? 'selected' : '' }}>
+                                    {{ $program->programName }}
+                                </option>
+                                @endforeach
+                                @endif
                             </select>
                         </div>
 
 
                         <div class="col mb-3">
                             <label for="officeID" class="form-label">Office (Optional)</label>
-                            <select class="form-select" id="officeID" name="officeID">
-                                <option value="" selected>None</option>
+                            <select class="form-select" name="officeID">
+                                <option value="">None</option>
                                 @foreach($offices as $office)
-                                <option value="{{ $office->officeCode }}">{{ $office->officeName }}</option>
+                                <option
+                                    value="{{ $office->officeCode }}"
+                                    {{ $latest && $latest->officeCode === $office->officeCode ? 'selected' : '' }}>
+                                    {{ $office->officeName }}
+                                </option>
                                 @endforeach
                             </select>
+
                         </div>
                     </div>
 
-
-
                     <!-- Make Head of the Office Checkbox -->
-                    <div class="form-check mb-3" id="makeHeadContainer" style="display: none;">
-                        <input class="form-check-input" type="checkbox" id="makeHead" name="makeHead" value="1">
-                        <label class="form-check-label" for="makeHead">Make Head of the Office</label>
+                    <div class="form-check mb-3">
+                        <input class="form-check-input" type="checkbox" name="makeHead" value="1"
+                            {{ !empty($latest?->empHead) ? 'checked' : '' }}
+                            data-locked="true">
+
+                        <label class="form-check-label">Make Head of the Office</label>
                     </div>
+
 
 
                     <div class="div mb-3 text-center">
@@ -144,113 +198,125 @@
         const container = document.getElementById('positionsContainer');
         const positionItem = document.createElement('div');
         positionItem.classList.add('position-item', 'row', 'd-flex', 'justify-content-between', 'mt-4');
-        positionItem.innerHTML = `
-        <div class="col mb-3">
-            <label for="positionID" class="form-label">Position</label>
-            <select class="form-select" name="positions[${positionIndex}][positionID]" required>
-                <option value="" disabled selected>Select a position</option>
-                @foreach($positions as $position)
-                <option value="{{ $position->positionID }}">{{ $position->positionName }}</option>
-                @endforeach
-            </select>
-        </div>
-        <div class="col mb-3">
-            <label for="empAssAppointedDate" class="form-label">Appointed Date</label>
-            <input type="date" class="form-control" name="positions[${positionIndex}][empAssAppointedDate]" required>
-        </div>
-        <div class="col mb-3">
-            <label for="empAssEndDate" class="form-label">End Date</label>
-            <input type="date" class="form-control" name="positions[${positionIndex}][empAssEndDate]">
-        </div>
-        <div class="col-auto mb-3 d-flex align-items-end">
-            <button type="button" class="btn btn-danger btn-sm" onclick="removePositionField(this)">Remove</button>
-        </div>
+
+        // ✅ Get and clone <select> from the <template>
+        const selectTemplate = document.getElementById('position-select-template');
+        const clonedSelect = selectTemplate.content.cloneNode(true).querySelector('select');
+
+        // ✅ Assign the correct name
+        clonedSelect.setAttribute('name', `positions[${positionIndex}][positionID]`);
+
+        // ✅ Hidden ID input
+        const hiddenInput = document.createElement('input');
+        hiddenInput.type = 'hidden';
+        hiddenInput.name = `positions[${positionIndex}][empAssID]`;
+        hiddenInput.value = '';
+
+        // ✅ Select wrapper
+        const selectWrapper = document.createElement('div');
+        selectWrapper.classList.add('col', 'mb-3');
+        const label = document.createElement('label');
+        label.className = 'form-label';
+        label.textContent = 'Position';
+        selectWrapper.appendChild(label);
+        selectWrapper.appendChild(clonedSelect);
+
+        // ✅ Appointed Date
+        const appointedWrapper = document.createElement('div');
+        appointedWrapper.classList.add('col', 'mb-3');
+        appointedWrapper.innerHTML = `
+        <label class="form-label">Appointed Date</label>
+        <input type="date" class="form-control" name="positions[${positionIndex}][empAssAppointedDate]" required>
     `;
+
+        // ✅ End Date
+        const endDateWrapper = document.createElement('div');
+        endDateWrapper.classList.add('col', 'mb-3');
+        endDateWrapper.innerHTML = `
+        <label class="form-label">End Date</label>
+        <input type="date" class="form-control" name="positions[${positionIndex}][empAssEndDate]">
+    `;
+
+        // ✅ Remove button
+        const removeWrapper = document.createElement('div');
+        removeWrapper.classList.add('col-auto', 'mb-3', 'd-flex', 'align-items-end');
+        removeWrapper.innerHTML = `
+        <button type="button" class="btn btn-danger btn-sm" onclick="removePositionField(this)">Remove</button>
+    `;
+
+        // ✅ Add all to positionItem row
+        positionItem.appendChild(hiddenInput);
+        positionItem.appendChild(selectWrapper);
+        positionItem.appendChild(appointedWrapper);
+        positionItem.appendChild(endDateWrapper);
+        positionItem.appendChild(removeWrapper);
+
         container.appendChild(positionItem);
         positionIndex++;
     }
+
+
+
 
     function removePositionField(button) {
         const positionItem = button.closest('.position-item');
         positionItem.remove();
     }
 
-    function handleDepartmentChange(departmentSelect) {
+    function updateProgramsDropdown(departmentSelect) {
         const selectedOption = departmentSelect.options[departmentSelect.selectedIndex];
-        const programs = JSON.parse(selectedOption.getAttribute('data-programs') || '[]'); // Get programs from data attribute
-        const programSelect = document.getElementById('programCode');
-        const makeHeadContainer = document.getElementById('makeHeadContainer');
+        const programs = JSON.parse(selectedOption.getAttribute('data-programs') || '[]');
+        const programSelect = document.querySelector('[name="programCode"]');
 
-        // Clear and reset the program dropdown
-        programSelect.innerHTML = '<option value="" selected>None</option>';
+        // Reset programs
+        programSelect.innerHTML = '<option value="">None</option>';
 
-        // Populate the program dropdown if programs exist
         if (programs.length > 0) {
             programs.forEach(program => {
                 const option = document.createElement('option');
-                option.value = program.programCode; // Set the value to programCode
-                option.textContent = program.programName; // Display the program name
+                option.value = program.programCode;
+                option.textContent = program.programName;
                 programSelect.appendChild(option);
             });
         }
-
-        // Show the checkbox if either department or office is selected
-        const officeValue = document.getElementById('officeID').value;
-        if (departmentSelect.value || officeValue) {
-            makeHeadContainer.style.display = 'block';
-        } else {
-            makeHeadContainer.style.display = 'none';
-        }
     }
 
-    function handleOfficeChange(officeSelect) {
-        const makeHeadContainer = document.getElementById('makeHeadContainer');
-        const departmentValue = document.getElementById('departmentID').value;
+    function autoCheckHeadStatus() {
+        const departmentSelect = document.getElementById('departmentID');
+        const officeSelect = document.getElementById('officeID');
+        const makeHeadCheckbox = document.querySelector('[name="makeHead"]');
 
-        // Show the checkbox if either department or office is selected
-        if (officeSelect.value || departmentValue) {
-            makeHeadContainer.style.display = 'block';
-        } else {
-            makeHeadContainer.style.display = 'none';
+        const departmentSelected = departmentSelect && departmentSelect.value !== '';
+        const officeSelected = officeSelect && officeSelect.value !== '';
+
+        // Auto-check if either is selected
+        // ✅ Only auto-check if not already checked (preserve backend state)
+        if (!makeHeadCheckbox.dataset.locked) {
+            makeHeadCheckbox.checked = departmentSelected || officeSelected;
         }
     }
 
     document.addEventListener('DOMContentLoaded', function() {
-        // Hide the checkbox on page load
-        const makeHeadContainer = document.getElementById('makeHeadContainer');
-        makeHeadContainer.style.display = 'none';
-
-        // Attach event listeners to department and office dropdowns
         const departmentSelect = document.getElementById('departmentID');
         const officeSelect = document.getElementById('officeID');
 
-        departmentSelect.addEventListener('change', function() {
-            handleDepartmentChange(departmentSelect);
-        });
+        if (departmentSelect) {
+            departmentSelect.addEventListener('change', function() {
+                updateProgramsDropdown(departmentSelect);
+                autoCheckHeadStatus();
+            });
 
-        officeSelect.addEventListener('change', function() {
-            handleOfficeChange(officeSelect);
-        });
+            // Update programs on initial load
+            updateProgramsDropdown(departmentSelect);
+        }
+
+        if (officeSelect) {
+            officeSelect.addEventListener('change', autoCheckHeadStatus);
+        }
+
+        // Initial auto-check
+        autoCheckHeadStatus();
     });
-
-
-    document.addEventListener('DOMContentLoaded', function() {
-        const form = document.querySelector('form[action="{{ route("empAssignment") }}"]');
-
-        form.addEventListener('submit', function(e) {
-            const officeID = document.getElementById('officeID').value;
-            const departmentID = document.getElementById('departmentID').value;
-            const programCode = document.getElementById('programCode').value;
-
-            console.log('Office ID:', officeID);
-            console.log('Department ID:', departmentID);
-            console.log('Selected Program Code:', programCode);
-
-            // Optional: Prevent form submission for testing
-            // e.preventDefault();
-        });
-    });
-
 
 
     // ✅ Hide programContainer on page load

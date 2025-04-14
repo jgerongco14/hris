@@ -12,9 +12,10 @@
 <body>
     <div class="container-fluid">
         <div class="row">
-            <div class="col-md-2">
-                <!-- Include the navbar component -->
-                <x-navbar />
+            <div class="col-2 p-0">
+                <div class="sidebar h-100">
+                    @include('components.sidebar')
+                </div>
             </div>
             <div class="col-md-10">
                 <!-- Include the titlebar component -->
@@ -62,6 +63,16 @@
                                         <option value="manager">HR</option>
                                     </select>
                                 </div>
+
+                                <div class="mx-3 mb-0">
+                                    <label for="status" class="form-label">Status</label>
+                                    <select class="form-select" name="status" id="status" required>
+                                        <option value="" disabled>Select Status</option>
+                                        <option value="active">Active</option>
+                                        <option value="resigned">Resigned</option>
+                                    </select>
+                                </div>
+
                                 <div class="mx-3 mb-0 d-flex align-items-end">
                                     <button type="submit" class="btn btn-primary" id="submitButton">Add User</button>
                                     <button type="button" class="btn btn-secondary ms-2" id="cancelBtn">Cancel</button>
@@ -108,6 +119,7 @@
                                     <th>EmpID</th>
                                     <th>Email</th>
                                     <th>Role</th>
+                                    <th>Status</th>
                                     <th>Actions</th>
                                 </tr>
                             </thead>
@@ -125,8 +137,16 @@
                                         <span class="badge rounded bg-secondary text-white">{{ $user->role }}</span>
                                     </td>
                                     <td class="text-center">
+                                        @php
+                                        $rawStatus = strtolower($user->employee->status ?? 'active'); // default to 'active' if null
+                                        $badgeClass = $rawStatus === 'resigned' ? 'bg-danger' : 'bg-success';
+                                        $statusLabel = ucfirst($rawStatus);
+                                        @endphp
+                                        <span class="badge rounded {{ $badgeClass }}">{{ $statusLabel }}</span>
+                                    </td>
+                                    <td class="text-center">
                                         <!-- Add action icons here -->
-                                        <a href="javascript:void(0);" class="btn btn-warning btn-sm" onclick="editUser('{{ $user->id }}', '{{ $user->empID }}', '{{ $user->email }}', '{{ $user->role }}')">
+                                        <a href="javascript:void(0);" class="btn btn-warning btn-sm" onclick="editUser('{{ $user->id }}', '{{ $user->empID }}', '{{ $user->email }}', '{{ $user->role }}' , '{{ $user->employee->status }}')">
                                             <i class="ri-edit-line"></i> <!-- Edit Icon -->
                                         </a>
                                         <form action="{{ route('user.delete', $user->id) }}" method="POST" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this user?');">
@@ -163,7 +183,7 @@
 
 
     <script>
-        function editUser(id, empID, email, role) {
+        function editUser(id, empID, email, role, status) {
             // Show the form
             const userForm = document.getElementById('userForm');
             userForm.style.display = 'block';
@@ -177,6 +197,7 @@
             document.getElementById('empID').value = empID;
             document.getElementById('email').value = email;
             document.getElementById('role').value = role;
+            document.getElementById('status').value = status;
 
             // Update the form action and method
             const form = document.getElementById('userFormElement');

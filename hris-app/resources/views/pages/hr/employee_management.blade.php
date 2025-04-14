@@ -17,9 +17,10 @@
 
         <div class="row">
             <!-- Navigation Section -->
-            <div class="col-2">
-                <!-- Include the navbar component -->
-                <x-navbar />
+            <div class="col-2 p-0">
+                <div class="sidebar h-100">
+                    @include('components.sidebar')
+                </div>
             </div>
 
             <!-- Main Content Section -->
@@ -35,14 +36,26 @@
 
                 <div class="card my-5">
                     <div class="card-body">
-                        @include('pages.hr.components.employee_list')
+                        @include('pages.hr.components.employee_list', [
+                        'employees' => $employees,])
                     </div>
                 </div>
+                @foreach($employees as $employee)
+                @php
+                $assignedPositions = \App\Models\EmpAssignment::with('position')
+                ->where('empID', $employee->empID)
+                ->get();
+                @endphp
+
                 @include('pages.hr.components.assign_position', [
+                'employee' => $employee,
+                'assignedPositions' => $assignedPositions,
                 'departments' => $departments,
                 'offices' => $offices,
-                'positions' => $positions
+                'positions' => $positions,
+                'modalId' => 'assignModal_' . $employee->empID
                 ])
+                @endforeach
 
 
             </div>
@@ -55,31 +68,19 @@
     <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
 
     <script>
-        let selectedEmployeeId = null;
-        let selectedEmployeeName = null;
-        let selectedEmpID = null;
 
-        function showEditOptions(employeeId, empName, empID) {
-            selectedEmployeeId = employeeId;
-            selectedEmployeeName = empName;
-            selectedEmpID = empID;
-            $('#editChoiceModal').modal('show');
-        }
-
-
-        document.getElementById('editAssignmentBtn').addEventListener('click', function() {
-            $('#editChoiceModal').modal('hide');
-            // Show the assign position form/modal instead
-            empAssignment(selectedEmployeeId, selectedEmployeeName, selectedEmpID);
-        });
 
         $(document).ready(function() {
 
 
             $('#addIndividualBtn').click(function() {
-                $('#employeeForm').show(); // Always show the form
-                $('#addEmployee').modal('hide'); // Close the import modal if it's open
+                $('#employeeForm')[0].reset();
+                $('#employeeForm').attr('action', '{{ route("addEmployee.store") }}');
+                $('#formMethod').val('POST');
+                $('#empID').prop('readonly', false);
+                $('#employeeForm').show();
             });
+
 
 
             // Initialize the datepicker
@@ -121,101 +122,6 @@
                 $(this).val(value);
             });
         });
-
-        function empAssignment(id, empName, empID) {
-            const modal = new bootstrap.Modal(document.getElementById('empAssignmentModal'));
-            modal.show();
-            // Set static fields
-            document.getElementById('assignEmpID').value = id; // Hidden field for employee ID
-            document.getElementById('empIDDisplay').value = empID;
-            document.getElementById('empIDHidden').value = empID; // Hidden input for form submission
-            document.getElementById('employeeName').value = empName; // Employee Name field
-            document.getElementById('hiddenDepartmentID').value = document.getElementById('departmentID').value;
-            document.getElementById('hiddenProgramCode').value = document.getElementById('programCode').value;
-            document.getElementById('hiddenOfficeID').value = document.getElementById('officeID').value;
-
-
-
-
-            const tbody = document.getElementById('assignedPositionsBody');
-            tbody.innerHTML = `
-        <tr>
-            <td colspan="5" class="text-center text-muted">Loading...</td>
-        </tr>
-    `;
-
-            // Fetch positions
-            fetch(`/employee/${id}/positions`)
-                .then(res => res.json())
-                .then(data => {
-                    if (data.length > 0) {
-                        tbody.innerHTML = ''; // Clear loading
-                        data.forEach((assignment, index) => {
-                            const row = `
-                        <tr>
-                            <td class="text-center">${index + 1}</td>
-                            <td>${assignment.positionName}</td>
-                            <td class="text-center">${assignment.empAssAppointedDate}</td>
-                            <td class="text-center">${assignment.empAssEndDate}</td>
-                            <td class="text-center">
-                                <button class="btn btn-danger btn-sm" onclick="removePosition(${assignment.empAssID})">
-                                    <i class="ri-delete-bin-5-line"></i>
-                                </button>
-                            </td>
-                        </tr>`;
-                            tbody.insertAdjacentHTML('beforeend', row);
-                        });
-                    } else {
-                        tbody.innerHTML = `
-                    <tr>
-                        <td colspan="5" class="text-center text-muted">No position assignments found.</td>
-                    </tr>`;
-                    }
-                })
-                .catch(error => {
-                    console.error("Fetch error:", error);
-                    tbody.innerHTML = `
-                <tr>
-                    <td colspan="5" class="text-danger text-center">Failed to load positions.</td>
-                </tr>`;
-                });
-        }
-
-        function removePosition(empAssID) {
-            if (!confirm("Are you sure you want to remove this position assignment?")) return;
-
-            fetch(`/employee/assignment/${empAssID}/delete`, {
-                    method: 'DELETE',
-                    headers: {
-                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                        'Content-Type': 'application/json'
-                    }
-                })
-                .then(res => {
-                    if (!res.ok) throw new Error('Failed to delete');
-                    return res.json(); // Make sure to return the response
-                })
-                .then(data => {
-                    if (data.success) {
-                        showToast("Success", "Position removed successfully.");
-                    } else {
-                        showToast("Error", data.message || "Delete failed.", 'danger');
-                    }
-
-                    // 🟡 Reload the assignment list only, not the entire modal
-                    empAssignment(
-                        document.getElementById('assignEmpID').value,
-                        document.getElementById('employeeName').value,
-                        document.getElementById('empID').value
-                    );
-                })
-                .catch(err => {
-                    showToast("Error", "Something went wrong while deleting.", 'danger');
-                    console.error(err);
-                });
-        }
-
-
 
 
         function cancelAssign() {
@@ -281,6 +187,48 @@
                 }
             });
         });
+
+        function editEmployee(id) {
+            fetch(`/employee/${id}/edit`)
+                .then(response => response.json())
+                .then(employee => {
+                    // Show and configure form
+                    $('#employeeForm').show();
+                    $('#employeeForm')[0].reset();
+
+                    // Set form to update mode
+                    $('#employeeForm').attr('action', `/employee/${id}`);
+                    $('#formMethod').val('PUT');
+                    $('#empID').prop('readonly', true); // prevent changing empID
+
+                    // Populate fields
+                    $('#empID').val(employee.empID);
+                    $('#empPrefix').val(employee.empPrefix);
+                    $('#empFname').val(employee.empFname);
+                    $('#empMname').val(employee.empMname);
+                    $('#empLname').val(employee.empLname);
+                    $('#empSuffix').val(employee.empSuffix);
+                    $('#address').val(employee.address);
+                    $('#province').val(employee.province);
+                    $('#city').val(employee.city);
+                    $('#barangay').val(employee.barangay);
+                    $('#empSSSNum').val(employee.empSSSNum);
+                    $('#empTinNum').val(employee.empTinNum);
+                    $('#empPagIbigNum').val(employee.empPagIbigNum);
+                    $('#empBirthdate').val(employee.empBirthdate);
+
+                    if (employee.empGender === 'male') {
+                        $('#male').prop('checked', true);
+                    } else if (employee.empGender === 'female') {
+                        $('#female').prop('checked', true);
+                    }
+                })
+                .catch(error => {
+                    showToast('Error', 'Failed to load employee data', 'danger');
+                    console.error(error);
+                });
+        }
+
 
         function showToast(title, message, type = 'success') {
             const toastEl = document.getElementById('liveToast');

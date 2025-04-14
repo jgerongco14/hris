@@ -18,9 +18,10 @@
 
         <div class="row">
             <!-- Navigation Section -->
-            <div class="col-2">
-                <!-- Include the navbar component -->
-                <x-navbar />
+            <div class="col-2 p-0">
+                <div class="sidebar h-100">
+                    @include('components.sidebar')
+                </div>
             </div>
 
             <!-- Main Content Section -->

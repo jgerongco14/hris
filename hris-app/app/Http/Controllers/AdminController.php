@@ -15,7 +15,7 @@ class AdminController extends Controller
     //Admin Side
     public function showUserManagement(Request $request)
     {
-        $query = User::query();
+        $query = User::with('employee');
 
         // Filter by role
         if ($request->has('role') && $request->role != '') {
@@ -113,7 +113,7 @@ class AdminController extends Controller
                 }
 
                 // Create Users
-               $user = User::create([
+                $user = User::create([
                     'empID' => $empID,
                     'email' => $email,
                     'role' => $role,
@@ -128,7 +128,7 @@ class AdminController extends Controller
                         'user_id'  => $user->id,
                         'empID' => $empID,
                     ]);
-                } 
+                }
             }
 
             return redirect()->back()->with('success', 'User data imported successfully.');
@@ -140,7 +140,8 @@ class AdminController extends Controller
     public function editUser($id)
     {
         try {
-            $user = User::findOrFail($id);
+            $user = User::with('employee')->findOrFail($id);
+
             return view('pages.admin.edit_user', compact('user'));
         } catch (Exception $e) {
             return redirect()->back()->with('error', 'Error fetching user data: ' . $e->getMessage());
@@ -149,10 +150,15 @@ class AdminController extends Controller
     public function updateUser(Request $request, $id)
     {
         try {
-            $user = User::findOrFail($id);
+            $user = User::with('employee')->findOrFail($id);
+
             $user->empID = $request->input('empID');
             $user->email = $request->input('email');
             $user->role = $request->input('role');
+            if ($user->employee) {
+                $user->employee->status = $request->input('status');
+                $user->employee->save();
+            }
 
             // Validate the data before saving
             if (empty($user->empID) || empty($user->email) || empty($user->role)) {

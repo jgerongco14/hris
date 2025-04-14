@@ -30,6 +30,7 @@ return new class extends Migration
             $table->string('empSSSNum')->nullable();
             $table->string('empTinNum')->nullable();
             $table->string('empPagIbigNum')->nullable();
+            $table->string('status')->default('active');
             $table->timestamps();
         });
     }

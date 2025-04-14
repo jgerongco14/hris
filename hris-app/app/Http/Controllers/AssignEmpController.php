@@ -18,9 +18,10 @@ class AssignEmpController extends Controller
         try {
             $request->validate([
                 'empID' => 'required|exists:employees,empID',
-                'positions' => 'required|array',
-                'positions.*.positionID' => 'required|exists:positions,positionID',
-                'positions.*.empAssAppointedDate' => 'required|date',
+                'positions' => 'nullable|array',
+                'positions.*.empAssID' => 'nullable|exists:emp_assignments,id',
+                'positions.*.positionID' => 'nullable|exists:positions,positionID',
+                'positions.*.empAssAppointedDate' => 'nullable|date',
                 'positions.*.empAssEndDate' => 'nullable|date|after_or_equal:positions.*.empAssAppointedDate',
                 'departmentID' => 'nullable|exists:departments,departmentCode',
                 'programCode' => 'nullable|exists:programs,programCode',
@@ -29,27 +30,83 @@ class AssignEmpController extends Controller
             ]);
 
             $empID = $request->input('empID');
-            $positions = $request->input('positions'); // Array of positions
-            $appointedDate = $request->input('empAssAppointedDate');
-            $departmentCode = $request->input('departmentID'); // Department Code
-            $programCode = $request->input('programCode'); // Program Code
-            $officeCode = $request->input('officeID'); // Office Code
-            $empHead = $request->input('makeHead'); // Checkbox for Head of Office
+            $positions = $request->input('positions', []);
+            $departmentCode = $request->input('departmentID');
+            $programCode = $request->input('programCode');
+            $officeCode = $request->input('officeID');
+            $empHead = $request->input('makeHead') ? true : false;
 
+            $existingAssignment = EmpAssignment::where('empID', $empID)
+                ->where(function ($query) {
+                    $query->whereNotNull('departmentCode')
+                        ->orWhereNotNull('officeCode');
+                })
+                ->latest('created_at')
+                ->first();
+
+            // If an existing department/office assignment is found, update it
+            if ($existingAssignment) {
+                $existingAssignment->update([
+                    'departmentCode' => $departmentCode,
+                    'programCode'    => $programCode,
+                    'officeCode'     => $officeCode,
+                    'empHead'        => $empHead,
+                ]);
+
+                // Update all related positions if needed
+                foreach ($positions as $position) {
+                    $empAssID = $position['empAssID'] ?? null;
+                    if ($empAssID) {
+                        EmpAssignment::where('id', $empAssID)->update([
+                            'officeCode'     => $officeCode,
+                            'departmentCode' => $departmentCode,
+                            'programCode'    => $programCode,
+                            'empHead'        => $empHead,
+                        ]);
+                    }
+                }
+            }
+
+            // ✅ Optional: Check for duplicate positionIDs in the request
+            $positionIDs = collect($positions)
+                ->pluck('positionID')
+                ->filter()
+                ->toArray();
+
+            if (count($positionIDs) !== count(array_unique($positionIDs))) {
+                return redirect()->back()->with('error', 'Duplicate positions detected in the submission.');
+            }
+
+
+            // ✅ Loop through all submitted positions
             foreach ($positions as $position) {
-                $positionID = $position['positionID'];
-                $appointedDate = $position['empAssAppointedDate'];
-                $endDate = $position['empAssEndDate'];
+                $positionID = $position['positionID'] ?? null;
+                $appointedDate = $position['empAssAppointedDate'] ?? null;
+                $endDate = $position['empAssEndDate'] ?? null;
+                if (!$positionID || !$appointedDate || !$endDate) {
+                    continue; // Skip if positionID is not provided
+                }
+                $empAssID = $position['empAssID'] ?? null;
 
-                $empAssNo = $positionID . '-' . $empID . '-' . date('Y', strtotime($appointedDate));
-
-                // Check if the assignment already exists
-                $existingAssignment = EmpAssignment::where('empAssNo', $empAssNo)->first();
-                if ($existingAssignment) {
-                    return redirect()->back()->with('error', 'Position already assigned to this employee: ' . $positionID);
+                if ($empAssID) {
+                    $existing = EmpAssignment::find($empAssID);
+                    if ($existing) {
+                        $existing->update([
+                            'positionID' => $positionID,
+                            'empAssAppointedDate' => $appointedDate,
+                            'empAssEndDate' => $endDate,
+                            'officeCode' => $officeCode,
+                            'departmentCode' => $departmentCode,
+                            'programCode' => $programCode,
+                            'empHead' => $empHead,
+                        ]);
+                        continue;
+                    }
                 }
 
-                // Create the new assignment
+                // Generate assignment number
+                $empAssNo = $positionID . '-' . $empID . '-' . date('Y', strtotime($appointedDate));
+
                 EmpAssignment::create([
                     'empAssNo' => $empAssNo,
                     'empID' => $empID,
@@ -59,11 +116,11 @@ class AssignEmpController extends Controller
                     'officeCode' => $officeCode,
                     'departmentCode' => $departmentCode,
                     'programCode' => $programCode,
-                    'empHead' => $empHead ? true : false,
+                    'empHead' => $empHead,
                 ]);
             }
 
-            return redirect()->back()->with('success', 'Position successfully assigned.');
+            return redirect()->back()->with('success', 'Position assignment(s) saved successfully.');
         } catch (\Exception $e) {
             return redirect()->back()->with('error', 'Error occurred while assigning position: ' . $e->getMessage());
         }
@@ -71,28 +128,47 @@ class AssignEmpController extends Controller
 
 
 
-    public function getPositions($id)
+    public function getAssignments($empID)
     {
-        // Query employee using empID instead of primary key
-        $employee = Employee::with('assignments.position')
-            ->where('id', $id)
-            ->firstOrFail();
+        try {
+            $employee = Employee::with('assignments.position', 'assignments.department', 'assignments.office', 'assignments.program')
+                ->where('empID', $empID)
+                ->firstOrFail();
 
-        return $employee->assignments->map(function ($assignment) {
-            return [
-                'empAssID' => $assignment->id,
-                'positionName' => $assignment->position->positionName ?? 'N/A',
-                'empAssAppointedDate' => $assignment->empAssAppointedDate,
-                'empAssEndDate' => $assignment->empAssEndDate ?? 'Present',
-            ];
-        });
+            $departments = Departments::with('programs')->get();
+            $offices = Offices::all();
+            $positions = Position::all();
+
+            return view('pages.hr.employee_management', compact('employee', 'departments', 'offices', 'positions'));
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Failed to retrieve employee assignments.',
+                'error' => $e->getMessage()
+            ], 500);
+        }
     }
+
+
+
+    public function deletePosition($id)
+    {
+        $assignment = EmpAssignment::findOrFail($id);
+        $assignment->update([
+            'positionID' => null,
+            'empAssAppointedDate' => null,
+            'empAssEndDate' => null,
+        ]);
+
+        return redirect()->back()->with('success', 'Assignment deleted successfully.');
+    }
+
 
     public function deleteAssignment($id)
     {
         $assignment = EmpAssignment::findOrFail($id);
         $assignment->delete();
 
-        return response()->json(['success' => true]);
+        return redirect()->back()->with('success', 'Assignment deleted successfully.');
     }
 }

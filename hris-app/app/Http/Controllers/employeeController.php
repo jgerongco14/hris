@@ -47,8 +47,15 @@ class EmployeeController extends Controller
                 );
             }
 
+          $user = User::create([
+                'empID' => $request->input('empID', null),
+                'role' => 'employee',
+                'password' => Hash::make('temppass'),
+            ]);
+
             // Create employee record with explicit field mapping
             Employee::create([
+                'user_id' => $user->id,
                 'empID' => $request->input('empID', null),
                 'empPrefix' => $request->input('empPrefix', null),
                 'empSuffix' => $request->input('empSuffix', null),
@@ -66,6 +73,8 @@ class EmployeeController extends Controller
                 'empPagIbigNum' => $request->input('empPagIbigNum', null),
                 'photo' => $photoPath,
             ]);
+
+            
 
             // Return JSON if it's an AJAX request
             if ($request->expectsJson()) {
@@ -319,14 +328,25 @@ class EmployeeController extends Controller
 
     public function destroy(Employee $employee)
     {
-        // Delete photo if exists
-        if ($employee->photo) {
+       try {
+         // Delete photo if exists
+         if ($employee->photo) {
             Storage::disk('public')->delete($employee->photo);
         }
 
-        $employee->delete();
+        // Delete the employee record
+        $user = User::where('empID', $employee->empID)->first();
+        if ($user) {
+            $user->delete();
+        }
 
         return redirect()->route('employee_management')
             ->with('success', 'Employee deleted successfully');
+       } catch (Exception $e) {
+            logger()->error('Failed to delete employee: ' . $e->getMessage());
+            return redirect()
+                ->back()
+                ->with('error', 'Failed to delete employee. Please try again later.');
+        }
     }
 }

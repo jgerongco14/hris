@@ -44,7 +44,7 @@
                  @endif
              </tr>
          </thead>
-         <tbody class="align-middle">>
+         <tbody class="align-middle">
              @forelse($pagibigContributions as $contribution)
              <tr>
                  <td>{{ $loop->iteration + ($pagibigContributions->currentPage() - 1) * $pagibigContributions->perPage() }}</td>

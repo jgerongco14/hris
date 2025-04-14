@@ -15,6 +15,7 @@
 <!-- The Form (Initially Hidden) -->
 <form method="POST" action="{{ route('addEmployee.store') }}" enctype="multipart/form-data" id="employeeForm" style="display: none;" class="container mt-4">
     @csrf
+    <input type="hidden" name="_method" id="formMethod" value="POST">
     <div class="card ">
         <div class="card-header d-flex justify-content-between align-items-center">
             <h5 class="mb-0">Add Employee</h5>
@@ -146,6 +147,7 @@
         </div>
     </div>
 </form>
+
 <!-- Search Form -->
 <form method="GET" action="{{ route('employee_management') }}" class="d-flex align-items-end gap-3 my-4" id="filterForm">
     <!-- Filter by Position -->
@@ -203,7 +205,16 @@
                 @else
                 @foreach($employees as $employee)
                 <tr>
-                    <td class="text-center align-middle">{{ $employee->empID }}</td>
+                    <td class="text-center align-middle d-flex flex-column">
+                        {{ $employee->empID }}
+
+                        @php
+                        $rawStatus = strtolower($employee->status ?? 'active'); // default to 'active' if null
+                        $badgeClass = $rawStatus === 'resigned' ? 'bg-danger' : 'bg-success';
+                        $statusLabel = ucfirst($rawStatus);
+                        @endphp
+                        <span class="badge rounded {{ $badgeClass }}">{{ $statusLabel }}</span>
+                    </td>
                     <td class="align-middle">
                         <div class="d-flex align-items-center gap-2">
                             @php
@@ -275,13 +286,25 @@
                     </td>
                     <td class="align-middle text-center">
                         <!-- Updated edit button -->
-                        <button class="btn btn-sm btn-primary mx-1" onclick="showEditOptions('{{ $employee->id }}','{{ $employee->empFname }} {{ $employee->empLname }}', '{{ $employee->empID }}')">
+                        <button class="btn btn-sm btn-primary mx-1" onclick="editEmployee('{{ $employee->id }}')">
                             <i class="ri-pencil-line"></i>
                         </button>
 
-                        <button class="btn btn-sm btn-danger mx-1" onclick="deleteEmployee('{{ $employee->id }}')">
-                            <i class="ri-delete-bin-line"></i>
+                        <!-- Assign Position Button -->
+                        <button class="btn btn-sm btn-success" data-bs-toggle="modal" data-bs-target="#assignModal_{{ $employee->empID }}">
+                            <i class="ri-user-add-line"></i>
                         </button>
+
+
+
+                        <form action="{{ route('employee.destroy', $employee->id) }}" method="POST" onsubmit="return confirm('Are you sure you want to delete this employee?')" style="display: inline;">
+                            @csrf
+                            @method('DELETE')
+                            <button type="submit" class="btn btn-sm btn-danger">
+                                <i class="ri-delete-bin-line"></i>
+                            </button>
+                        </form>
+
                     </td>
                 </tr>
                 @endforeach
