@@ -20,7 +20,7 @@
             </div>
 
             <!-- Main Content Section -->
-            <div class="col-10">
+            <div class="col-10 p-3 pt-0">
                 <x-titlebar />
 
                 <!-- Profile Section -->

@@ -12,12 +12,12 @@
 <body>
     <div class="container-fluid">
         <div class="row">
-        <div class="col-2 p-0">
+            <div class="col-2 p-0">
                 <div class="sidebar h-100">
                     @include('components.sidebar')
                 </div>
             </div>
-            <div class="col-md-10 main-content">
+            <div class="col-10 p-3 pt-0 main-content">
                 <!-- Include the titlebar component -->
                 <x-titlebar />
 

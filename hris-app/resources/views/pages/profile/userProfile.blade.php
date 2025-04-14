@@ -14,13 +14,13 @@
         <div class="row">
             <!-- Navigation Section -->
             <div class="col-2 p-0">
-                <div class="sidebar h-100">
+                <div class="h-100">
                     @include('components.sidebar')
                 </div>
             </div>
 
             <!-- Main Content Section -->
-            <div class="col-10">
+            <div class="col-10 p-3 pt-0">
                 <x-titlebar />
 
                 <!-- Profile Section -->

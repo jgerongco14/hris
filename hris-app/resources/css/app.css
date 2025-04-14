@@ -1,31 +1,8 @@
 @import 'remixicon/fonts/remixicon.css';
-
+@import 'bootstrap';
 
 .google-signin i {
     font-size: 24px;
     margin-right: 8px;
 }
 
-
-.sidebar {
-    background-color: pink;
-    height: 100vh;
-    overflow-y: auto;
-    padding-top: 20px;
-}
-
-.navbar-nav .nav-link {
-    color: black;
-    transition: background-color 0.3s ease, transform 0.2s ease;
-}
-
-.navbar-nav .nav-link.active {
-    background-color: white;
-    font-weight: bold;
-    border-radius: 5px;
-}
-
-.navbar-nav .nav-link:hover {
-    background-color: #ffe6f0; /* light pink on hover */
-    transform: scale(1.03);
-}

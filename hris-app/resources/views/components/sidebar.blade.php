@@ -1,5 +1,6 @@
 <!-- Sidebar Start -->
-<div class="d-flex flex-column flex-shrink-0 p-3 bg-light border-end vh-100" style="width: 270px; position: fixed;">
+@vite(['resources/sass/app.scss', 'resources/js/app.js'])
+<div class="sidebar-custom d-flex flex-column flex-shrink-0 p-3 border-end vh-100">
     <div class="d-flex justify-content-center align-items-center mb-4 p-3">
         <img src="{{ asset('assets/lourdes_logo.png') }}" alt="Login Image" class="img-fluid">
     </div>
@@ -12,27 +13,30 @@
 
     <ul class="nav nav-pills flex-column mb-auto">
         <!-- Always visible -->
-        <li class="nav-item">
-            <a href="{{ route('myProfile') }}" class="nav-link {{ request()->routeIs('myProfile') ? 'active' : 'link-dark' }}">
-                <i class="bi bi-person-circle me-2"></i> My Profile
-            </a>
-        </li>
+        <a href="{{ route('myProfile') }}" class="nav-link d-flex align-items-center gap-2 {{ request()->routeIs('myProfile') ? 'active' : 'link-dark' }}">
+            <i class="ri-account-box-fill" style="font-size: 25px;"></i>
+            <span>My Profile</span>
+        </a>
+
 
         {{-- Admin --}}
         @if($role === 'admin' || $showAll)
         <li>
-            <a href="{{ route('user_management') }}" class="nav-link {{ request()->routeIs('user_management') ? 'active' : 'link-dark' }}">
-                <i class="bi bi-people me-2"></i> User Management
+            <a href="{{ route('user_management') }}" class="nav-link d-flex align-items-center gap-2 {{ request()->routeIs('user_management') ? 'active' : 'link-dark' }}">
+                <i class="ri-team-fill" style="font-size: 25px;"></i>
+                <span>User Management</span>
             </a>
         </li>
         <li>
-            <a href="{{ route('assignment_management') }}" class="nav-link {{ request()->routeIs('assignment_management') ? 'active' : 'link-dark' }}">
-                <i class="bi bi-briefcase me-2"></i> Position Management
+            <a href="{{ route('assignment_management') }}" class="nav-link d-flex align-items-center gap-2 {{ request()->routeIs('assignment_management') ? 'active' : 'link-dark' }}">
+                <i class="ri-user-2-fill" style="font-size: 25px;"></i>
+                <span>Position Management</span>
             </a>
         </li>
         <li>
-            <a href="{{ route('departments_offices_management') }}" class="nav-link {{ request()->routeIs('departments_offices_management') ? 'active' : 'link-dark' }}">
-                <i class="bi bi-building me-2"></i> Departments & Offices
+            <a href="{{ route('departments_offices_management') }}" class="nav-link d-flex align-items-center gap-2 {{ request()->routeIs('departments_offices_management') ? 'active' : 'link-dark' }}">
+                <i class="ri-building-fill" style="font-size: 25px;"></i>
+                <span>Departments & Offices</span>
             </a>
         </li>
         @endif
@@ -40,38 +44,45 @@
         {{-- HR --}}
         @if($role === 'hr' || $showAll)
         <li>
-            <a href="{{ route('leave_application') }}" class="nav-link {{ request()->routeIs('leave_application') ? 'active' : 'link-dark' }}">
-                <i class="bi bi-calendar-check me-2"></i> Leave
+            <a href="{{ route('leave_application') }}" class="nav-link d-flex align-items-center gap-2 {{ request()->routeIs('leave_application') ? 'active' : 'link-dark' }}">
+                <i class="ri-calendar-2-fill" style="font-size: 25px"></i>
+                <span>Leave</span>
             </a>
         </li>
         <li>
-            <a href="{{ route('employee_management') }}" class="nav-link {{ request()->routeIs('employee_management') ? 'active' : 'link-dark' }}">
-                <i class="bi bi-person-lines-fill me-2"></i> Employee Management
+            <a href="{{ route('employee_management') }}" class="nav-link d-flex align-items-center gap-2 {{ request()->routeIs('employee_management') ? 'active' : 'link-dark' }}">
+                <i class="ri-team-fill" style="font-size: 25px"></i>
+                <span>Employee Management</span>
             </a>
         </li>
         <li>
-            <a href="{{ route('leave_management') }}" class="nav-link {{ request()->routeIs('leave_management') ? 'active' : 'link-dark' }}">
-                <i class="bi bi-folder-check me-2"></i> Leave Management
+            <a href="{{ route('leave_management') }}" class="nav-link d-flex align-items-center gap-2 {{ request()->routeIs('leave_management') ? 'active' : 'link-dark' }}">
+                <i class="ri-calendar-2-fill" style="font-size: 25px"></i>
+                <span>Leave Management</span>
             </a>
         </li>
         <li>
-            <a href="{{ route('attendance_management') }}" class="nav-link {{ request()->routeIs('attendance_management') ? 'active' : 'link-dark' }}">
-                <i class="bi bi-clock-history me-2"></i> Attendance Management
+            <a href="{{ route('attendance_management') }}" class="nav-link d-flex align-items-center gap-2 {{ request()->routeIs('attendance_management') ? 'active' : 'link-dark' }}">
+                <i class="ri-time-fill" style="font-size: 25px"></i>
+                <span>Attendance Management</span>
             </a>
         </li>
         <li>
-            <a href="{{ route('contribution_management') }}" class="nav-link {{ request()->routeIs('contribution_management') ? 'active' : 'link-dark' }}">
-                <i class="bi bi-cash-stack me-2"></i> Contribution Management
+            <a href="{{ route('contribution_management') }}" class="nav-link d-flex align-items-center gap-2 {{ request()->routeIs('contribution_management') ? 'active' : 'link-dark' }}">
+                <i class="ri-hand-coin-fill" style="font-size: 25px"></i>
+                <span>Contribution Management</span>
             </a>
         </li>
         <li>
-            <a href="{{ route('reports') }}" class="nav-link {{ request()->routeIs('reports') ? 'active' : 'link-dark' }}">
-                <i class="bi bi-cash-stack me-2"></i> Reports
+            <a href="{{ route('reports') }}" class="nav-link d-flex align-items-center gap-2 {{ request()->routeIs('reports') ? 'active' : 'link-dark' }}">
+                <i class="ri-folder-user-fill" style="font-size: 25px"></i>
+                <span>Reports</span>
             </a>
         </li>
         <li>
-            <a href="{{ route('training') }}" class="nav-link {{ request()->routeIs('training') ? 'active' : 'link-dark' }}">
-                <i class="bi bi-file-earmark-text me-2"></i> Trainings
+            <a href="{{ route('training') }}" class="nav-link d-flex align-items-center gap-2 {{ request()->routeIs('training') ? 'active' : 'link-dark' }}">
+                <i class="ri-book-fill" style="font-size: 25px"></i>
+                <span>Trainings</span>
             </a>
         </li>
         @endif
@@ -79,29 +90,34 @@
         {{-- Employee --}}
         @if($role === 'employee' || $showAll)
         <li>
-            <a href="{{ route('leave_application') }}" class="nav-link {{ request()->routeIs('leave_application') ? 'active' : 'link-dark' }}">
-                <i class="bi bi-calendar-check me-2"></i> Leave
+            <a href="{{ route('leave_application') }}" class="nav-link d-flex align-items-center gap-2 {{ request()->routeIs('leave_application') ? 'active' : 'link-dark' }}">
+                <i class="ri-calendar-2-fill" style="font-size: 25px"></i>
+                <span>Leave</span>
             </a>
         </li>
         <li>
-            <a href="{{ route('attendance') }}" class="nav-link {{ request()->routeIs('attendance') ? 'active' : 'link-dark' }}">
-                <i class="bi bi-clock me-2"></i> Attendance
+            <a href="{{ route('attendance') }}" class="nav-link d-flex align-items-center gap-2 {{ request()->routeIs('attendance') ? 'active' : 'link-dark' }}">
+                <i class="ri-time-fill" style="font-size: 25px"></i>
+                <span>Attendance</span>
             </a>
         </li>
         <li>
-            <a href="{{ route('contribution.show') }}" class="nav-link {{ request()->routeIs('contribution.show') ? 'active' : 'link-dark' }}">
-                <i class="bi bi-wallet2 me-2"></i> Contribution
+            <a href="{{ route('contribution.show') }}" class="nav-link d-flex align-items-center gap-2 {{ request()->routeIs('contribution.show') ? 'active' : 'link-dark' }}">
+                <i class="ri-hand-coin-fill" style="font-size: 25px"></i>
+                <span>Contribution</span>
             </a>
         </li>
         <li>
-            <a href="{{ route('training') }}" class="nav-link {{ request()->routeIs('training') ? 'active' : 'link-dark' }}">
-                <i class="bi bi-file-earmark-text me-2"></i> Trainings
+            <a href="{{ route('training') }}" class="nav-link d-flex align-items-center gap-2 {{ request()->routeIs('training') ? 'active' : 'link-dark' }}">
+                <i class="ri-book-fill" style="font-size: 25px"></i>
+                <span>Trainings</span>
             </a>
         </li>
         @if($hasVPAccess || $isHeadOfOffice)
         <li>
-            <a href="{{ route('leave_management') }}" class="nav-link {{ request()->routeIs('leave_management') ? 'active' : 'link-dark' }}">
-                <i class="bi bi-folder-check me-2"></i> Leave Management
+            <a href="{{ route('leave_management') }}" class="nav-link d-flex align-items-center gap-2 {{ request()->routeIs('leave_management') ? 'active' : 'link-dark' }}">
+                <i class="ri-calendar-2-fill" style="font-size: 25px"></i>
+                <span>Leave Management</span>
             </a>
         </li>
         @endif

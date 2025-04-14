@@ -17,7 +17,7 @@
                     @include('components.sidebar')
                 </div>
             </div>
-            <div class="col-10">
+            <div class="col-10 p-3 pt-0">
                 <!-- Include the titlebar component -->
                 <x-titlebar />
 
