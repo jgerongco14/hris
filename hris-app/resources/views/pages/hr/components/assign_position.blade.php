@@ -84,7 +84,7 @@
                     @csrf
                     <!-- Add Position Fields -->
                     <input type="hidden" name="empID" id="empIDHidden" value="{{ $employee->empID }}">
-                    <div id="positionsContainer">
+                    <div id="positionsContainer-{{ $employee->empID }}">
                         <div class="position-item row d-flex justify-content-between mt-4">
                             <input type="hidden" name="positions[0][empAssID]" value="{{ $assignment->id ?? '' }}">
 
@@ -114,7 +114,7 @@
                         </div>
                     </div>
 
-                    <button type="button" class="btn btn-secondary mb-3" onclick="addPositionField()">Add Another Position</button>
+                    <button type="button" class="btn btn-secondary mb-3" onclick="addPositionField('{{ $employee->empID }}')">Add Another Position</button>
 
 
                     <!-- Department and Office Selection -->
@@ -192,27 +192,30 @@
 </div>
 
 <script>
-    let positionIndex = 1;
+    const positionIndexes = {};
 
-    function addPositionField() {
-        const container = document.getElementById('positionsContainer');
+    function addPositionField(empID) {
+        const container = document.getElementById(`positionsContainer-${empID}`);
+        if (!container) return;
+
+        if (!positionIndexes[empID]) {
+            positionIndexes[empID] = 1;
+        }
+
+        const index = positionIndexes[empID];
+
         const positionItem = document.createElement('div');
         positionItem.classList.add('position-item', 'row', 'd-flex', 'justify-content-between', 'mt-4');
 
-        // ✅ Get and clone <select> from the <template>
         const selectTemplate = document.getElementById('position-select-template');
         const clonedSelect = selectTemplate.content.cloneNode(true).querySelector('select');
+        clonedSelect.setAttribute('name', `positions[${index}][positionID]`);
 
-        // ✅ Assign the correct name
-        clonedSelect.setAttribute('name', `positions[${positionIndex}][positionID]`);
-
-        // ✅ Hidden ID input
         const hiddenInput = document.createElement('input');
         hiddenInput.type = 'hidden';
-        hiddenInput.name = `positions[${positionIndex}][empAssID]`;
+        hiddenInput.name = `positions[${index}][empAssID]`;
         hiddenInput.value = '';
 
-        // ✅ Select wrapper
         const selectWrapper = document.createElement('div');
         selectWrapper.classList.add('col', 'mb-3');
         const label = document.createElement('label');
@@ -221,30 +224,26 @@
         selectWrapper.appendChild(label);
         selectWrapper.appendChild(clonedSelect);
 
-        // ✅ Appointed Date
         const appointedWrapper = document.createElement('div');
         appointedWrapper.classList.add('col', 'mb-3');
         appointedWrapper.innerHTML = `
         <label class="form-label">Appointed Date</label>
-        <input type="date" class="form-control" name="positions[${positionIndex}][empAssAppointedDate]" required>
+        <input type="date" class="form-control" name="positions[${index}][empAssAppointedDate]" required>
     `;
 
-        // ✅ End Date
         const endDateWrapper = document.createElement('div');
         endDateWrapper.classList.add('col', 'mb-3');
         endDateWrapper.innerHTML = `
         <label class="form-label">End Date</label>
-        <input type="date" class="form-control" name="positions[${positionIndex}][empAssEndDate]">
+        <input type="date" class="form-control" name="positions[${index}][empAssEndDate]">
     `;
 
-        // ✅ Remove button
         const removeWrapper = document.createElement('div');
         removeWrapper.classList.add('col-auto', 'mb-3', 'd-flex', 'align-items-end');
         removeWrapper.innerHTML = `
         <button type="button" class="btn btn-danger btn-sm" onclick="removePositionField(this)">Remove</button>
     `;
 
-        // ✅ Add all to positionItem row
         positionItem.appendChild(hiddenInput);
         positionItem.appendChild(selectWrapper);
         positionItem.appendChild(appointedWrapper);
@@ -252,8 +251,9 @@
         positionItem.appendChild(removeWrapper);
 
         container.appendChild(positionItem);
-        positionIndex++;
+        positionIndexes[empID]++;
     }
+
 
 
 
