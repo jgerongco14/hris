@@ -36,11 +36,11 @@
                 @include('pages.hr.components.contribution_form')
 
 
-                <div class="card my-5">
+                <div class="card my-4 mx-3">
                     <div class="card-header d-flex justify-content-between align-items-center">
                         <h5 class="mb-0">Employee Contributions</h5>
                         <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addContributionModal">
-                            <i class="ri-add-line"></i> Add Contribution
+                            Import Contribution
                         </button>
                     </div>
                     <div class="card-body">
@@ -73,10 +73,13 @@
     <script>
         $('.edit-contribution').on('click', function() {
             var contributionId = $(this).data('id');
+            var empId = $(this).data('emp-id');
+            var empName = $(this).data('emp-name');
             var amount = $(this).data('amount');
+            var ec = $(this).data('ec');
+            var prNumber = $(this).data('pr-number');
+            var payRefNo = $(this).data('pay-ref-no');
             var date = $(this).data('date');
-            var remarks = $(this).data('remarks');
-            var type = $(this).data('type');
 
             // Set the action URL of the form
             var actionUrl = "{{ route('contribution.update', ':id') }}".replace(':id', contributionId);
@@ -88,8 +91,11 @@
             // Populate the form fields
             $('#empConAmount').val(amount);
             $('#empConDate').val(formattedDate); // Ensure the date is in 'YYYY-MM-DD' format
-            $('#empConRemarks').val(remarks);
-            $('#empContype').val(type);
+            $('#empConRemarks').val(ec);
+            $('#empPRNo').val(prNumber);
+            $('#empID').val(empId);
+            $('#empName').val(empName);
+            $('#payRefNo').val(payRefNo);
         });
 
 

@@ -1,8 +1,10 @@
   <!-- Hidden Leave Application Approval Form -->
-  <div class="row my-4" id="approvalForm" style="display: none;" data-leave-id="">
-      <div class="col">
-          <div class="card p-4">
-              <h5><strong>LEAVE APPLICATION FORM: Approval</strong></h5>
+  <div class="row my-4 mx-3" id="approvalForm" style="display: none;" data-leave-id="">
+      <div class="card">
+          <div class="card-header">
+              <h5 class="card-title text-center"><strong>LEAVE APPLICATION FORM: Approval</strong></h5>
+          </div>
+          <div class="card-body p-4">
               <div class="card p-3">
                   <div class="row">
                       <div class="col-md-6">
@@ -58,3 +60,4 @@
               </form>
           </div>
       </div>
+  </div>

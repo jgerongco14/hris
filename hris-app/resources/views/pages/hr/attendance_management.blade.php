@@ -26,11 +26,11 @@
                 <!-- Include the notification component -->
                 <x-notification />
 
-                <!-- Include the modal for adding attendance -->
-                <h1 class="my-3">Attendance Management</h1>
-                <div class="card mb-4">
+                <div class="card my-4 mx-3">
+                    <div class="card-header">
+                        <h3 class="card-title text-center">Attendance Records</h3>
+                    </div>
                     <div class="card-body p-4">
-                        <h3 class="text-center">Attendance Records</h3>
                         <div class="row">
 
                             <div class="col-2">
@@ -80,7 +80,7 @@
                             <div class="col-2 my-3 ms-auto">
                                 <div class="mb-3">
                                     <button type="button" id="openAddAttendanceModal" class="btn btn-primary w-100" data-bs-toggle="modal" data-bs-target="#addAttendanceModal">
-                                        <i class="ri-add-line"></i> Add Attendance
+                                        Import Attendance
                                     </button>
                                 </div>
                             </div>

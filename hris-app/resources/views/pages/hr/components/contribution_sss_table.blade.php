@@ -47,7 +47,7 @@
           <tbody class="align-middle">
               @forelse($sssContributions as $contribution)
               <tr>
-                  <td>{{ $loop->iteration + ($sssContributions->currentPage() - 1) * $sssContributions->perPage() }}</td>
+                  <td class="text-center">{{ $loop->iteration + ($sssContributions->currentPage() - 1) * $sssContributions->perPage() }}</td>
                   <td>{{ $contribution->employee->empSSSNum ?? 'N/A' }}</td>
                   <td>{{ $contribution->employee->empID ?? 'N/A' }}</td>
                   <td>
@@ -71,7 +71,7 @@
                   <td>{{ $contribution->empPRNo }}</td>
                   <td>{{ $contribution->empConDate }}</td>
                   @if(Auth::check() && Auth::user()->role !== 'employee')
-                  <td>
+                  <td class="text-center">
                       <a href="javascript:void(0);" class="btn btn-warning btn-sm edit-contribution"
                           data-id="{{ $contribution->id }}"
                           data-amount="{{ $contribution->empConAmount }}"
