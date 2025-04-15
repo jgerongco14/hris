@@ -78,8 +78,8 @@
                          data-emp-name=" {{ $contribution->employee->empPrefix }} {{ $contribution->employee->empFname }} {{ $contribution->employee->empMname }} {{ $contribution->employee->empLname }} {{ $contribution->employee->empSuffix }}"
                          data-amount="{{ $contribution->empConAmount }}"
                          data-date="{{ $contribution->empConDate }}"
-                         data-employeerContribution="{{ $contribution->employeerContribution }}"
-                         data-payRefNo="{{ $contribution->payRefNo }}"
+                         data-employeer-contribution="{{ $contribution->employeerContribution }}"
+                         data-emp-pr-no="{{ $contribution->empPRNo }}"
                          data-type="{{ $contribution->empContype }}"
                          data-bs-toggle="modal"
                          data-bs-target="#editContributionModal">
