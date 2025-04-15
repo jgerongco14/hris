@@ -12,14 +12,16 @@
 <body>
     <div class="container-fluid">
         <div class="row">
-        <div class="col-2 p-0">
-                <div class="sidebar h-100">
+            <div class="col-2 p-0">
+                <div class="vh-100 position-sticky top-0">
                     @include('components.sidebar')
                 </div>
             </div>
-            <div class="col-10">
+            <div class="col-10 p-3 pt-0">
                 <!-- Include the titlebar component -->
-                <x-titlebar />
+                <div class="position-sticky top-0 z-3 w-100">
+                    <x-titlebar />
+                </div>
 
                 <!-- Include the notification component -->
                 <x-notification />
@@ -34,11 +36,11 @@
                 @include('pages.hr.components.contribution_form')
 
 
-                <div class="card my-5">
+                <div class="card my-4 mx-3">
                     <div class="card-header d-flex justify-content-between align-items-center">
                         <h5 class="mb-0">Employee Contributions</h5>
                         <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addContributionModal">
-                            <i class="ri-add-line"></i> Add Contribution
+                            Import Contribution
                         </button>
                     </div>
                     <div class="card-body">
@@ -71,24 +73,25 @@
     <script>
         $('.edit-contribution').on('click', function() {
             var contributionId = $(this).data('id');
+            var empId = $(this).data('emp-id');
+            var empName = $(this).data('emp-name');
             var amount = $(this).data('amount');
+            var employeerContribution = $(this).data('employeerContribution');
+            var empPRNo = $(this).data('empPrNo');
             var date = $(this).data('date');
-            var remarks = $(this).data('remarks');
-            var type = $(this).data('type');
 
-            // Set the action URL of the form
             var actionUrl = "{{ route('contribution.update', ':id') }}".replace(':id', contributionId);
             $('#editContributionForm').attr('action', actionUrl);
 
-            // Convert date to 'YYYY-MM-DD' format if necessary
-            var formattedDate = moment(date).format('YYYY-MM-DD'); // Using moment.js for date formatting
+            var formattedDate = moment(date).format('YYYY-MM-DD');
 
-            // Populate the form fields
             $('#empConAmount').val(amount);
-            $('#empConDate').val(formattedDate); // Ensure the date is in 'YYYY-MM-DD' format
-            $('#empConRemarks').val(remarks);
-            $('#empContype').val(type);
+            $('#employeerContribution').val(employeerContribution);
+            $('#empPRNo').val(empPRNo);
+            $('#empConDate').val(formattedDate);
+            $('#employeeName').val(empName);
         });
+
 
 
 

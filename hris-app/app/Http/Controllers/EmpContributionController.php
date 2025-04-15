@@ -217,7 +217,12 @@ class EmpContributionController extends Controller
             $contributionType = $request->input('contribution_type', 'SSS');
             $search = $request->input('search');
 
-            // Fetch contributions and employee info
+            // Validation: Require a specific search
+            if (empty($search)) {
+                return back()->with('error', 'Please specify one employee to export contributions.');
+            }
+
+            // Initial fetch
             $contributions = Contribution::with('employee')
                 ->where('empContype', $contributionType)
                 ->when($search, function ($query, $search) {
@@ -229,9 +234,13 @@ class EmpContributionController extends Controller
                     });
                 })->orderBy('empConDate')->get();
 
-            if ($contributions->isEmpty()) {
-                return back()->with('error', 'No contributions found for this filter.');
+            // Group by employee ID to determine how many employees matched
+            $distinctEmployees = $contributions->pluck('empID')->unique();
+
+            if ($distinctEmployees->count() !== 1) {
+                return back()->with('error', 'Please specify exactly one employee to export contributions.');
             }
+
 
             // Use the first employee record to fill certificate header
             $first = $contributions->first();
@@ -335,16 +344,15 @@ class EmpContributionController extends Controller
             $validatedData = $request->validate([
                 'empConAmount' => 'nullable',
                 'employeerContribution' => 'nullable',
-                'payRefNo' => 'nullable',
+                'empPRNo' => 'nullable',
                 'empConDate' => 'required|date',
-
             ]);
 
             $contribution->update([
                 'empConAmount' => $validatedData['empConAmount'] ?? null,
                 'employeerContribution' => $validatedData['employeerContribution'] ?? null,
-                'empConDate' => Carbon::parse($validatedData['empConDate'])->format('Y-m'),  // Only 'YYYY-MM'
-                'payRefNo' => $validatedData['payRefNo'] ?? null,
+                'empConDate' => Carbon::parse($validatedData['empConDate'])->format('Y-m-d'),
+                'empPRNo' => $validatedData['empPRNo'] ?? null,
             ]);
 
             return redirect()->route('contribution.management', [

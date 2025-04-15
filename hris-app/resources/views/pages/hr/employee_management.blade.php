@@ -18,15 +18,17 @@
         <div class="row">
             <!-- Navigation Section -->
             <div class="col-2 p-0">
-                <div class="sidebar h-100">
+                <div class="vh-100 position-sticky top-0">
                     @include('components.sidebar')
                 </div>
             </div>
 
             <!-- Main Content Section -->
-            <div class="col-10">
+            <div class="col-10 p-3 pt-0">
                 <!-- Include the titlebar component -->
-                <x-titlebar />
+                <div class="position-sticky top-0 z-3 w-100">
+                    <x-titlebar />
+                </div>
 
                 <!-- Include the notification component -->
                 <x-notification />
@@ -34,12 +36,11 @@
                 <!-- Import Attendance Button -->
                 @include('components.import_file')
 
-                <div class="card my-5">
-                    <div class="card-body">
-                        @include('pages.hr.components.employee_list', [
-                        'employees' => $employees,])
-                    </div>
-                </div>
+
+                @include('pages.hr.components.employee_list', [
+                'employees' => $employees,])
+
+
                 @foreach($employees as $employee)
                 @php
                 $assignedPositions = \App\Models\EmpAssignment::with('position')
@@ -68,8 +69,6 @@
     <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
 
     <script>
-
-
         $(document).ready(function() {
 
 
@@ -81,6 +80,10 @@
                 $('#employeeForm').show();
             });
 
+            // Optional: when clicking the icon, focus the input
+            $('.input-group-text').click(function() {
+                $(this).siblings('input').focus();
+            });
 
 
             // Initialize the datepicker

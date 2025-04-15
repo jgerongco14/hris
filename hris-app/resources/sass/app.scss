@@ -1,2 +1,32 @@
 @use 'bootstrap/scss/bootstrap' as *;
 
+.sidebar-custom {
+    background-color: #ffd1dc;
+    padding: 1rem;
+    box-shadow: 0 4px 8px #e75480;
+}
+
+.sidebar-custom .nav-link {
+    color: #000;
+    font-weight: 500;
+    padding: 0.5rem 1rem;
+    border-radius: 0.375rem;
+    text-decoration: none;
+    transition: background-color 0.3s ease;
+}
+
+.sidebar-custom .nav-link:hover,
+.sidebar-custom .nav-link.active {
+    background-color: #e75480 !important;
+    color: white !important;
+    border-radius: 0.375rem;
+}
+
+.titlebar {
+    background-color: #ffd1dc;
+    color: black;
+    font-weight: 500;
+    box-shadow: 0 2px 4px #e75480;
+    border-top-left-radius: 0;
+}
+

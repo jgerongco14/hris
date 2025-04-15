@@ -13,13 +13,15 @@
     <div class="container-fluid">
         <div class="row">
             <div class="col-2 p-0">
-                <div class="sidebar h-100">
+                <div class="vh-100 position-sticky top-0">
                     @include('components.sidebar')
                 </div>
             </div>
-            <div class="col-md-10 main-content">
+            <div class="col-10 p-3 pt-0 main-content">
                 <!-- Include the titlebar component -->
-                <x-titlebar />
+                <div class="position-sticky top-0 z-3 w-100">
+                    <x-titlebar />
+                </div>
 
                 <!-- Include the notification component -->
                 <x-notification />

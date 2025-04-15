@@ -1,8 +1,7 @@
 <!-- Leave Application Status Section -->
 @isset($tabs)
-<div class="empleavelist row my-4">
+<div class="empleavelist mx-3 row my-4">
     <div class="col">
-        <h3>LEAVE APPLICATION STATUS</h3>
         <div class="card card-body p-3">
             <ul class="nav nav-pills mb-3" id="leaveTabs" role="tablist">
                 <li class="nav-item" role="presentation">
@@ -117,9 +116,8 @@
                                 <!-- Actions -->
                                 <td class="text-center">
                                     @if($tabConfig['show_actions'] && strtolower($status->empLSStatus) === 'pending')
-                                    <a href="javascript:void(0);"
+                                    <a href="{{ route('leave_application.edit', $status->empLeaveNo) }}"
                                         class="btn btn-sm"
-                                        onclick="fetchLeaveData('{{ $status->empLeaveNo }}')"
                                         title="Edit Leave Application"
                                         data-bs-toggle="tooltip" data-bs-placement="top">
                                         <i class="ri-pencil-line"></i>

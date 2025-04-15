@@ -58,8 +58,10 @@ Route::post('/admin/import-positions', [AssignmentController::class, 'importPosi
 //Employee Leave Application
 Route::post('/leave', [EmpLeaveController::class, 'store'])->name('leave_application.store');
 Route::get('/leave', [EmpLeaveController::class, 'showLeave'])->name('leave_application');
-Route::get('/leave/{id}', [EmpLeaveController::class, 'editForm'])->name('leave_application.edit');
+Route::get('/leave/{id}/edit', [EmpLeaveController::class, 'editForm'])->name('leave_application.edit');
 Route::put('/leave/{id}', [EmpLeaveController::class, 'update'])->name('leave_application.update');
+Route::post('/profile/photo', [ProfileController::class, 'updatePhoto'])->name('employee.update-photo');
+
 
 // Employee Attendance
 Route::get('/attendance', function () {
@@ -144,8 +146,7 @@ Route::get('/contribution', [EmpContributionController::class, 'employeeContribu
 
 // User Profile
 Route::get('/myProfile', [ProfileController::class, 'index'])->name('myProfile');
-Route::post('/myProfile', [ProfileController::class, 'update'])->name('profile.update');
-
+Route::put('/myProfile', [ProfileController::class, 'update'])->name('profile.update');
 
 
 

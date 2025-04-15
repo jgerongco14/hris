@@ -1,0 +1,24 @@
+
+.profile-text {
+    display: inline-block;
+    min-height: 30px;
+    /* Adjust based on your desired height */
+    padding-bottom: 4px;
+    border-bottom: 1px solid #ccc;
+    margin-bottom: 10px;
+    width: 100%;
+    color: #212529;
+}
+
+.profile-input {
+    border: none;
+    border-bottom: 2px solid #007bff;
+    background-color: transparent;
+    border-radius: 0;
+}
+
+.profile-text:empty::after {
+    content: '\00a0';
+    /* non-breaking space to keep the height */
+    display: inline-block;
+}
