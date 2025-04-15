@@ -76,27 +76,22 @@
             var empId = $(this).data('emp-id');
             var empName = $(this).data('emp-name');
             var amount = $(this).data('amount');
-            var ec = $(this).data('ec');
-            var prNumber = $(this).data('pr-number');
-            var payRefNo = $(this).data('pay-ref-no');
+            var employeerContribution = $(this).data('employeerContribution');
+            var empPRNo = $(this).data('empPrNo');
             var date = $(this).data('date');
 
-            // Set the action URL of the form
             var actionUrl = "{{ route('contribution.update', ':id') }}".replace(':id', contributionId);
             $('#editContributionForm').attr('action', actionUrl);
 
-            // Convert date to 'YYYY-MM-DD' format if necessary
-            var formattedDate = moment(date).format('YYYY-MM-DD'); // Using moment.js for date formatting
+            var formattedDate = moment(date).format('YYYY-MM-DD');
 
-            // Populate the form fields
             $('#empConAmount').val(amount);
-            $('#empConDate').val(formattedDate); // Ensure the date is in 'YYYY-MM-DD' format
-            $('#empConRemarks').val(ec);
-            $('#empPRNo').val(prNumber);
-            $('#empID').val(empId);
-            $('#empName').val(empName);
-            $('#payRefNo').val(payRefNo);
+            $('#employeerContribution').val(employeerContribution);
+            $('#empPRNo').val(empPRNo);
+            $('#empConDate').val(formattedDate);
+            $('#employeeName').val(empName);
         });
+
 
 
 

@@ -27,12 +27,12 @@
 
                     <div class="mb-3">
                         <label for="employeerContribution" class="form-label">Employer Contribution</label>
-                        <input type="number" step="0.01" class="form-control" id="employeerContribution" name="employeerContribution" required>
+                        <input type="text" step="0.01" class="form-control" id="employeerContribution" name="employeerContribution" required>
                     </div>
 
                     <div class="mb-3">
-                        <label for="payRefNo" class="form-label">Pay Ref No</label>
-                        <input type="text" class="form-control" id="payRefNo" name="payRefNo" required>
+                        <label for="empPRNo" class="form-label">Payment Reference Number</label>
+                        <input type="text" class="form-control" id="empPRNo" name="empPRNo" required>
                     </div>
 
                     <div class="mb-3">

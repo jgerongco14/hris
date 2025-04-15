@@ -52,7 +52,7 @@
                   <td>{{ $contribution->employee->empID ?? 'N/A' }}</td>
                   <td>
                       @if($contribution->employee)
-                      {{ $contribution->employee->empFname }} {{ $contribution->employee->empLname }}
+                      {{ $contribution->employee->empPrefix }} {{ $contribution->employee->empFname }} {{ $contribution->employee->empMname }} {{ $contribution->employee->empLname }} {{ $contribution->employee->empSuffix }}
                       @else
                       Employee not found
                       @endif
@@ -74,10 +74,12 @@
                   <td class="text-center">
                       <a href="javascript:void(0);" class="btn btn-warning btn-sm edit-contribution"
                           data-id="{{ $contribution->id }}"
+                          data-emp-id="{{ $contribution->empID }}"
+                          data-emp-name="{{ $contribution->employee->empPrefix }} {{ $contribution->employee->empFname }} {{ $contribution->employee->empMname }} {{ $contribution->employee->empLname }} {{ $contribution->employee->empSuffix }}"
                           data-amount="{{ $contribution->empConAmount }}"
                           data-date="{{ $contribution->empConDate }}"
-                          data-employeerContribution="{{ $contribution->employeerContribution }}"
-                          data-payRefNo="{{ $contribution->payRefNo }}"
+                          data-employeer-contribution="{{ $contribution->employeerContribution }}"
+                          data-emp-pr-no="{{ $contribution->empPRNo }}"
                           data-type="{{ $contribution->empContype }}"
                           data-bs-toggle="modal"
                           data-bs-target="#editContributionModal">
