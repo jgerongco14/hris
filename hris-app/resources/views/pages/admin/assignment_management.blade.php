@@ -26,30 +26,39 @@
                 </div>
 
                 <div class="content">
-                    <h1>Assignment Management</h1>
-                    <p>Manage assignments here.</p>
 
                     <!-- Add Position Button -->
-                    <button type="button" class="btn btn-primary mb-3" data-bs-toggle="modal" data-bs-target="#addPositionModal">
-                        Add Position
-                    </button>
                     @include('pages.admin.component.modal')
 
                     <!-- Positions Table -->
-                    <div class="card">
-                        <div class="card-body">
-                            <form method="GET" action="{{ route('assignment_management') }}" class="d-flex align-items-end gap-4 my-4">
-                                <div class="mb-0 d-flex align-items-center">
-                                    <label for="search" class="form-label visually-hidden">Search</label>
-                                    <input type="text" name="search" id="search" class="form-control me-2" placeholder="Search by Position ID or Position Name" value="{{ request('search') }}">
-                                    <button type="submit" class="btn btn-primary d-flex align-items-center">
-                                        <i class="ri-search-line"></i> <!-- Search Icon -->
-                                    </button>
-                                    <a href="{{ route('assignment_management') }}" class="btn btn-secondary d-flex align-items-center ms-2">
-                                        <i class="ri-restart-line"></i> <!-- Reset Icon -->
-                                    </a>
-                            </form>
+                    <div class="card mx-3 my-4">
+                        <div class="card-header">
+                            <h3 class="card-title text-center">Position List</h3>
                         </div>
+                        <div class="card-body">
+                            <div class="row align-items-end justify-content-between mb-3">
+                                <!-- Search Form -->
+                                <div class="col-md-4">
+                                    <form method="GET" action="{{ route('assignment_management') }}" class="d-flex gap-2">
+                                        <input type="text" name="search" id="search" class="form-control" placeholder="Search by Position ID or Position Name" value="{{ request('search') }}">
+                                        <button type="submit" class="btn btn-primary d-flex align-items-center">
+                                            <i class="ri-search-line"></i>
+                                        </button>
+                                        <a href="{{ route('assignment_management') }}" class="btn btn-secondary d-flex align-items-center">
+                                            <i class="ri-restart-line"></i>
+                                        </a>
+                                    </form>
+                                </div>
+
+                                <!-- Add Button -->
+                                <div class="col-md-3 text-end">
+                                    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addPositionModal">
+                                        Add Position
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
                         <table class="table table-bordered">
                             <thead>
                                 <tr class="text-center">
