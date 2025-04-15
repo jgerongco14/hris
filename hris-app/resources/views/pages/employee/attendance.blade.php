@@ -26,9 +26,11 @@
                 <!-- Include the notification component -->
                 <x-notification />
 
-                <div class="card my-4">
+                <div class="card my-4 mx-3">
+                    <div class="card-header">
+                        <h3 class="card-title text-center">Attendance Records</h3>
+                    </div>
                     <div class="card-body p-4">
-                        <h3 class="text-center">Attendance Records</h3>
                         <div class="row align-items-end">
                             <!-- Date Range Picker -->
                             <div class="col-3 my-3">
