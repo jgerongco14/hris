@@ -25,30 +25,39 @@
                     <x-titlebar />
                 </div>
 
-                <!-- Profile Section -->
-                <x-myProfile />
-
                 <!-- Include the notification component -->
                 <x-notification />
 
                 <!-- Toggle Button -->
-                <div class="d-flex justify-content-end mb-3">
-                    <button id="toggleFormBtn" class="btn btn-primary">
-                        <i id="toggleIcon"></i>
-                        <span id="toggleText">Request Leave</span>
-                    </button>
+
+                <div class="card my-4 mx-3">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h4 class="card-title">Leave Applications</h4>
+                        <div class="d-flex justify-content-end">
+                            @if(isset($editLeave))
+                            <a href="{{ route('leave_application') }}" class="btn btn-secondary">
+                                Cancel
+                            </a>
+                            @else
+                            <button id="toggleFormBtn" class="btn btn-primary">
+                                <span id="toggleText">Request Leave</span>
+                            </button>
+                            @endif
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div id="leaveFormSection" @if(!isset($editLeave)) style="display: none;" @endif>
+                            @include('pages.employee.components.applicationForm', ['editLeave' => $editLeave ?? null])
+                        </div>
+
+                        <div id="leaveListSection" @if(isset($editLeave)) style="display: none;" @endif>
+                            @include('pages.employee.components.leaveList', ['tabs' => $tabs])
+                        </div>
+
+                    </div>
+
                 </div>
 
-
-                <!-- Leave Application Form (Initially Hidden) -->
-                <div id="leaveFormSection" style="display: none;">
-                    @include('pages.employee.components.applicationForm')
-                </div>
-
-                <!-- Leave Application List (Initially Visible) -->
-                <div id="leaveListSection">
-                    @include('pages.employee.components.leaveList', ['tabs' => $tabs])
-                </div>
 
             </div>
         </div>
@@ -108,98 +117,6 @@
             }
         }
 
-        function fetchLeaveData(id) {
-            fetch(`/employee/${id}`, {
-                    headers: {
-                        'Accept': 'application/json',
-                        'X-Requested-With': 'XMLHttpRequest'
-                    }
-                })
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error('Network response was not ok');
-                    }
-                    return response.json();
-                })
-                .then(data => {
-                    // 1. Hide approval form if it exists
-                    const approvalForm = document.getElementById('approvalForm');
-                    if (approvalForm) approvalForm.style.display = 'none';
-
-                    // 2. Show the leave form section and update toggle button
-                    document.getElementById('leaveFormSection').style.display = 'block';
-                    const toggleBtn = document.getElementById('toggleFormBtn');
-                    toggleBtn.className = 'btn btn-secondary';
-                    document.getElementById('toggleText').textContent = 'Cancel';
-
-                    // 3. Get the form and prepare it for update
-                    const form = document.getElementById('leaveForm');
-                    form.action = `/employee/${data.empLeaveNo}`;
-
-                    // Add PUT method override
-                    const methodInput = document.createElement('input');
-                    methodInput.type = 'hidden';
-                    methodInput.name = '_method';
-                    methodInput.value = 'PUT';
-                    form.appendChild(methodInput);
-
-                    // 4. Fill in all form fields
-                    document.getElementById('formMode').value = 'edit';
-                    document.getElementById('empLeaveNo').value = data.empLeaveNo;
-                    document.getElementById('leave_type').value = data.type;
-                    document.querySelector('input[name="leave_from"]').value = data.dates.start;
-                    document.querySelector('input[name="leave_to"]').value = data.dates.end;
-                    document.getElementById('reason').value = data.reason;
-                    document.getElementById('approvalPosition').innerText =
-                        Array.isArray(data.positionNames) ? data.positionNames.join(', ') : 'N/A';
-
-
-                    // Make sure employee ID is set (critical fix)
-                    const empIdInput = document.querySelector('input[name="empId"]');
-                    if (empIdInput) {
-                        empIdInput.value = data.empID || empIdInput.value;
-                        console.log('empId set to:', empIdInput.value); // Debugging
-                    } else {
-                        console.error('empId input not found!');
-                    }
-
-                    const attachmentContainer = document.getElementById('existingAttachments');
-                    attachmentContainer.innerHTML = ''; // Clear existing content
-
-                    if (data.attachment && Array.isArray(data.attachment) && data.attachment.length > 0) {
-                        data.attachment.forEach((file, index) => {
-                            const fileDisplay = document.createElement('div');
-                            fileDisplay.className = 'mb-3';
-
-                            const fileName = file.url.split('/').pop();
-
-                            fileDisplay.innerHTML = `
-    <div class="d-flex justify-content-between align-items-center gap-2">
-        <a href="${file.url}" target="_blank">${fileName}</a>
-        <div>
-            <button type="button" class="btn btn-sm btn-outline-primary me-1" onclick="toggleReplaceInput(${index})">Replace</button>
-            <button type="button" class="btn btn-sm btn-outline-danger" onclick="removeAttachment(${index})">Delete</button>
-        </div>
-    </div>
-    <input type="file" name="replace_attachment[${index}]" class="form-control mt-2 d-none" id="replaceInput${index}" accept="image/*,application/pdf">
-    <input type="hidden" name="existing_attachments[]" value="${file.url.replace(`${location.origin}/storage/`, '')}" id="existingAttachment${index}">
-`;
-
-
-                            attachmentContainer.appendChild(fileDisplay);
-                        });
-                    } else {
-                        attachmentContainer.innerHTML = '<p class="text-muted">There are no attachments.</p>';
-                    }
-
-                    // 6. Update submit button text
-                    document.getElementById('leaveFormSubmitText').innerText = 'Resubmit Application';
-                })
-                .catch(error => {
-                    console.error('Error fetching leave data:', error);
-                    showToast('Error', 'Failed to load leave details', 'danger');
-                });
-        }
 
         function showToast(title, message, type = 'success') {
             const toastEl = document.getElementById('liveToast');

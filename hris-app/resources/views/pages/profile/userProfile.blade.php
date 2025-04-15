@@ -5,34 +5,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Profile</title>
-    @vite(['resources/sass/app.scss', 'resources/js/app.js'])
+    @vite(['resources/sass/app.scss', 'resources/js/app.js', 'resources/css/profile.css'])
     <link href="https://cdn.jsdelivr.net/npm/remixicon@2.5.0/fonts/remixicon.css" rel="stylesheet">
-    <style>
-        .profile-text {
-            display: inline-block;
-            min-height: 30px;
-            /* Adjust based on your desired height */
-            padding-bottom: 4px;
-            border-bottom: 1px solid #ccc;
-            margin-bottom: 10px;
-            width: 100%;
-            color: #212529;
-        }
-
-        .profile-input {
-            border: none;
-            border-bottom: 2px solid #007bff;
-            background-color: transparent;
-            border-radius: 0;
-        }
-
-        .profile-text:empty::after {
-            content: '\00a0';
-            /* non-breaking space to keep the height */
-            display: inline-block;
-        }
-    </style>
-
 </head>
 
 <body>

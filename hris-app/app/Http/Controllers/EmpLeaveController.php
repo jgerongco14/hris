@@ -384,53 +384,20 @@ class EmpLeaveController extends Controller
     public function editForm($id)
     {
         try {
-            $empID = Auth::user()->empID;
+            $leave = LeaveStatus::with('leave')->where('empLeaveNo', $id)->firstOrFail();
 
-            $leave = LeaveStatus::with([
-                'leave.employee.assignments.position' // 💡 Load nested relationship
-            ])->where('empLeaveNo', $id)->firstOrFail();
-
-            if (!$leave) {
-                return response()->json(['error' => 'Leave not found'], 404);
-            }
-
-            $employee = optional($leave->leave->employee);
-
-            // Extract all position names
-            $positions = $employee->assignments
-                ->filter(fn($a) => $a->position)
-                ->pluck('position.positionName')
-                ->unique()
-                ->values()
-                ->all();
-
-            return response()->json([
-                'empLeaveNo' => $leave->empLeaveNo,
-                'empID' => $empID,
-                'name' => $employee->empFname . ' ' . $employee->empLname,
-                'positionNames' => $positions, // ✅ Now available in frontend
-                'type' => $leave->leave->leaveType,
-                'dates' => [
-                    'start' => $leave->leave->empLeaveStartDate,
-                    'end' => $leave->leave->empLeaveEndDate,
-                ],
-                'reason' => $leave->leave->empLeaveDescription,
-                'attachment' => collect(json_decode($leave->leave->empLeaveAttachment ?? '[]', true))
-                    ->map(fn($path) => [
-                        'url' => asset('storage/' . $path),
-                        'type' => pathinfo($path, PATHINFO_EXTENSION)
-                    ])->toArray(),
-
-                'status' => $leave->empLSStatus,
+            return view('pages.employee.leave', [
+                'editLeave' => $leave->leave,
+                'tabs' => null,
             ]);
         } catch (Exception $e) {
             logger()->error('Failed to fetch leave details: ' . $e->getMessage());
-            return response()->json([
-                'error' => 'Failed to fetch leave details',
-                'message' => config('app.debug') ? $e->getMessage() : 'Please try again later'
-            ], 500);
+            return redirect()
+                ->back()
+                ->with('Error', 'Failed to fetch leave details. Please try again later.');
         }
     }
+
 
 
     public function update(Request $request, $id)
