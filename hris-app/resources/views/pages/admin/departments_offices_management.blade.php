@@ -24,9 +24,7 @@
                     <x-titlebar />
                 </div>
 
-                <h1 class="my-3">Departments and Offices Management</h1>
-
-                <div class="card mb-3">
+                <div class="card my-4 mx-3">
                     <div class="card-header">
                         <h5>Departments and Offices</h5>
                     </div>

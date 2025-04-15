@@ -24,7 +24,7 @@
 
                 <x-notification />
 
-                <div class="card my-5">
+                <div class="card my-4 mx-3">
                     <div class="card-header d-flex justify-content-between align-items-center">
                         <h5 class="mb-0">Employee Contributions</h5>
                     </div>

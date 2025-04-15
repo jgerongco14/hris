@@ -22,27 +22,18 @@
                 <div class="position-sticky top-0 z-3 w-100">
                     <x-titlebar />
                 </div>
-                <h1>User Management</h1>
-                <p>Manage your users here.</p>
-                <!-- Include the notification component -->
+
                 <x-notification />
                 <!-- Import Attendance Button -->
                 @include('components.import_file')
-                <div class="dropdown my-4">
-                    <button class="btn btn-primary dropdown-toggle" type="button" id="addUsersBtn" data-bs-toggle="dropdown" aria-expanded="false">
-                        Add Users
-                    </button>
-                    <ul class="dropdown-menu" aria-labelledby="addUsersBtn">
-                        <li><a class="dropdown-item" href="#" id="addIndividualBtn">Add Individual User</a></li>
-                        <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#addUsers">Import Users (CSV/Excel)</a></li>
-                    </ul>
-                </div>
 
                 <!-- Add Individual User Form -->
                 <div id="userForm" style="display:none;" name="userForm">
-                    <div class="card my-4">
+                    <div class="card my-4 mx-3">
+                        <div class="card-header">
+                            <h3 class="card-title text-center formTitle">Add Individual User</h3>
+                        </div>
                         <div class="card-body">
-                            <h2 id="formTitle">Add Individual User</h2>
                             <form method="POST" id="userFormElement" action="{{ route('user.create') }}" class="d-flex align-items-end flex-wrap gap-3 mb-4">
                                 @csrf
                                 <input type="hidden" name="_method" id="formMethod" value="POST"> <!-- For PUT method -->
@@ -84,9 +75,11 @@
                     </div>
                 </div>
 
-                <div class="card my-4 p-3">
-
-                    <div class="d-flex align-items-end gap-3 flex-wrap mb-4">
+                <div class="card my-4 mx-3">
+                    <div class="card-header">
+                        <h3 class="card-title text-center">User List</h3>
+                    </div>
+                    <div class="d-flex align-items-end gap-3 flex-wrap mx-3 my-3">
                         <!-- Filter by Role -->
                         <form method="GET" action="{{ route('user_management') }}">
                             <div class="mb-0">
@@ -112,6 +105,16 @@
                                 </a>
                             </div>
                         </form>
+
+                        <div class="dropdown ms-auto">
+                            <button class="btn btn-primary dropdown-toggle" type="button" id="addUsersBtn" data-bs-toggle="dropdown" aria-expanded="false">
+                                Add Users
+                            </button>
+                            <ul class="dropdown-menu" aria-labelledby="addUsersBtn">
+                                <li><a class="dropdown-item" href="#" id="addIndividualBtn">Add Individual User</a></li>
+                                <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#addUsers">Import Users (CSV/Excel)</a></li>
+                            </ul>
+                        </div>
                     </div>
 
                     <div class="card-body">

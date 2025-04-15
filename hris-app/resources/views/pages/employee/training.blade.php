@@ -26,9 +26,9 @@
                 <!-- Include the notification component -->
                 <x-notification />
 
-                <div class="card my-4">
+                <div class="card my-4 mx-3">
                     <div class="card-header">
-                        <h2 class="text-center card-title">My Trainings</h2>
+                        <h3 class="text-center card-title">My Trainings</h3>
                     </div>
                     <div class="card-body p-4">
                         @include('pages.employee.components.training_modal')
