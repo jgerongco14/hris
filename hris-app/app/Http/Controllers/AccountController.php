@@ -125,12 +125,13 @@ class AccountController extends Controller
 
                 if ($existingEmployee) {
                     // Update
+                    $photo = $existingEmployee->photo ?: ($googleUser->avatar ?? '');
                     $existingEmployee->update([
                         'user_id'  => $user->id,
                         'empID'    => $user->empID,
                         'empFname' => $existingEmployee->empFname ?? $googleUser->user['given_name'] ?? '',
                         'empLname' => $existingEmployee->empLname ?? $googleUser->user['family_name'] ?? '',
-                        'photo'    => $existingEmployee->photo ?? $googleUser->avatar ?? '',
+                        'photo'    => $photo,
                     ]);
                 } else {
                     // Create new

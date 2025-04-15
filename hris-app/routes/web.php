@@ -60,6 +60,7 @@ Route::post('/leave', [EmpLeaveController::class, 'store'])->name('leave_applica
 Route::get('/leave', [EmpLeaveController::class, 'showLeave'])->name('leave_application');
 Route::get('/leave/{id}/edit', [EmpLeaveController::class, 'editForm'])->name('leave_application.edit');
 Route::put('/leave/{id}', [EmpLeaveController::class, 'update'])->name('leave_application.update');
+Route::post('/profile/photo', [ProfileController::class, 'updatePhoto'])->name('employee.update-photo');
 
 
 // Employee Attendance

@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Models\User;
 use App\Models\Employee;
+use Illuminate\Support\Facades\Storage;
 
 class ProfileController extends Controller
 {
@@ -87,5 +88,31 @@ class ProfileController extends Controller
         } catch (\Exception $e) {
             return redirect()->back()->with('error', 'Failed to update profile. ' . $e->getMessage());
         }
+    }
+
+
+    public function updatePhoto(Request $request)
+    {
+        $request->validate([
+            'photo' => 'required|image|mimes:jpg,jpeg,png|max:2048'
+        ]);
+
+        $employee = Auth::user()->employee;
+
+        // Delete old photo if it exists
+        if ($employee->photo && Storage::disk('public')->exists('employee_photos/' . $employee->photo)) {
+            Storage::disk('public')->delete('employee_photos/' . $employee->photo);
+        }
+
+        // Generate new filename
+        $filename = uniqid() . '.' . $request->file('photo')->getClientOriginalExtension();
+
+        // Store the new photo
+        $request->file('photo')->storeAs('employee_photos', $filename, 'public');
+
+        // Update employee record
+        $employee->update(['photo' => $filename]);
+
+        return back()->with('success', 'Profile picture updated successfully!');
     }
 }
