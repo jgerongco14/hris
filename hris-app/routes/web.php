@@ -144,7 +144,7 @@ Route::get('/contribution', [EmpContributionController::class, 'employeeContribu
 
 // User Profile
 Route::get('/myProfile', [ProfileController::class, 'index'])->name('myProfile');
-Route::post('/myProfile', [ProfileController::class, 'update'])->name('profile.update');
+Route::put('/myProfile', [ProfileController::class, 'update'])->name('profile.update');
 
 
 

@@ -7,7 +7,7 @@ $assignments = $employee ? $employee->assignments()->with('position')->get()->so
 $latestAssignment = $assignments->first() ?? null;
 @endphp
 
-<div class="card d-flex flex-row align-items-center p-4 bg-light my-3">
+<div class="card d-flex flex-row align-items-center p-4 bg-light mt-4 mx-3">
     <img src="{{ $photo ? ($isExternal ? $photo : asset('storage/attachments/employee_photos/' . $photo)) : $defaultPhoto }}"
         alt="User Avatar"
         width="150"
