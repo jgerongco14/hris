@@ -36,12 +36,11 @@
                 <!-- Import Attendance Button -->
                 @include('components.import_file')
 
-                <div class="card my-5">
-                    <div class="card-body">
-                        @include('pages.hr.components.employee_list', [
-                        'employees' => $employees,])
-                    </div>
-                </div>
+
+                @include('pages.hr.components.employee_list', [
+                'employees' => $employees,])
+
+
                 @foreach($employees as $employee)
                 @php
                 $assignedPositions = \App\Models\EmpAssignment::with('position')
@@ -81,6 +80,10 @@
                 $('#employeeForm').show();
             });
 
+            // Optional: when clicking the icon, focus the input
+            $('.input-group-text').click(function() {
+                $(this).siblings('input').focus();
+            });
 
 
             // Initialize the datepicker
