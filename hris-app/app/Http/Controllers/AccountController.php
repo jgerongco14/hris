@@ -8,6 +8,7 @@ use Laravel\Socialite\Facades\Socialite;
 use Exception;
 use Illuminate\Support\Str;
 use App\Models\Employee;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 
 
@@ -157,6 +158,41 @@ class AccountController extends Controller
         } catch (Exception $e) {
             logger()->error('Google Login Error: ' . $e->getMessage());
             return redirect()->route('login')->with('error', 'Google login failed. Please try again.' . $e->getMessage());
+        }
+    }
+
+    public function showChangeForm()
+    {
+        return view('auth.change-password'); // Adjust if your Blade file is in another folder
+    }
+
+
+    public function updatePassword(Request $request)
+    {
+        try {
+            $request->validate([
+                'current_password' => 'required',
+                'new_password' => 'required|min:8|confirmed',
+            ]);
+
+            $user = Auth::user();
+
+            if (!Hash::check($request->current_password, $user->password)) {
+                return back()->with('error', 'Current password is incorrect.');
+            }
+
+            if ($user instanceof \App\Models\User) {
+                $user->password = Hash::make($request->new_password);
+                $user->save();
+            } else {
+                return back()->with('error', 'User not found or invalid.');
+            }
+
+
+            return redirect()->back()->with('success', 'Password changed successfully.' );
+        } catch (\Exception $e) {
+            logger()->error('Update Password Error: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'Something went wrong. Please try again.' . $e->getMessage());
         }
     }
 

@@ -123,5 +123,13 @@
         @endif
         @endif
     </ul>
+    <ul class="nav nav-pills flex-column mt-auto">
+        <li>
+            <a href="{{ route('password.change.form') }}" class="nav-link d-flex align-items-center gap-2 {{ request()->routeIs('password.change') ? 'active' : 'link-dark' }}">
+                <i class="ri-lock-password-fill" style="font-size: 25px"></i>
+                <span>Change Password</span>
+            </a>
+        </li>
+    </ul>
 </div>
 <!-- Sidebar End -->

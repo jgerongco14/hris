@@ -32,6 +32,11 @@ Route::controller(AccountController::class)->group(function () {
     Route::get('auth/google-callback', 'googleAuth')->name('auth.google-callback');
 });
 
+
+Route::get('/change-password', [AccountController::class, 'showChangeForm'])->name('password.change.form');
+Route::post('/change-password', [AccountController::class, 'updatePassword'])->name('password.change.update');
+
+
 Route::get('/logout', [AccountController::class, 'logout'])->name('logout');
 
 
@@ -103,9 +108,6 @@ Route::post('/leave_management/{id}/approve', [EmpLeaveController::class, 'appro
 
 
 //Attendance Management
-Route::get('/attendance_management', function () {
-    return view('pages.hr.attendance_management');
-})->name('attendance_management');
 Route::get('/attendance-management', [AttendanceController::class, 'showAttendance'])->name('attendance_management');
 Route::post('/attendance/import', [AttendanceController::class, 'import'])->name('attendance.import');
 

@@ -34,7 +34,6 @@
                                     <i class="ri-eye-off-line" id="togglePasswordIcon"></i>
                                 </button>
                             </div>
-
                         </div>
 
                         <div class="text-center my-4">
