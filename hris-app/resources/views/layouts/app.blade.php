@@ -28,16 +28,6 @@
         </div>
     </div>
 
-    @if(session('status'))
-    showToast('Success', '{{ session('status') }}', 'success');
-    @endif
-    @if(session('error'))
-    showToast('Error', '{{ session('error') }}', 'danger');
-    @endif
-    @if($errors->any())
-    showToast('Error', '{{ $errors->first() }}', 'danger');
-    @endif
-
     {{-- Toast Script --}}
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
@@ -74,6 +64,16 @@
             });
             toast.show();
         }
+
+        document.addEventListener('DOMContentLoaded', function () {
+        if (session('status'))
+            showToast('Success', "{{ session('status') }}", 'success');
+        endif
+
+        if (session('error'))
+            showToast('Error', "{{ session('error') }}", 'danger');
+        endif
+    });
     </script>
 </body>
 
