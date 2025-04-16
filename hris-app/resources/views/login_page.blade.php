@@ -49,7 +49,11 @@
                         </a>
                     </div>
 
-                    {{-- Forgot Password Link --}}
+                    <!-- {{-- Forgot Password Link --}}
+                    <div class="text-center mt-3">
+                        <a href="{{ route('password.request') }}" class="text-decoration-none">Forgot your password?</a>
+                    </div> -->
+
                 </div>
             </div>
             <div class="col-5 d-flex justify-content-center align-items-center">
@@ -57,6 +61,7 @@
             </div>
         </div>
     </div>
+
     <script>
         function showToast(title, message, type = 'success') {
             const toastEl = document.getElementById('liveToast');

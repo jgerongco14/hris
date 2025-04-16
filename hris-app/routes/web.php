@@ -32,9 +32,14 @@ Route::controller(AccountController::class)->group(function () {
     Route::get('auth/google-callback', 'googleAuth')->name('auth.google-callback');
 });
 
-
+// Change Password when you are currently online
 Route::get('/change-password', [AccountController::class, 'showChangeForm'])->name('password.change.form');
 Route::post('/change-password', [AccountController::class, 'updatePassword'])->name('password.change.update');
+// Change Password when you are offline
+Route::get('forgot-password', [AccountController::class, 'showLinkRequestForm'])->name('password.request');
+Route::post('forgot-password', [AccountController::class, 'sendResetLinkEmail'])->name('password.email');
+Route::get('reset-password/{token}', [AccountController::class, 'showResetForm'])->name('password.reset');
+Route::post('reset-password', [AccountController::class, 'reset'])->name('password.update');
 
 
 Route::get('/logout', [AccountController::class, 'logout'])->name('logout');
