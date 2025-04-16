@@ -39,6 +39,12 @@
                 <span>Departments & Offices</span>
             </a>
         </li>
+        <li>
+            <a href="{{ route('show.activity-logs') }}" class="nav-link d-flex align-items-center gap-2 {{ request()->routeIs('show.activity-logs') ? 'active' : 'link-dark' }}">
+                <i class="ri-file-2-fill" style="font-size: 25px;"></i>
+                <span>Activity Logs</span>
+            </a>
+        </li>
         @endif
 
         {{-- HR --}}

@@ -11,10 +11,21 @@ use App\Models\Employee;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Password;
+use App\Traits\LogsActivity;
 
 
 class AccountController extends Controller
 {
+    /**
+     * Logs user activity.
+     *
+     * @param string $action
+     * @param string $description
+     * @param int|null $userId
+     * @return void
+     */
+
+    use LogsActivity;
 
     public function defaultlogin()
     {
@@ -68,6 +79,20 @@ class AccountController extends Controller
                 ]);
             }
 
+            $currentUser = Auth::user();
+            $employee = $currentUser->employee;
+
+            if ($currentUser->role == 'admin') {
+                $this->logActivity('Login', "Admin logged in successfully.", $currentUser->id);
+            } else {
+                // Handle case where employee record might be missing
+                $fullName = $employee
+                    ? trim("{$employee->empPrefix} {$employee->empFname} {$employee->empMname} {$employee->empLname} {$employee->empSuffix}")
+                    : 'Unknown Employee';
+
+                $this->logActivity('Login', "User $fullName logged in successfully.", $currentUser->id);
+            }
+
             // Redirect based on role
             return match ($user->role) {
                 'hr' => redirect()->route('myProfile')->with('success', 'Welcome HR!'),
@@ -76,8 +101,21 @@ class AccountController extends Controller
                 default => redirect()->route('login')->with('error', 'Invalid user role.'),
             };
         } catch (\Exception $e) {
+            $currentUser = Auth::user();
+            $employee = $currentUser->employee;
+
+            if ($currentUser->role == 'admin') {
+                $this->logActivity('Login', "Admin logged in failed. {$e->getMessage()}", $currentUser->id);
+            } else {
+                // Handle case where employee record might be missing
+                $fullName = $employee
+                    ? trim("{$employee->empPrefix} {$employee->empFname} {$employee->empMname} {$employee->empLname} {$employee->empSuffix}")
+                    : 'Unknown Employee';
+
+                $this->logActivity('Login', "User $fullName logged in failed. {$e->getMessage()}", $currentUser->id);
+            }
             logger()->error('Login Error: ' . $e->getMessage());
-            return redirect()->route('login')->with('error', 'Something went wrong. Please go to your HR for assistance.' . $e->getMessage());
+            return redirect()->route('login')->with('error', 'Something went wrong. Please go to your HR for assistance.');
         }
     }
 
@@ -145,8 +183,20 @@ class AccountController extends Controller
                         'photo'    => $googleUser->avatar ?? '',
                     ]);
                 }
+            }
 
-                logger()->info('Employee profile created or updated.', ['user_id' => $user->id]);
+            $currentUser  = Auth::user();
+            $employee = $currentUser->employee;
+
+            if ($currentUser->role == 'admin') {
+                $this->logActivity('Login', "Admin logged in successfully.", $currentUser->id);
+            } else {
+                // Handle case where employee record might be missing
+                $fullName = $employee
+                    ? trim("{$employee->empPrefix} {$employee->empFname} {$employee->empMname} {$employee->empLname} {$employee->empSuffix}")
+                    : 'Unknown Employee';
+
+                $this->logActivity('Login', "User $fullName logged in successfully.", $currentUser->id);
             }
 
             // Redirect based on role
@@ -157,8 +207,21 @@ class AccountController extends Controller
                 default => redirect()->route('login')->with('error', 'Invalid user role.'),
             };
         } catch (Exception $e) {
+            $currentUser  = Auth::user();
+            $employee = $currentUser->employee;
+
+            if ($currentUser->role == 'admin') {
+                $this->logActivity('Login', "Admin logged in failed. {$e->getMessage()}", $currentUser->id);
+            } else {
+                // Handle case where employee record might be missing
+                $fullName = $employee
+                    ? trim("{$employee->empPrefix} {$employee->empFname} {$employee->empMname} {$employee->empLname} {$employee->empSuffix}")
+                    : 'Unknown Employee';
+
+                $this->logActivity('Login', "User $fullName logged in failed. {$e->getMessage()}", $currentUser->id);
+            }
             logger()->error('Google Login Error: ' . $e->getMessage());
-            return redirect()->route('login')->with('error', 'Google login failed. Please try again.' . $e->getMessage());
+            return redirect()->route('login')->with('error', 'Google login failed. Please try again.');
         }
     }
 
@@ -188,12 +251,36 @@ class AccountController extends Controller
             } else {
                 return back()->with('error', 'User not found or invalid.');
             }
+            $currentUser = Auth::user();
+            $employee = $currentUser->employee;
 
+            if ($currentUser->role == 'admin') {
+                $this->logActivity('Login', "Admin logged in successfully.", $currentUser->id);
+            } else {
+                $fullName = $employee
+                    ? trim("{$employee->empPrefix} {$employee->empFname} {$employee->empMname} {$employee->empLname} {$employee->empSuffix}")
+                    : 'Unknown Employee';
 
-            return redirect()->back()->with('success', 'Password changed successfully.');
+                $this->logActivity('Update', "User $fullName updated password in successfully.", $currentUser->id);
+            }
+
+            return redirect()->back()->with('success', 'Password updated successfully.');
         } catch (\Exception $e) {
+            $currentUser = Auth::user();
+            $employee = $currentUser->employee;
+
+            if ($currentUser->role == 'admin') {
+                $this->logActivity('Login', "Admin logged in failed. {$e->getMessage()}", $currentUser->id);
+            } else {
+                $fullName = $employee
+                    ? trim("{$employee->empPrefix} {$employee->empFname} {$employee->empMname} {$employee->empLname} {$employee->empSuffix}")
+                    : 'Unknown Employee';
+
+                $this->logActivity('Update', "User $fullName updated password in failed. {$e->getMessage()}", $currentUser->id);
+            }
+
             logger()->error('Update Password Error: ' . $e->getMessage());
-            return redirect()->back()->with('error', 'Something went wrong. Please try again.' . $e->getMessage());
+            return redirect()->back()->with('error', 'Something went wrong. Please try again.');
         }
     }
 
@@ -242,6 +329,18 @@ class AccountController extends Controller
 
     public function logout()
     {
+        $user = Auth::user();
+        $employee = $user->employee;
+
+        if ($user->role == 'admin') {
+            $this->logActivity('Logout', "Admin logged out successfully.", $user->id);
+        } else {
+            $fullName = $employee
+                ? trim("{$employee->empPrefix} {$employee->empFname} {$employee->empMname} {$employee->empLname} {$employee->empSuffix}")
+                : 'Unknown Employee';
+
+            $this->logActivity('Logout', "User $fullName logged out successfully.", $user->id);
+        }
         Auth::logout();
         return redirect()->route('login')->with('success', 'Logged out successfully.');
     }

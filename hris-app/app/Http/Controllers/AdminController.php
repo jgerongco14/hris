@@ -9,9 +9,12 @@ use Exception;
 use Illuminate\Support\Facades\Hash;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Reader\Csv;
+use App\Traits\LogsActivity;
+use Illuminate\Support\Facades\Auth;
 
 class AdminController extends Controller
 {
+    use LogsActivity;
     //Admin Side
     public function showUserManagement(Request $request)
     {
@@ -66,9 +69,29 @@ class AdminController extends Controller
             // Create Users
             $user->save();
 
+            $currentUser  = Auth::user();
+            $employee = $currentUser->employee;
+
+            // Handle case where employee record might be missing
+            $fullName = $employee
+                ? trim("{$employee->empPrefix} {$employee->empFname} {$employee->empMname} {$employee->empLname} {$employee->empSuffix}")
+                : 'Unknown Employee';
+
+            $this->logActivity('Create', "User $fullName created user successfully.", $currentUser->id);
+
             return redirect()->back()->with('success', 'User created successfully.');
         } catch (Exception $e) {
-            return redirect()->back()->with('error', 'Error creating user: ' . $e->getMessage());
+            $currentUser  = Auth::user();
+            $employee = $currentUser->employee;
+
+            // Handle case where employee record might be missing
+            $fullName = $employee
+                ? trim("{$employee->empPrefix} {$employee->empFname} {$employee->empMname} {$employee->empLname} {$employee->empSuffix}")
+                : 'Unknown Employee';
+
+            $this->logActivity('Create', "User $fullName created user failed.{$e->getMessage()}", $currentUser->id);
+
+            return redirect()->back()->with('error', 'Error creating user: ');
         }
     }
 
@@ -131,8 +154,27 @@ class AdminController extends Controller
                 }
             }
 
-            return redirect()->back()->with('success', 'User data imported successfully.');
+            $currentUser  = Auth::user();
+            $employee = $currentUser->employee;
+
+            // Handle case where employee record might be missing
+            $fullName = $employee
+                ? trim("{$employee->empPrefix} {$employee->empFname} {$employee->empMname} {$employee->empLname} {$employee->empSuffix}")
+                : 'Unknown Employee';
+
+            $this->logActivity('Import', "User $fullName imported a file successfully.", $currentUser->id);
+
+            return redirect()->back()->with('success', 'Imported a file successfully.');
         } catch (Exception $e) {
+            $currentUser  = Auth::user();
+            $employee = $currentUser->employee;
+
+            // Handle case where employee record might be missing
+            $fullName = $employee
+                ? trim("{$employee->empPrefix} {$employee->empFname} {$employee->empMname} {$employee->empLname} {$employee->empSuffix}")
+                : 'Unknown Employee';
+
+            $this->logActivity('Import', "User $fullName imported a file failed.", $currentUser->id);
             return redirect()->back()->with('error', 'Error importing user data: ' . $e->getMessage());
         }
     }
@@ -176,8 +218,28 @@ class AdminController extends Controller
             // Update Users
             $user->save();
 
+            $currentUser  = Auth::user();
+            $employee = $currentUser->employee;
+
+            // Handle case where employee record might be missing
+            $fullName = $employee
+                ? trim("{$employee->empPrefix} {$employee->empFname} {$employee->empMname} {$employee->empLname} {$employee->empSuffix}")
+                : 'Unknown Employee';
+
+            $this->logActivity('Update', "User $fullName updated a user successfully.", $currentUser->id);
+
+
             return redirect()->back()->with('success', 'User updated successfully.');
         } catch (Exception $e) {
+            $currentUser  = Auth::user();
+            $employee = $currentUser->employee;
+
+            // Handle case where employee record might be missing
+            $fullName = $employee
+                ? trim("{$employee->empPrefix} {$employee->empFname} {$employee->empMname} {$employee->empLname} {$employee->empSuffix}")
+                : 'Unknown Employee';
+
+            $this->logActivity('Update', "User $fullName updated a user failed.", $currentUser->id);
             return redirect()->back()->with('error', 'Error updating user: ' . $e->getMessage());
         }
     }
@@ -188,8 +250,27 @@ class AdminController extends Controller
             $user = User::findOrFail($id);
             $user->delete();
 
+            $currentUser  = Auth::user();
+            $employee = $currentUser->employee;
+
+            // Handle case where employee record might be missing
+            $fullName = $employee
+                ? trim("{$employee->empPrefix} {$employee->empFname} {$employee->empMname} {$employee->empLname} {$employee->empSuffix}")
+                : 'Unknown Employee';
+
+            $this->logActivity('Delete', "User $fullName deleted a user successfully.", $currentUser->id);
+
             return redirect()->back()->with('success', 'User deleted successfully.');
         } catch (Exception $e) {
+            $currentUser  = Auth::user();
+            $employee = $currentUser->employee;
+
+            // Handle case where employee record might be missing
+            $fullName = $employee
+                ? trim("{$employee->empPrefix} {$employee->empFname} {$employee->empMname} {$employee->empLname} {$employee->empSuffix}")
+                : 'Unknown Employee';
+
+            $this->logActivity('Delete', "User $fullName deleted a user failed.", $currentUser->id);
             return redirect()->back()->with('error', 'Error deleting user: ' . $e->getMessage());
         }
     }

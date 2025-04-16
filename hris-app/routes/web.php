@@ -11,6 +11,7 @@ use App\Http\Controllers\AssignEmpController;
 use App\Http\Controllers\EmpContributionController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\DepartmentController;
+use App\Http\Controllers\LogsController;
 use App\Http\Controllers\OfficeController;
 use App\Http\Controllers\ReportsController;
 use App\Http\Controllers\TrainingsController;
@@ -90,7 +91,9 @@ Route::prefix('training')->group(function () {
     Route::put('/{id}', [TrainingsController::class, 'updateTraining'])->name('training.update');
 });
 
+// logs 
 
+Route::get('/activity-logs', [LogsController::class, 'viewActivityLogs'])->name('show.activity-logs');
 
 //HR
 //Employee Management
