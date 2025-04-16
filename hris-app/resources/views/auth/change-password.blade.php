@@ -139,14 +139,14 @@
 
             // Check if passwords match
             if (newPassword !== confirmPassword) {
-                alert('New Password and Confirm Password do not match.');
+                toast('Password Mismatch', 'New Password and Confirm Password do not match.', 'danger');
                 e.preventDefault();
                 return;
             }
 
             // Check if password length is valid
             if (newPassword.length < 8) {
-                alert('Password must be at least 8 characters long.');
+                toast('Invalid Password', 'Password must be at least 8 characters long.', 'danger');
                 e.preventDefault();
                 return;
             }
