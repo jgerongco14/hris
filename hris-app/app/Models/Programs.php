@@ -12,12 +12,15 @@ class Programs extends Model
         'id',
         'programCode',
         'programName',
+        'created_at',
+        'updated_at',
     ];
 
     public function departments()
     {
         return $this->belongsToMany(Departments::class, 'department_program', 'program_id', 'department_id');
     }
+
     public function empAssignments()
     {
         return $this->hasMany(EmpAssignment::class, 'programCode', 'programCode');

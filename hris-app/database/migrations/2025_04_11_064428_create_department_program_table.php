@@ -13,8 +13,8 @@ return new class extends Migration
     {
         Schema::create('department_program', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('department_id');
-            $table->unsignedBigInteger('program_id');
+            $table->unsignedBigInteger('department_id')->nullable();
+            $table->unsignedBigInteger('program_id')->nullable();
             $table->timestamps();
 
             // Foreign key constraints

@@ -7,14 +7,12 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <div class="d-flex justify-content-between">
-                    <button class="btn btn-primary" id="individualBtn" onclick="showIndividualForm()">Add Individual Position</button>
-                    <button class="btn btn-secondary" id="importBtn" onclick="showImportForm()">Import Positions</button>
-                </div>
 
                 <!-- Individual Position Form -->
                 <form method="POST" id="positionForm" action="<?php echo e(route('assignment.storePosition')); ?>" style="display:none;">
                     <?php echo csrf_field(); ?>
+                    <input type="hidden" name="id" id="id">
+                    <input type="hidden" name="_method" id="formMethod" value="POST">
                     <div class="mb-3">
                         <label for="positionID" class="form-label">Position ID</label>
                         <input type="text" class="form-control" id="positionID" name="positionID" required>
@@ -29,7 +27,7 @@
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                        <button type="submit" class="btn btn-primary">Add Position</button>
+                        <button type="submit" id="submitButton" class="btn btn-primary">Add Position</button>
                     </div>
                 </form>
 
@@ -48,5 +46,4 @@
             </div>
         </div>
     </div>
-</div>
-<?php /**PATH C:\Projects\hris\hris-app\resources\views/pages/admin/component/modal.blade.php ENDPATH**/ ?>
+</div><?php /**PATH C:\Projects\hris\hris-app\resources\views/pages/admin/component/modal.blade.php ENDPATH**/ ?>

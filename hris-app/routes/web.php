@@ -173,14 +173,18 @@ Route::group(['middleware' => ['prevent-back-history']], function () {
             Route::get('/', [DepartmentController::class, 'displayDepartmentList'])->name('departments.index');
             Route::post('/', [DepartmentController::class, 'createDepartment'])->name('departments.store');
             Route::post('/import', [DepartmentController::class, 'importDepartment'])->name('departments.import');
+            Route::get('/departments/{id}/edit', [DepartmentController::class, 'editDepartment'])->name('departments.edit');
+            Route::put('/departments/{id}', [DepartmentController::class, 'updateDepartment'])->name('departments.update');
             Route::delete('/{id}', [DepartmentController::class, 'deleteDepartment'])->name('departments.destroy');
-            Route::delete('/{departmentId}/programs/{programId}', [DepartmentController::class, 'removeProgram'])->name('departments.removeProgram');
+            Route::delete('/departments/{departmentId}/programs/{programId}', [DepartmentController::class, 'removeProgram'])->name('departments.removeProgram');
         });
 
         // Offices Routes
         Route::prefix('offices')->group(function () {
             Route::post('/', [OfficeController::class, 'createOffice'])->name('offices.store');
             Route::post('/import', [OfficeController::class, 'importOfficeCSV'])->name('offices.import');
+            Route::get('/offices/{id}/edit', [OfficeController::class, 'editOffice'])->name('offices.edit');
+            Route::put('/offices/{id}', [OfficeController::class, 'updateOffice'])->name('offices.update');
             Route::delete('/{id}', [OfficeController::class, 'deleteOffice'])->name('offices.destroy');
         });
     });

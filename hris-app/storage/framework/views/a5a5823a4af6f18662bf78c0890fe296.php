@@ -90,9 +90,15 @@
 
                                 <!-- Add Button -->
                                 <div class="col-md-3 text-end">
-                                    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addPositionModal">
-                                        Add Position
-                                    </button>
+                                    <div class="dropdown">
+                                        <button class="btn btn-primary dropdown-toggle" type="button" id="addPositionDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                                            Add Position
+                                        </button>
+                                        <ul class="dropdown-menu" aria-labelledby="addPositionDropdown">
+                                            <li><a class="dropdown-item" href="#" onclick="openAddPosition('individual')">Add Individual Position</a></li>
+                                            <li><a class="dropdown-item" href="#" onclick="openAddPosition('import')">Import Positions</a></li>
+                                        </ul>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -115,13 +121,14 @@
                                 <?php else: ?>
                                 <?php $__currentLoopData = $positions; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $position): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                                 <tr>
-                                    <td class=" text-center"><?php echo e($loop->iteration); ?></td>
-                                    <td class="text-center"><?php echo e($position->positionID); ?></td>
-                                    <td><?php echo e($position->positionName); ?></td>
+                                    <td class=" text-center align-middle"><?php echo e($loop->iteration); ?></td>
+                                    <td class="text-center align-middle"><?php echo e($position->positionID); ?></td>
+                                    <td class="align-middle"><?php echo e($position->positionName); ?></td>
                                     <td class="col-6"><?php echo e($position->positionDescription); ?></td>
-                                    <td class="text-center">
+                                    <td class="text-center align-middle">
                                         <!-- Edit and Delete Buttons -->
-                                        <button class="btn btn-warning btn-sm"
+                                        <button
+                                            class="btn btn-warning btn-sm mx-2"
                                             data-id="<?php echo e($position->id); ?>"
                                             data-position-id="<?php echo e($position->positionID); ?>"
                                             data-position-name="<?php echo e($position->positionName); ?>"
@@ -130,11 +137,10 @@
                                             <i class="ri-edit-line"></i>
                                         </button>
 
-
                                         <form action="<?php echo e(route('assignment.delete', $position->id)); ?>" method="POST" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this position?');">
                                             <?php echo csrf_field(); ?>
                                             <?php echo method_field('DELETE'); ?>
-                                            <button type="submit" class="btn btn-danger btn-sm">
+                                            <button type="submit" class="btn btn-danger btn-sm mx-2">
                                                 <i class="ri-delete-bin-line"></i> <!-- Delete Icon -->
                                             </button>
                                         </form>
@@ -166,6 +172,34 @@
     </div>
 
     <script>
+        function openAddPosition(mode) {
+            const modalElement = document.getElementById('addPositionModal');
+            const modal = new bootstrap.Modal(modalElement);
+
+            // Reset form before showing
+            const form = document.getElementById('positionForm');
+            form.reset();
+            document.getElementById('formMethod').value = 'POST';
+            document.getElementById('positionID').removeAttribute('readonly');
+
+            // Always show modal first
+            modal.show();
+
+            // Delay to allow modal to load before updating the content
+            setTimeout(() => {
+                if (mode === 'individual') {
+                    showIndividualForm();
+                    document.getElementById('addPositionModalLabel').textContent = 'Add Individual Position';
+                    document.getElementById('submitButton').textContent = 'Add Position';
+                } else if (mode === 'import') {
+                    showImportForm();
+                    document.getElementById('addPositionModalLabel').textContent = 'Import Positions';
+                    document.getElementById('submitButton').textContent = 'Import Positions';
+                }
+            }, 200); // slight delay ensures modal is ready
+        }
+
+
         function showIndividualForm() {
             // Show the individual position form and hide the import form
             document.getElementById('positionForm').style.display = 'block';
@@ -190,30 +224,52 @@
 
         function editPosition(button) {
             const modal = new bootstrap.Modal(document.getElementById('addPositionModal'));
-            modal.show();
 
+            // Ensure individual form is visible
+            showIndividualForm();
+
+            // Set form title and button text
             document.getElementById('addPositionModalLabel').textContent = 'Edit Position';
             document.getElementById('submitButton').textContent = 'Update Position';
 
+            // Populate form fields
             document.getElementById('id').value = button.dataset.id;
             document.getElementById('positionID').value = button.dataset.positionId;
             document.getElementById('positionName').value = button.dataset.positionName;
             document.getElementById('positionDescription').value = button.dataset.positionDescription;
 
+            // Update form action and method
             const form = document.getElementById('positionForm');
             form.action = `/admin/position_management/${button.dataset.id}`;
             document.getElementById('formMethod').value = 'PUT';
+
+            // Show the modal
+            modal.show();
         }
+
+        document.getElementById('addPositionModal').addEventListener('hidden.bs.modal', function() {
+            const form = document.getElementById('positionForm');
+            form.reset();
+            form.action = "<?php echo e(route('assignment.storePosition')); ?>";
+            document.getElementById('formMethod').value = 'POST';
+            document.getElementById('addPositionModalLabel').textContent = 'Add Position';
+            document.getElementById('submitButton').textContent = 'Add Position';
+            document.getElementById('positionID').removeAttribute('readonly'); // ✅ reset readonly state
+        });
+
+
 
 
         document.getElementById('addPositionModal').addEventListener('hidden.bs.modal', function() {
             const form = document.getElementById('positionForm');
             form.reset();
-            form.action = "<?php echo e(route('assignment.storePosition')); ?>"; // ✅ Correct here
+            form.action = "<?php echo e(route('assignment.storePosition')); ?>";
             document.getElementById('formMethod').value = 'POST';
             document.getElementById('addPositionModalLabel').textContent = 'Add Position';
             document.getElementById('submitButton').textContent = 'Add Position';
+            document.getElementById('positionID').removeAttribute('readonly'); // ✅ reset readonly state
         });
+
 
         function showToast(title, message, type = 'success') {
             const toastEl = document.getElementById('liveToast');

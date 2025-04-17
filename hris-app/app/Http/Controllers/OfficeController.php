@@ -85,6 +85,32 @@ class OfficeController extends Controller
         }
     }
 
+    public function editOffice($id)
+    {
+        $office = Offices::findOrFail($id);
+        return response()->json($office);
+    }
+
+    public function updateOffice(Request $request, $id)
+    {
+        try {
+            $request->validate([
+                'officeCode' => 'required|string|max:255',
+                'officeName' => 'required|string|max:255',
+            ]);
+
+            $office = Offices::findOrFail($id);
+            $office->update([
+                'officeCode' => $request->input('officeCode'),
+                'officeName' => $request->input('officeName')
+            ]);
+
+           return redirect()->back()->with('success', 'Office updated successfully!');
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Failed to update office: ' . $e->getMessage());
+        }
+    }
+
     public function deleteOffice($id)
     {
         try {

@@ -7,6 +7,8 @@
     <title>Departments and Offices</title>
     <?php echo app('Illuminate\Foundation\Vite')(['resources/sass/app.scss', 'resources/js/app.js']); ?>
     <link href="https://cdn.jsdelivr.net/npm/remixicon@2.5.0/fonts/remixicon.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
 </head>
 
 <body>
@@ -63,32 +65,79 @@
                 </div>
 
                 <div class="card my-4 mx-3">
-                    <div class="card-header">
+                    <div class="card-header d-flex justify-content-between align-items-center">
                         <h5>Departments and Offices</h5>
+                        <div>
+                            <!-- Department/Program Dropdown Button -->
+                            <div class="btn-group me-2">
+                                <button type="button" class="btn btn-primary dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                                    <i class="bi bi-building-add me-1"></i> Add Department/Program
+                                </button>
+                                <ul class="dropdown-menu">
+                                    <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#addDepartmentModal">Add Individual</a></li>
+                                    <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#importDepartmentModal">Import from File</a></li>
+                                </ul>
+                            </div>
+
+                            <!-- Office Dropdown Button -->
+                            <div class="btn-group">
+                                <button type="button" class="btn btn-success dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                                    <i class="bi bi-house-add me-1"></i> Add Office
+                                </button>
+                                <ul class="dropdown-menu">
+                                    <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#addOfficeModal">Add Individual</a></li>
+                                    <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#importOfficeModal">Import from File</a></li>
+                                </ul>
+                            </div>
+                        </div>
                     </div>
                     <div class="card-body">
                         <div class="row">
-                            <?php echo $__env->make('pages.admin.component.department_list', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
+                            <!-- Department List -->
+                            <div class="col">
+                                <?php echo $__env->make('pages.admin.component.department_list', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
+                            </div>
 
-                            <?php echo $__env->make('pages.admin.component.office_list', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
+                            <!-- Office List -->
+                            <div class="col">
+                                <?php echo $__env->make('pages.admin.component.office_list', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
+                            </div>
                         </div>
                     </div>
                 </div>
-
             </div>
         </div>
     </div>
+
+
+
     <script>
-        function toggleForm(formId, buttonId) {
-            const form = document.getElementById(formId);
-            const button = document.getElementById(buttonId);
-            if (form.style.display === 'none') {
-                form.style.display = 'block';
-                button.textContent = 'Hide Form';
-            } else {
-                form.style.display = 'none';
-                button.textContent = 'Add New';
-            }
+        let programIndex = 1;
+
+        function addProgramField() {
+            const container = document.getElementById('programs-container');
+            const programItem = document.createElement('div');
+            programItem.classList.add('program-item', 'mb-3', 'border', 'p-3', 'rounded');
+            programItem.innerHTML = `
+                <h6>Program #${programIndex + 1}</h6>
+                <div class="mb-3">
+                    <label for="programCode" class="form-label">Program Code</label>
+                    <input type="text" name="programs[${programIndex}][programCode]" class="form-control mb-2" required>
+                </div>
+                <div class="mb-3">
+                    <label for="programName" class="form-label">Program Name</label>
+                    <input type="text" name="programs[${programIndex}][programName]" class="form-control mb-2" required>
+                </div>
+                <button type="button" class="btn btn-danger btn-sm" onclick="removeProgramField(this)">Remove Program</button>
+            `;
+            container.appendChild(programItem);
+            programIndex++;
+        }
+
+        function removeProgramField(button) {
+            const programItem = button.closest('.program-item');
+            programItem.remove();
+            // Reindex remaining programs if needed
         }
 
         function showToast(title, message, type = 'success') {
@@ -126,6 +175,35 @@
             });
             toast.show();
         }
+
+        // Reset forms when modals are closed
+        document.querySelectorAll('.modal').forEach(modal => {
+            modal.addEventListener('hidden.bs.modal', function() {
+                const form = this.querySelector('form');
+                if (form) {
+                    form.reset();
+                    // For department form, reset programs container
+                    if (form.id === 'addDepartmentForm') {
+                        const container = document.getElementById('programs-container');
+                        container.innerHTML = `
+                            <div class="program-item mb-3 border p-3 rounded">
+                                <h6>Program #1</h6>
+                                <div class="mb-3">
+                                    <label for="programCode" class="form-label">Program Code</label>
+                                    <input type="text" name="programs[0][programCode]" class="form-control mb-2" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="programName" class="form-label">Program Name</label>
+                                    <input type="text" name="programs[0][programName]" class="form-control mb-2" required>
+                                </div>
+                                <button type="button" class="btn btn-danger btn-sm" onclick="removeProgramField(this)">Remove Program</button>
+                            </div>
+                        `;
+                        programIndex = 1;
+                    }
+                }
+            });
+        });
     </script>
 </body>
 

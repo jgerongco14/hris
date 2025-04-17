@@ -8,6 +8,8 @@ use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Reader\Csv;
 use Illuminate\Http\Request;
 use App\Models\Offices;
+use Illuminate\Support\Facades\DB;
+
 
 class DepartmentController extends Controller
 {
@@ -30,9 +32,8 @@ class DepartmentController extends Controller
             $file = $request->file('department_file');
             $reader = IOFactory::createReaderForFile($file->getRealPath());
 
-            // Handle CSV-specific settings
             if ($reader instanceof Csv) {
-                $reader->setDelimiter(','); // or ';' based on your file
+                $reader->setDelimiter(',');
                 $reader->setEnclosure('"');
             }
 
@@ -40,40 +41,41 @@ class DepartmentController extends Controller
             $rows = $spreadsheet->getActiveSheet()->toArray();
 
             foreach ($rows as $index => $row) {
-                if ($index === 0) continue; // Skip header row
+                if ($index === 0) continue; // Skip header
 
                 $departmentCode = isset($row[0]) ? trim($row[0]) : null;
                 $departmentName = isset($row[1]) ? trim($row[1]) : null;
                 $programCode = isset($row[2]) ? trim($row[2]) : null;
                 $programName = isset($row[3]) ? trim($row[3]) : null;
 
-                // Skip if departmentCode or departmentName is missing
+                // Create department
+                $department = Departments::firstOrCreate(
+                    ['departmentCode' => $departmentCode],
+                    ['departmentName' => $departmentName]
+                );
+                // Check if department already has the program
                 if (empty($departmentCode) || empty($departmentName)) {
                     continue;
                 }
 
-                // Check if the department exists or create it
+                // Create or get department
                 $department = Departments::firstOrCreate(
                     ['departmentCode' => $departmentCode],
                     ['departmentName' => $departmentName]
                 );
 
-                // Skip if programCode is missing
-                if (empty($programCode)) {
-                    continue;
-                }
-
-                // Check if the program exists or create it
+                // Create or get program
                 $program = Programs::firstOrCreate(
                     ['programCode' => $programCode],
                     ['programName' => $programName]
                 );
 
-                // Attach the program to the department if not already attached
-                if (!$department->programs->contains($program->id)) {
-                    $department->programs()->attach($program->id);
+                // ✅ Sync program to department without detaching existing ones
+                if ($program) {
+                    $department->programs()->syncWithoutDetaching([$program->id]);
                 }
             }
+
 
             return redirect()->back()->with('success', 'Departments imported successfully!');
         } catch (\Exception $e) {
@@ -87,47 +89,108 @@ class DepartmentController extends Controller
         try {
             $request->validate([
                 'name' => 'required|string|max:255',
-                'departmentCode' => 'required|string|max:255',
-                'programs' => 'nullable|array', // Validate that programs is an array
-                'programs.*.programCode' => 'required|string|max:255|distinct', // Validate each programCode
-                'programs.*.programName' => 'required|string|max:255', // Validate each programName
+                'departmentCode' => 'required|string|max:255|unique:departments,departmentCode',
+                'programs' => 'nullable|array',
+                'programs.*.programCode' => 'nullable|string|max:255',
+                'programs.*.programName' => 'nullable|string|max:255',
             ]);
-    
-            // Update or create the department
-            $department = Departments::updateOrCreate(
-                ['departmentCode' => $request->input('departmentCode')], // Match by departmentCode
-                ['departmentName' => $request->input('name')] // Update or set departmentName
-            );
-    
-            // If programs are provided, create them and associate them with the department
-            if ($request->has('programs')) {
-                foreach ($request->input('programs') as $programData) {
-                    // Create or update the program
+
+            // Create department
+            $department = Departments::create([
+                'departmentCode' => $request->departmentCode,
+                'departmentName' => $request->name
+            ]);
+
+            // Process programs
+            $programIds = [];
+            if (is_array($request->programs)) {
+                foreach ($request->programs as $programData) {
                     $program = Programs::firstOrCreate(
                         ['programCode' => $programData['programCode']],
                         ['programName' => $programData['programName']]
                     );
-    
-                    // Attach the program to the department if not already attached
-                    if (!$department->programs->contains($program->id)) {
-                        $department->programs()->attach($program->id);
+                    $programIds[] = $program->id;
+
+                    if (!empty($programIds)) {
+                        $department->programs()->syncWithoutDetaching($programIds);
                     }
                 }
             }
-    
-            return redirect()->back()->with('success', 'Department created or updated successfully!');
+
+
+            return redirect()->back()->with('success', 'Department and programs created successfully!');
         } catch (\Exception $e) {
-            return redirect()->back()->with('error', 'Failed to create or update department: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'Failed to create department: ' . $e->getMessage());
         }
     }
 
-    public function removeProgram(Request $request, $departmentId)
+    public function editDepartment($id)
+    {
+        $department = Departments::with('programs')->findOrFail($id);
+        return response()->json($department);
+    }
+
+    public function updateDepartment(Request $request, $id)
+    {
+        try {
+            $request->validate([
+                'name' => 'required|string|max:255',
+                'departmentCode' => 'required|string|max:255',
+                'programs' => 'nullable|array',
+                'programs.*.programCode' => 'nullable|string|max:255',
+                'programs.*.programName' => 'nullable|string|max:255',
+                'programs.*.id' => 'nullable|exists:programs,id'
+            ]);
+
+            $department = Departments::findOrFail($id);
+            $department->update([
+                'departmentName' => $request->input('name'),
+                'departmentCode' => $request->input('departmentCode')
+            ]);
+
+            // Handle programs update
+            if ($request->has('programs')) {
+                $programIds = [];
+                foreach ($request->input('programs') as $programData) {
+                    if (!empty($programData['id'])) {
+                        // Update existing program
+                        $program = Programs::find($programData['id']);
+                        if ($program) {
+                            $program->update([
+                                'programCode' => $programData['programCode'],
+                                'programName' => $programData['programName']
+                            ]);
+                            $programIds[] = $program->id;
+                        }
+                    } elseif (!empty($programData['programCode'])) {
+                        // Create new program
+                        $program = Programs::firstOrCreate(
+                            ['programCode' => $programData['programCode']],
+                            ['programName' => $programData['programName']]
+                        );
+                        $programIds[] = $program->id;
+                    }
+                }
+                $department->programs()->sync($programIds);
+            } else {
+                $department->programs()->detach();
+            }
+
+            return redirect()->back()->with('success', 'Department and programs updated successfully!');
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Failed to update department: ' . $e->getMessage());
+        }
+    }
+
+    public function removeProgram($departmentId, $programId)
     {
         try {
             $department = Departments::findOrFail($departmentId);
-            $programId = $request->input('programId');
 
-            // Assuming you have a many-to-many relationship set up
+            if (!$programId) {
+                return redirect()->back()->with('error', 'No program selected to remove.');
+            }
+
             $department->programs()->detach($programId);
 
             return redirect()->back()->with('success', 'Program removed from department successfully!');
@@ -136,13 +199,22 @@ class DepartmentController extends Controller
         }
     }
 
+
+
     public function deleteDepartment($id)
     {
         try {
-            $department = Departments::findOrFail($id);
+            $department = Departments::with('programs')->findOrFail($id);
+
+            // Delete all related programs
+            foreach ($department->programs as $program) {
+                $program->delete();
+            }
+
+            // Delete the department (will remove from pivot too if set to cascade)
             $department->delete();
 
-            return redirect()->back()->with('success', 'Department deleted successfully!');
+            return redirect()->back()->with('success', 'Department and its programs deleted successfully!');
         } catch (\Exception $e) {
             return redirect()->back()->with('error', 'Failed to delete department: ' . $e->getMessage());
         }
