@@ -101,19 +101,9 @@ class AccountController extends Controller
                 default => redirect()->route('login')->with('error', 'Invalid user role.'),
             };
         } catch (\Exception $e) {
-            $currentUser = Auth::user();
-            $employee = $currentUser->employee;
 
-            if ($currentUser->role == 'admin') {
-                $this->logActivity('Login', "Admin logged in failed. {$e->getMessage()}", $currentUser->id);
-            } else {
-                // Handle case where employee record might be missing
-                $fullName = $employee
-                    ? trim("{$employee->empPrefix} {$employee->empFname} {$employee->empMname} {$employee->empLname} {$employee->empSuffix}")
-                    : 'Unknown Employee';
+            $this->logActivity('Login', "User logged in failed. {$e->getMessage()}");
 
-                $this->logActivity('Login', "User $fullName logged in failed. {$e->getMessage()}", $currentUser->id);
-            }
             logger()->error('Login Error: ' . $e->getMessage());
             return redirect()->route('login')->with('error', 'Something went wrong. Please go to your HR for assistance.');
         }
@@ -207,19 +197,9 @@ class AccountController extends Controller
                 default => redirect()->route('login')->with('error', 'Invalid user role.'),
             };
         } catch (Exception $e) {
-            $currentUser  = Auth::user();
-            $employee = $currentUser->employee;
 
-            if ($currentUser->role == 'admin') {
-                $this->logActivity('Login', "Admin logged in failed. {$e->getMessage()}", $currentUser->id);
-            } else {
-                // Handle case where employee record might be missing
-                $fullName = $employee
-                    ? trim("{$employee->empPrefix} {$employee->empFname} {$employee->empMname} {$employee->empLname} {$employee->empSuffix}")
-                    : 'Unknown Employee';
+            $this->logActivity('Login', "User google logged in failed. {$e->getMessage()}");
 
-                $this->logActivity('Login', "User $fullName logged in failed. {$e->getMessage()}", $currentUser->id);
-            }
             logger()->error('Google Login Error: ' . $e->getMessage());
             return redirect()->route('login')->with('error', 'Google login failed. Please try again.');
         }
@@ -327,21 +307,28 @@ class AccountController extends Controller
             : back()->withErrors(['email' => [__($status)]]);
     }
 
-    public function logout()
+    public function logout(Request $request)
     {
         $user = Auth::user();
-        $employee = $user->employee;
 
-        if ($user->role == 'admin') {
-            $this->logActivity('Logout', "Admin logged out successfully.", $user->id);
-        } else {
-            $fullName = $employee
-                ? trim("{$employee->empPrefix} {$employee->empFname} {$employee->empMname} {$employee->empLname} {$employee->empSuffix}")
-                : 'Unknown Employee';
+        if ($user) {
+            $employee = $user->employee;
 
-            $this->logActivity('Logout', "User $fullName logged out successfully.", $user->id);
+            if ($user->role == 'admin') {
+                $this->logActivity('Logout', "Admin logged out successfully.", $user->id);
+            } else {
+                $fullName = $employee
+                    ? trim("{$employee->empPrefix} {$employee->empFname} {$employee->empMname} {$employee->empLname} {$employee->empSuffix}")
+                    : 'Unknown Employee';
+
+                $this->logActivity('Logout', "User $fullName logged out successfully.", $user->id);
+            }
         }
+
         Auth::logout();
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+
         return redirect()->route('login')->with('success', 'Logged out successfully.');
     }
 }

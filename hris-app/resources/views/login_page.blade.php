@@ -63,6 +63,13 @@
     </div>
 
     <script>
+        if (window.history && window.history.pushState) {
+            window.history.pushState(null, null, window.location.href);
+            window.onpopstate = function() {
+                window.location.replace("{{ route('login') }}");
+            };
+        }
+
         function showToast(title, message, type = 'success') {
             const toastEl = document.getElementById('liveToast');
             const toastHeader = document.getElementById('toast-header');
