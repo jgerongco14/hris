@@ -105,7 +105,7 @@ class AssignmentController extends Controller
         try {
             $position = Position::findOrFail($id);
 
-            return view('assignment.edit_position', [
+            return view('pages.admin.assignment_management', [
                 'position' => $position,
             ]);
         } catch (\Exception $e) {
