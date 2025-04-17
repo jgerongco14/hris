@@ -31,7 +31,7 @@
                 <div id="userForm" style="display:none;" name="userForm">
                     <div class="card my-4 mx-3">
                         <div class="card-header">
-                            <h3 class="card-title text-center formTitle">Add Individual User</h3>
+                            <h3 class="card-title text-center" id="formTitle">Add Individual User</h3>
                         </div>
                         <div class="card-body">
                             <form method="POST" id="userFormElement" action="{{ route('user.create') }}" class="d-flex align-items-end flex-wrap gap-3 mb-4">
@@ -53,7 +53,7 @@
                                         <option value="" disabled>Select Role</option>
                                         <option value="admin">Admin</option>
                                         <option value="employee">Employee</option>
-                                        <option value="manager">HR</option>
+                                        <option value="hr">HR</option>
                                     </select>
                                 </div>
 
@@ -143,15 +143,18 @@
                                     </td>
                                     <td class="text-center">
                                         @php
-                                        $rawStatus = strtolower($user->employee->status ?? 'active'); // default to 'active' if null
+                                        $rawStatus = strtolower($user->employee->status ?? 'active');
                                         $badgeClass = $rawStatus === 'resigned' ? 'bg-danger' : 'bg-success';
                                         $statusLabel = ucfirst($rawStatus);
                                         @endphp
                                         <span class="badge rounded {{ $badgeClass }}">{{ $statusLabel }}</span>
                                     </td>
-                                    <td class="text-center">
+
+                                    <td class="text-center d-flex justify-content-center gap-3">
                                         <!-- Add action icons here -->
-                                        <a href="javascript:void(0);" class="btn btn-warning btn-sm" onclick="editUser('{{ $user->id }}', '{{ $user->empID }}', '{{ $user->email }}', '{{ $user->role }}' , '{{ $user->employee->status }}')">
+                                        <a href="javascript:void(0);" class="btn btn-warning btn-sm"
+                                            onclick="editUser('{{ $user->id }}', '{{ $user->empID }}', '{{ $user->email }}', '{{ $user->role }}', '{{ $user->employee->status ?? null }}')">
+
                                             <i class="ri-edit-line"></i> <!-- Edit Icon -->
                                         </a>
                                         <form action="{{ route('user.delete', $user->id) }}" method="POST" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this user?');">
@@ -200,6 +203,7 @@
             // Populate the form fields
             document.getElementById('user_id').value = id;
             document.getElementById('empID').value = empID;
+            document.getElementById('empID').setAttribute('readonly', true);
             document.getElementById('email').value = email;
             document.getElementById('role').value = role;
             document.getElementById('status').value = status;

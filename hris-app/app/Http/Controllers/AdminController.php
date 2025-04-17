@@ -184,7 +184,7 @@ class AdminController extends Controller
         try {
             $user = User::with('employee')->findOrFail($id);
 
-            return view('pages.admin.edit_user', compact('user'));
+            return view('pages.admin.user_management', compact('user'));
         } catch (Exception $e) {
             return redirect()->back()->with('error', 'Error fetching user data: ' . $e->getMessage());
         }
