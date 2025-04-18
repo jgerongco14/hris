@@ -119,10 +119,7 @@
 
                 <div class="col mb-3">
                     <label for="empBirthdate" class="form-label">Birthdate</label>
-                    <div class="input-group">
-                        <span class="input-group-text"><i class="ri-calendar-line"></i></span>
-                        <input type="text" class="form-control datepicker" id="empBirthdate" name="empBirthdate" value="<?php echo e(old('empBirthdate')); ?>" readonly required>
-                    </div>
+                    <input type="date" class="form-control" id="empBirthdate" name="empBirthdate" value="<?php echo e(old('empBirthdate', $employee->empBirthdate ?? '')); ?>" required>
                 </div>
 
                 <div class="col">

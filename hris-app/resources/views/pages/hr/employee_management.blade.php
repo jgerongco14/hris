@@ -86,21 +86,6 @@
             });
 
 
-            // Initialize the datepicker
-            $('.datepicker').datepicker({
-                changeMonth: true,
-                changeYear: true,
-                yearRange: '-100:+0',
-                maxDate: new Date(),
-                dateFormat: 'yy-mm-dd'
-            });
-
-            // Prevent manual input for birthdate
-            $('#empBirthdate').on('keydown paste', function(e) {
-                e.preventDefault();
-                return false;
-            });
-
             // Handle SSS Number formatting
             $('#empSSSNum').on('input', function() {
                 let value = $(this).val().replace(/\D/g, ''); // Remove non-numeric characters
@@ -218,7 +203,17 @@
                     $('#empSSSNum').val(employee.empSSSNum);
                     $('#empTinNum').val(employee.empTinNum);
                     $('#empPagIbigNum').val(employee.empPagIbigNum);
-                    $('#empBirthdate').val(employee.empBirthdate);
+
+                    const formatDate = (dateString) => {
+                        if (!dateString) return '';
+                        const date = new Date(dateString);
+                        const year = date.getFullYear();
+                        const month = (`0${date.getMonth() + 1}`).slice(-2);
+                        const day = (`0${date.getDate()}`).slice(-2);
+                        return `${year}-${month}-${day}`;
+                    };
+
+                    $('#empBirthdate').val(formatDate(employee.empBirthdate));
 
                     if (employee.empGender === 'Male') {
                         $('#Male').prop('checked', true);
