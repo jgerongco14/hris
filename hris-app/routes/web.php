@@ -175,6 +175,7 @@ Route::group(['middleware' => ['prevent-back-history']], function () {
             Route::post('/import', [DepartmentController::class, 'importDepartment'])->name('departments.import');
             Route::get('/departments/{id}/edit', [DepartmentController::class, 'editDepartment'])->name('departments.edit');
             Route::put('/departments/{id}', [DepartmentController::class, 'updateDepartment'])->name('departments.update');
+            Route::post('/add-program', [DepartmentController::class, 'addProgramToDepartment'])->name('departments.addProgram');
             Route::delete('/{id}', [DepartmentController::class, 'deleteDepartment'])->name('departments.destroy');
             Route::delete('/departments/{departmentId}/programs/{programId}', [DepartmentController::class, 'removeProgram'])->name('departments.removeProgram');
         });

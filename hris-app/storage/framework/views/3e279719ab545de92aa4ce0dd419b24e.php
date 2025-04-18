@@ -76,6 +76,7 @@
                                 <ul class="dropdown-menu">
                                     <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#addDepartmentModal">Add Individual</a></li>
                                     <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#importDepartmentModal">Import from File</a></li>
+                                    <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#addProgramToDepartmentModal">Add Programs</a></li>
                                 </ul>
                             </div>
 

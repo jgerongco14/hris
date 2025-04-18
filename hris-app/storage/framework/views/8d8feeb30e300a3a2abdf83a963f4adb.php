@@ -73,6 +73,54 @@
             </div>
         </div>
     </div>
+    <!-- Add Program to Existing Department Modal -->
+    <div class="modal fade" id="addProgramToDepartmentModal" tabindex="-1" aria-labelledby="addProgramToDepartmentModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <form action="<?php echo e(route('departments.addProgram')); ?>" method="POST">
+                    <?php echo csrf_field(); ?>
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="addProgramToDepartmentModalLabel">Add Program to Existing Department</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label for="department_id" class="form-label">Select Department</label>
+                            <select name="department_id" id="department_id" class="form-select" required>
+                                <option value="" disabled selected>Choose a department</option>
+                                <?php $__currentLoopData = $departments; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $department): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                <option value="<?php echo e($department->id); ?>"><?php echo e($department->departmentName); ?> (<?php echo e($department->departmentCode); ?>)</option>
+                                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                            </select>
+                        </div>
+
+                        <div id="add-programs-container">
+                            <div class="program-item mb-3 border p-3 rounded">
+                                <h6>Program #1</h6>
+                                <div class="mb-3">
+                                    <label for="programCode" class="form-label">Program Code</label>
+                                    <input type="text" name="programs[0][programCode]" class="form-control" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="programName" class="form-label">Program Name</label>
+                                    <input type="text" name="programs[0][programName]" class="form-control" required>
+                                </div>
+                                <button type="button" class="btn btn-danger btn-sm" onclick="removeProgramField(this)">Remove Program</button>
+                            </div>
+                        </div>
+
+                        <button type="button" class="btn btn-secondary mb-3" onclick="addProgramField()">Add Another Program</button>
+                    </div>
+
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Add Program(s)</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
 
 
 
@@ -156,32 +204,6 @@
                                     <label class="form-label">Department Name</label>
                                     <input type="text" name="name" class="form-control" value="<?php echo e($department->departmentName); ?>" required>
                                 </div>
-
-                                <hr>
-                                <h6 class="fw-bold">Programs</h6>
-
-                                <div id="edit-programs-container-<?php echo e($department->id); ?>">
-                                    <?php $__currentLoopData = $department->programs; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $index => $program): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                                    <div class="program-item border p-3 rounded mb-3 bg-light">
-                                        <input type="hidden" name="programs[<?php echo e($index); ?>][id]" value="<?php echo e($program->id); ?>">
-                                        <div class="mb-2">
-                                            <label class="form-label">Program Code</label>
-                                            <input type="text" name="programs[<?php echo e($index); ?>][programCode]" value="<?php echo e($program->programCode); ?>" class="form-control" required>
-                                        </div>
-                                        <div class="mb-2">
-                                            <label class="form-label">Program Name</label>
-                                            <input type="text" name="programs[<?php echo e($index); ?>][programName]" value="<?php echo e($program->programName); ?>" class="form-control" required>
-                                        </div>
-                                        <button type="button" class="btn btn-danger btn-sm" onclick="removeProgramField(this)">Remove</button>
-                                    </div>
-                                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
-
-                                </div>
-
-                                <!-- Add Program Button -->
-                                <button type="button" class="btn btn-secondary btn-sm mb-3" onclick="addProgramFieldToCreateModal('edit-programs-container-<?php echo e($department->id); ?>')">
-                                    + Add Another Program
-                                </button>
                             </div>
 
                             <div class="modal-footer">
@@ -192,7 +214,6 @@
                     </div>
                 </div>
             </div>
-
             <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
             <tr>
                 <td colspan="4" class="text-center">No departments found.</td>
@@ -202,43 +223,30 @@
     </table>
 </div>
 <script>
-    // Global counter for new programs
-    let programCounter = 0;
+let programIndex = 1;
 
-    function addProgramFieldToCreateModal(containerId) {
-        const container = document.getElementById(containerId);
-        if (!container) {
-            console.error('Container not found:', containerId);
-            return;
-        }
+function addProgramField() {
+    const container = document.getElementById('add-programs-container');
+    const newItem = document.createElement('div');
+    newItem.className = 'program-item mb-3 border p-3 rounded';
+    newItem.innerHTML = `
+        <h6>Program #${programIndex + 1}</h6>
+        <div class="mb-3">
+            <label class="form-label">Program Code</label>
+            <input type="text" name="programs[${programIndex}][programCode]" class="form-control" required>
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Program Name</label>
+            <input type="text" name="programs[${programIndex}][programName]" class="form-control" required>
+        </div>
+        <button type="button" class="btn btn-danger btn-sm" onclick="removeProgramField(this)">Remove Program</button>
+    `;
+    container.appendChild(newItem);
+    programIndex++;
+}
 
-        // Get the current number of program items to determine the next index
-        const currentItems = container.querySelectorAll('.program-item').length;
-        const newIndex = currentItems;
-
-        const programDiv = document.createElement('div');
-        programDiv.classList.add('program-item', 'border', 'p-3', 'rounded', 'mb-3', 'bg-light');
-        programDiv.innerHTML = `
-            <div class="mb-2">
-                <label class="form-label">Program Code</label>
-                <input type="text" name="programs[${newIndex}][programCode]" class="form-control" required>
-            </div>
-            <div class="mb-2">
-                <label class="form-label">Program Name</label>
-                <input type="text" name="programs[${newIndex}][programName]" class="form-control" required>
-            </div>
-            <button type="button" class="btn btn-danger btn-sm" onclick="removeProgramField(this)">Remove</button>
-        `;
-        container.appendChild(programDiv);
-        
-        programCounter++;
-    }
-
-    function removeProgramField(button) {
-        const programItem = button.closest('.program-item');
-        if (programItem) {
-            programItem.remove();
-
-        }
-    }
-</script><?php /**PATH C:\Projects\hris\hris-app\resources\views/pages/admin/component/department_list.blade.php ENDPATH**/ ?>
+function removeProgramField(button) {
+    button.closest('.program-item').remove();
+}
+</script>
+<?php /**PATH C:\Projects\hris\hris-app\resources\views/pages/admin/component/department_list.blade.php ENDPATH**/ ?>

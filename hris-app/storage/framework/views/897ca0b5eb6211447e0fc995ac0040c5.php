@@ -181,15 +181,18 @@
                                     </td>
                                     <td class="text-center">
                                         <?php
-                                        $rawStatus = strtolower($user->employee->status ?? 'active'); // default to 'active' if null
+                                        $rawStatus = strtolower($user->employee->status ?? 'active');
                                         $badgeClass = $rawStatus === 'resigned' ? 'bg-danger' : 'bg-success';
                                         $statusLabel = ucfirst($rawStatus);
                                         ?>
                                         <span class="badge rounded <?php echo e($badgeClass); ?>"><?php echo e($statusLabel); ?></span>
                                     </td>
+
                                     <td class="text-center d-flex justify-content-center gap-3">
                                         <!-- Add action icons here -->
-                                        <a href="javascript:void(0);" class="btn btn-warning btn-sm" onclick="editUser('<?php echo e($user->id); ?>', '<?php echo e($user->empID); ?>', '<?php echo e($user->email); ?>', '<?php echo e($user->role); ?>' , '<?php echo e($user->employee->status); ?>')">
+                                        <a href="javascript:void(0);" class="btn btn-warning btn-sm"
+                                            onclick="editUser('<?php echo e($user->id); ?>', '<?php echo e($user->empID); ?>', '<?php echo e($user->email); ?>', '<?php echo e($user->role); ?>', '<?php echo e($user->employee->status ?? null); ?>')">
+
                                             <i class="ri-edit-line"></i> <!-- Edit Icon -->
                                         </a>
                                         <form action="<?php echo e(route('user.delete', $user->id)); ?>" method="POST" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this user?');">
@@ -239,6 +242,7 @@
             // Populate the form fields
             document.getElementById('user_id').value = id;
             document.getElementById('empID').value = empID;
+            document.getElementById('empID').setAttribute('readonly', true);
             document.getElementById('email').value = email;
             document.getElementById('role').value = role;
             document.getElementById('status').value = status;

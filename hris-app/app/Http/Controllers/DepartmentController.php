@@ -8,7 +8,7 @@ use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Reader\Csv;
 use Illuminate\Http\Request;
 use App\Models\Offices;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 
 class DepartmentController extends Controller
@@ -130,30 +130,39 @@ class DepartmentController extends Controller
         return response()->json($department);
     }
 
+
     public function updateDepartment(Request $request, $id)
     {
         try {
             $request->validate([
                 'name' => 'required|string|max:255',
-                'departmentCode' => 'required|string|max:255',
+                'departmentCode' => 'required|string|max:255|unique:departments,departmentCode,' . $id,
                 'programs' => 'nullable|array',
-                'programs.*.programCode' => 'nullable|string|max:255',
-                'programs.*.programName' => 'nullable|string|max:255',
+                'programs.*.programCode' => 'required|string|max:255',
+                'programs.*.programName' => 'required|string|max:255',
                 'programs.*.id' => 'nullable|exists:programs,id'
             ]);
 
+            Log::debug('Received data:', $request->all());
+
+            // Update department
             $department = Departments::findOrFail($id);
             $department->update([
-                'departmentName' => $request->input('name'),
-                'departmentCode' => $request->input('departmentCode')
+                'departmentName' => $request->name,
+                'departmentCode' => $request->departmentCode
             ]);
 
-            // Handle programs update
-            if ($request->has('programs')) {
-                $programIds = [];
-                foreach ($request->input('programs') as $programData) {
+            // Process programs
+            $programIds = [];
+            if ($request->programs) {
+                foreach ($request->programs as $programData) {
+                    // Skip if required fields are empty
+                    if (empty($programData['programCode'])) {
+                        continue;
+                    }
+
+                    // Update existing or create new program
                     if (!empty($programData['id'])) {
-                        // Update existing program
                         $program = Programs::find($programData['id']);
                         if ($program) {
                             $program->update([
@@ -162,8 +171,7 @@ class DepartmentController extends Controller
                             ]);
                             $programIds[] = $program->id;
                         }
-                    } elseif (!empty($programData['programCode'])) {
-                        // Create new program
+                    } else {
                         $program = Programs::firstOrCreate(
                             ['programCode' => $programData['programCode']],
                             ['programName' => $programData['programName']]
@@ -171,16 +179,46 @@ class DepartmentController extends Controller
                         $programIds[] = $program->id;
                     }
                 }
-                $department->programs()->sync($programIds);
-            } else {
-                $department->programs()->detach();
             }
 
-            return redirect()->back()->with('success', 'Department and programs updated successfully!');
+            // Sync programs (this will handle attaching/detaching)
+            $department->programs()->sync($programIds);
+
+            return redirect()->back()->with('success', 'Department updated successfully!');
         } catch (\Exception $e) {
             return redirect()->back()->with('error', 'Failed to update department: ' . $e->getMessage());
         }
     }
+
+    public function addProgramToDepartment(Request $request)
+    {
+        try {
+            $request->validate([
+                'department_id' => 'required|exists:departments,id',
+                'programs' => 'required|array',
+                'programs.*.programCode' => 'required|string|max:255',
+                'programs.*.programName' => 'required|string|max:255',
+            ]);
+
+            $department = Departments::findOrFail($request->department_id);
+            $programIds = [];
+
+            foreach ($request->programs as $programData) {
+                $program = Programs::firstOrCreate(
+                    ['programCode' => $programData['programCode']],
+                    ['programName' => $programData['programName']]
+                );
+                $programIds[] = $program->id;
+            }
+
+            $department->programs()->syncWithoutDetaching($programIds);
+
+            return redirect()->back()->with('success', 'Program(s) successfully added to the department.');
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Failed to add programs: ' . $e->getMessage());
+        }
+    }
+
 
     public function removeProgram($departmentId, $programId)
     {
