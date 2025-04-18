@@ -241,8 +241,9 @@
                                     $isExternal = $employeePhoto && Str::startsWith($employeePhoto, ['http://', 'https://']);
                                     ?>
 
+
                                     <?php if($employeePhoto): ?>
-                                    <img src="<?php echo e($isExternal ? $employeePhoto : asset('storage/' . $employee->photo)); ?>"
+                                    <img src="<?php echo e($isExternal ? $employeePhoto : asset('storage/employee_photos/' . $employee->photo)); ?>"
                                         alt="Employee Photo" width="50" height="50" class="rounded-circle">
                                     <?php else: ?>
                                     <div class="no-photo bg-light rounded-circle d-flex align-items-center justify-content-center"
@@ -318,16 +319,14 @@
                                 </button>
 
                                 <!-- Assign Position Button -->
-                                <button class="btn btn-sm btn-success" data-bs-toggle="modal" data-bs-target="#assignModal_<?php echo e($employee->empID); ?>">
+                                <button class="btn btn-sm btn-success mx-1" data-bs-toggle="modal" data-bs-target="#assignModal_<?php echo e($employee->empID); ?>">
                                     <i class="ri-user-add-line"></i>
                                 </button>
-
-
 
                                 <form action="<?php echo e(route('employee.destroy', $employee->id)); ?>" method="POST" onsubmit="return confirm('Are you sure you want to delete this employee?')" style="display: inline;">
                                     <?php echo csrf_field(); ?>
                                     <?php echo method_field('DELETE'); ?>
-                                    <button type="submit" class="btn btn-sm btn-danger">
+                                    <button type="submit" class="btn btn-sm btn-danger mx-1">
                                         <i class="ri-delete-bin-line"></i>
                                     </button>
                                 </form>

@@ -311,7 +311,7 @@ class EmployeeController extends Controller
                     Storage::delete('public/' . $employee->photo);
                 }
 
-                $validated['photo'] = $request->file('photo')->store('photos', 'public/storage');
+                $validated['photo'] = $request->file('photo')->store('employee_photos', 'public');
             }
 
             // Update the employee
@@ -322,7 +322,7 @@ class EmployeeController extends Controller
             logger()->error('Failed to update employee: ' . $e->getMessage());
             return redirect()
                 ->back()
-                ->with('error', 'Failed to update employee. Please try again later.');
+                ->with('error', 'Failed to update employee. Please try again later.' . $e->getMessage());
         }
     }
 
