@@ -9,10 +9,13 @@ use PhpOffice\PhpSpreadsheet\Reader\Csv;
 use Illuminate\Http\Request;
 use App\Models\Offices;
 use Illuminate\Support\Facades\Log;
+use App\Traits\LogsActivity;
+use Illuminate\Support\Facades\Auth;
 
 
 class DepartmentController extends Controller
 {
+    use LogsActivity;
     // In DepartmentController.php or create a new controller
     public function displayManagementPage()
     {
@@ -75,10 +78,16 @@ class DepartmentController extends Controller
                     $department->programs()->syncWithoutDetaching([$program->id]);
                 }
             }
-
+            // Log the import activity
+            $currentUser = Auth::user();
+            $this->logActivity('Import', "Admin imported departments successfully.", $currentUser->id);
+            
 
             return redirect()->back()->with('success', 'Departments imported successfully!');
         } catch (\Exception $e) {
+            // Log the error
+            $currentUser = Auth::user();
+            $this->logActivity('Import', "Admin encountered an error while importing departments: " . $e->getMessage(), $currentUser->id);
             return redirect()->back()->with('error', 'Failed to import departments: ' . $e->getMessage());
         }
     }
@@ -116,10 +125,16 @@ class DepartmentController extends Controller
                     }
                 }
             }
-
+            
+            // Log the creation activity
+            $currentUser = Auth::user();
+            $this->logActivity('Create', "Admin created department and programs successfully.", $currentUser->id);
 
             return redirect()->back()->with('success', 'Department and programs created successfully!');
         } catch (\Exception $e) {
+            // Log the error
+            $currentUser = Auth::user();
+            $this->logActivity('Create', "Admin encountered an error while creating department: " . $e->getMessage(), $currentUser->id);
             return redirect()->back()->with('error', 'Failed to create department: ' . $e->getMessage());
         }
     }
@@ -213,8 +228,14 @@ class DepartmentController extends Controller
 
             $department->programs()->syncWithoutDetaching($programIds);
 
+            // Log the addition activity
+            $currentUser = Auth::user();
+            $this->logActivity('Add', "Admin added programs to department successfully.", $currentUser->id);
             return redirect()->back()->with('success', 'Program(s) successfully added to the department.');
         } catch (\Exception $e) {
+            // Log the error
+            $currentUser = Auth::user();
+            $this->logActivity('Add', "Admin encountered an error while adding programs to department: " . $e->getMessage(), $currentUser->id);
             return redirect()->back()->with('error', 'Failed to add programs: ' . $e->getMessage());
         }
     }

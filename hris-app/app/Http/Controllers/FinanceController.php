@@ -3,17 +3,18 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Models\User;
 use App\Models\Employee;
 use App\Models\Departments;
 use App\Models\Offices;
 use App\Models\Position;
 use Exception;
-use Carbon\Carbon;
+use App\Traits\LogsActivity;
+use Illuminate\Support\Facades\Auth;
 
 
 class FinanceController extends Controller
 {
+    use LogsActivity;
     public function displayEmployees(Request $request)
     {
         try {
@@ -50,6 +51,13 @@ class FinanceController extends Controller
                 'offices' => $offices,
             ]);
         } catch (Exception $e) {
+            // Log the error
+            $currentUser = Auth::user();
+            $employeeActor = $currentUser->employee;
+            $fullName = $employeeActor
+                ? trim("{$employeeActor->empPrefix} {$employeeActor->empFname} {$employeeActor->empMname} {$employeeActor->empLname} {$employeeActor->empSuffix}")
+                : 'Unknown Employee';
+            $this->logActivity('Error', "User $fullName encountered an error while fetching employees: " . $e->getMessage(), $currentUser->id);
             logger()->error('Failed to fetch employees: ' . $e->getMessage());
             return redirect()
                 ->back()
@@ -70,8 +78,24 @@ class FinanceController extends Controller
             $employee->empBPIATMAccountNo = $request->input('empBPIATMAccountNo');
             $employee->save();
 
+            // Log the activity
+            $currentUser = Auth::user();
+            $employeeActor = $currentUser->employee;
+            $fullName = $employeeActor
+                ? trim("{$employeeActor->empPrefix} {$employeeActor->empFname} {$employeeActor->empMname} {$employeeActor->empLname} {$employeeActor->empSuffix}")
+                : 'Unknown Employee';
+            $this->logActivity('Update', "User $fullName updated RVM info for employee ID: $employee->empID", $currentUser->id);
+
+
             return redirect()->back()->with('success', 'RVM info updated successfully.');
         } catch (Exception $e) {
+            // Log the error
+            $currentUser = Auth::user();
+            $employeeActor = $currentUser->employee;
+            $fullName = $employeeActor
+                ? trim("{$employee->empPrefix} {$employee->empFname} {$employee->empMname} {$employee->empLname} {$employee->empSuffix}")
+                : 'Unknown Employee';
+            $this->logActivity('Update', "User $fullName encountered an error while updating RVM info: " . $e->getMessage(), $currentUser->id);
             logger()->error('Failed to update RVM info: ' . $e->getMessage());
             return redirect()->back()->with('error', 'Failed to update RVM info.');
         }

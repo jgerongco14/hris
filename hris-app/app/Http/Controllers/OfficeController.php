@@ -6,9 +6,12 @@ use App\Models\Offices;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Reader\Csv;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use App\Traits\LogsActivity;
 
 class OfficeController extends Controller
 {
+    use LogsActivity;
 
     public function importOfficeCSV(Request $request)
     {
@@ -57,8 +60,15 @@ class OfficeController extends Controller
                 }
             }
 
+            // Log the import activity (assuming you have a Logs model)
+            $currentUser = Auth::user();
+            $this->logActivity('Import', "Admin imported Offices successfully.", $currentUser->id);
+
             return redirect()->back()->with('success', 'Offices imported successfully!');
         } catch (\Exception $e) {
+            // Log the error
+            $currentUser = Auth::user();
+            $this->logActivity('Import', "Admin encountered an error while importing offices: " . $e->getMessage(), $currentUser->id);
             return redirect()->back()->with('error', 'Failed to import offices: ' . $e->getMessage());
         }
     }
@@ -79,8 +89,14 @@ class OfficeController extends Controller
                 'officeName' => $request->input('officeName'),
             ]);
 
+            // Log the activity
+            $currentUser = Auth::user();
+            $this->logActivity('Create', "Admin created a new office: " . $request->input('officeName'), $currentUser->id);
             return redirect()->back()->with('success', 'Office created successfully!');
         } catch (\Exception $e) {
+            // Log the error
+            $currentUser = Auth::user();
+            $this->logActivity('Create', "Admin encountered an error while creating office: " . $e->getMessage(), $currentUser->id);
             return redirect()->back()->with('error', 'Failed to create office: ' . $e->getMessage());
         }
     }
@@ -105,8 +121,15 @@ class OfficeController extends Controller
                 'officeName' => $request->input('officeName')
             ]);
 
+            // Log the activity
+            $currentUser = Auth::user();
+            $this->logActivity('Update', "Admin updated office: " . $request->input('officeName'), $currentUser->id);
+
            return redirect()->back()->with('success', 'Office updated successfully!');
         } catch (\Exception $e) {
+            // Log the error
+            $currentUser = Auth::user();
+            $this->logActivity('Update', "Admin encountered an error while updating office: " . $e->getMessage(), $currentUser->id);
             return redirect()->back()->with('error', 'Failed to update office: ' . $e->getMessage());
         }
     }
@@ -114,10 +137,16 @@ class OfficeController extends Controller
     public function deleteOffice($id)
     {
         try {
+            // Log the activity
+            $currentUser = Auth::user();
+            $this->logActivity('Delete', "Admin deleted office with ID: $id", $currentUser->id);
             $office = Offices::findOrFail($id);
             $office->delete();
             return redirect()->back()->with('success', 'Office deleted successfully!');
         } catch (\Exception $e) {
+            // Log the error
+            $currentUser = Auth::user();
+            $this->logActivity('Delete', "Admin encountered an error while deleting office: " . $e->getMessage(), $currentUser->id);
             return redirect()->back()->with('error', 'Failed to delete office: ' . $e->getMessage());
         }
     }

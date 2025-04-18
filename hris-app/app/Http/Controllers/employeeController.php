@@ -13,9 +13,12 @@ use App\Models\Position;
 use Illuminate\Support\Facades\Hash;
 use App\Models\Departments;
 use App\Models\Offices;
+use Illuminate\Support\Facades\Auth;
+use App\Traits\LogsActivity;
 
 class EmployeeController extends Controller
 {
+    use LogsActivity;
 
     public function store(Request $request)
     {
@@ -100,10 +103,25 @@ class EmployeeController extends Controller
                 return response()->json(['message' => 'Leave status updated successfully!']);
             }
 
+            //logs
+            $currentUser = Auth::user();
+            $employee = $currentUser->employee;
+            $fullName = $employee
+                ? trim("{$employee->empPrefix} {$employee->empFname} {$employee->empMname} {$employee->empLname} {$employee->empSuffix}")
+                : 'Unknown Employee';
+            $this->logActivity('Create', "User $fullName created a new employee with ID {$request->input('empID', null)}.", $currentUser->id);
+
             return redirect()
                 ->route('employee_management')
                 ->with('success', 'Employee data saved successfully!');
         } catch (Exception $e) {
+            // Log the error
+            $currentUser = Auth::user();
+            $employee = $currentUser->employee;
+            $fullName = $employee
+                ? trim("{$employee->empPrefix} {$employee->empFname} {$employee->empMname} {$employee->empLname} {$employee->empSuffix}")
+                : 'Unknown Employee';
+            $this->logActivity('Create', "User $fullName encountered an error while creating employee: " . $e->getMessage(), $currentUser->id);
             logger()->error('Employee data save failed: ' . $e->getMessage());
 
             return redirect()
@@ -228,11 +246,24 @@ class EmployeeController extends Controller
                     }
                 }
             }
-
+            // Log the import activity (assuming you have a Logs model)
+            $currentUser = Auth::user();
+            $employee = $currentUser->employee;
+            $fullName = $employee
+                ? trim("{$employee->empPrefix} {$employee->empFname} {$employee->empMname} {$employee->empLname} {$employee->empSuffix}")
+                : 'Unknown Employee';
+            $this->logActivity('Import', "User $fullName imported employees successfully.", $currentUser->id);
             return redirect()
                 ->back()
                 ->with('success', 'Employees imported successfully!');
         } catch (Exception $e) {
+            // Log the error
+            $currentUser = Auth::user();
+            $employee = $currentUser->employee;
+            $fullName = $employee
+                ? trim("{$employee->empPrefix} {$employee->empFname} {$employee->empMname} {$employee->empLname} {$employee->empSuffix}")
+                : 'Unknown Employee';
+            $this->logActivity('Import', "User $fullName encountered an error while importing employees: " . $e->getMessage(), $currentUser->id);
             logger()->error('Failed to import employees: ' . $e->getMessage());
             return redirect()
                 ->back()
@@ -277,6 +308,13 @@ class EmployeeController extends Controller
                 'offices' => $offices,
             ]);
         } catch (Exception $e) {
+            // Log the error
+            $currentUser = Auth::user();
+            $employee = $currentUser->employee;
+            $fullName = $employee
+                ? trim("{$employee->empPrefix} {$employee->empFname} {$employee->empMname} {$employee->empLname} {$employee->empSuffix}")
+                : 'Unknown Employee';
+            $this->logActivity('Import', "User $fullName encountered an error while fetching employees: " . $e->getMessage(), $currentUser->id);
             logger()->error('Failed to fetch employees: ' . $e->getMessage());
             return redirect()
                 ->back()
@@ -352,8 +390,23 @@ class EmployeeController extends Controller
             $employee->fill($validated);
             $employee->save();
 
+            // Log the update activity (assuming you have a Logs model)
+            $currentUser = Auth::user();
+            $employee = $currentUser->employee;
+            $fullName = $employee
+                ? trim("{$employee->empPrefix} {$employee->empFname} {$employee->empMname} {$employee->empLname} {$employee->empSuffix}")
+                : 'Unknown Employee';
+            $this->logActivity('Update', "User $fullName updated employee with ID {$employee->empID}.", $currentUser->id);
+
             return redirect()->route('employee_management')->with('success', 'Employee updated successfully.');
         } catch (Exception $e) {
+            // Log the error
+            $currentUser = Auth::user();
+            $employee = $currentUser->employee;
+            $fullName = $employee
+                ? trim("{$employee->empPrefix} {$employee->empFname} {$employee->empMname} {$employee->empLname} {$employee->empSuffix}")
+                : 'Unknown Employee';
+            $this->logActivity('Update', "User $fullName encountered an error while updating employee: " . $e->getMessage(), $currentUser->id);
             logger()->error('Failed to update employee: ' . $e->getMessage());
             return redirect()
                 ->back()
@@ -369,6 +422,14 @@ class EmployeeController extends Controller
                 Storage::disk('public')->delete($employee->photo);
             }
 
+            //logs
+            $currentUser = Auth::user();
+            $employee = $currentUser->employee;
+            $fullName = $employee
+                ? trim("{$employee->empPrefix} {$employee->empFname} {$employee->empMname} {$employee->empLname} {$employee->empSuffix}")
+                : 'Unknown Employee';
+            $this->logActivity('Delete', "User $fullName deleted employee with ID {$employee->empID}.", $currentUser->id);
+
             // Delete the employee record
             $user = User::where('empID', $employee->empID)->first();
             if ($user) {
@@ -378,6 +439,13 @@ class EmployeeController extends Controller
             return redirect()->route('employee_management')
                 ->with('success', 'Employee deleted successfully');
         } catch (Exception $e) {
+            // Log the error
+            $currentUser = Auth::user();
+            $employee = $currentUser->employee;
+            $fullName = $employee
+                ? trim("{$employee->empPrefix} {$employee->empFname} {$employee->empMname} {$employee->empLname} {$employee->empSuffix}")
+                : 'Unknown Employee';
+            $this->logActivity('Delete', "User $fullName encountered an error while deleting employee: " . $e->getMessage(), $currentUser->id);
             logger()->error('Failed to delete employee: ' . $e->getMessage());
             return redirect()
                 ->back()

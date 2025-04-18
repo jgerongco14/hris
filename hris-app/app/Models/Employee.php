@@ -5,6 +5,8 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use App\Models\Leave;
+use Carbon\Carbon;
+
 
 class Employee extends Model
 {
@@ -19,6 +21,16 @@ class Employee extends Model
     protected $casts = [
         'children' => 'array',
     ];
+
+    public function getEmpBirthdateAttribute($value)
+    {
+        return $value ? Carbon::createFromFormat('d/m/Y', $value) : null;
+    }
+
+    public function setEmpBirthdateAttribute($value)
+    {
+        $this->attributes['empBirthdate'] = $value ? Carbon::parse($value)->format('d/m/Y') : null;
+    }
 
 
     // The attributes that are mass assignable

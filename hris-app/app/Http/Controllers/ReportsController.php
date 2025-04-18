@@ -7,11 +7,13 @@ use Exception;
 use App\Models\Reports;
 use App\Models\Employee;
 use Illuminate\Support\Facades\DB;
+use App\Traits\LogsActivity;
+use Illuminate\Support\Facades\Auth;
 
 
 class ReportsController extends Controller
 {
-
+    use LogsActivity;
     public function createReport(Request $request)
     {
         try {
@@ -60,10 +62,24 @@ class ReportsController extends Controller
                 'reason' => $reason,
                 'attachments' => json_encode($attachmentPaths),
             ]);
+            // Log the report creation activity
+            $currentUser = Auth::user();
+            $employeeActore = $currentUser->employee;
+            $fullName = $employee
+                    ? trim("{$employee->empPrefix} {$employee->empFname} {$employee->empMname} {$employee->empLname} {$employee->empSuffix}")
+                    : 'Unknown Employee';
 
-
+            $this->logActivity('Create', "User $fullName created a report for employee ID: $empID", $currentUser->id);
             return redirect()->back()->with('success', 'Report created successfully.');
         } catch (Exception $e) {
+
+            // Log the error
+            $currentUser = Auth::user();
+            $employeeActore = $currentUser->employee;
+            $fullName = $employeeActore
+                    ? trim("{$employeeActore->empPrefix} {$employeeActore->empFname} {$employeeActore->empMname} {$employeeActore->empLname} {$employeeActore->empSuffix}")
+                    : 'Unknown Employee';
+            $this->logActivity('Create', "User $fullName encountered an error while creating report: " . $e->getMessage(), $currentUser->id);
             return redirect()->back()->with('error', 'An error occurred while processing your request.' . $e->getMessage());
         }
     }
@@ -129,6 +145,13 @@ class ReportsController extends Controller
                 'resignedCount'
             ));
         } catch (Exception $e) {
+            // Log the error
+            $currentUser = Auth::user();
+            $employeeActore = $currentUser->employee;
+            $fullName = $employeeActore
+                    ? trim("{$employeeActore->empPrefix} {$employeeActore->empFname} {$employeeActore->empMname} {$employeeActore->empLname} {$employeeActore->empSuffix}")
+                    : 'Unknown Employee';
+            $this->logActivity('View', "User $fullName encountered an error while viewing reports: " . $e->getMessage(), $currentUser->id);
             return redirect()->back()->with('error', 'An error occurred while fetching the reports. ' . $e->getMessage());
         }
     }
@@ -139,6 +162,15 @@ class ReportsController extends Controller
     public function deleteReport($id)
     {
         try {
+            
+            //logs
+            $currentUser = Auth::user();
+            $employeeActore = $currentUser->employee;
+            $fullName = $employeeActore
+                    ? trim("{$employeeActore->empPrefix} {$employeeActore->empFname} {$employeeActore->empMname} {$employeeActore->empLname} {$employeeActore->empSuffix}")
+                    : 'Unknown Employee';
+            $this->logActivity('Delete', "User $fullName deleted a report with ID: $id", $currentUser->id);
+
             $report = Reports::findOrFail($id);
             $report->delete();
             return redirect()->back()->with('success', 'Report deleted successfully.');

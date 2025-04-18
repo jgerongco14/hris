@@ -10,14 +10,19 @@ use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Reader\Csv;
 use Illuminate\Support\Facades\Auth;
 use PhpOffice\PhpSpreadsheet\Reader\Exception;
+use App\Traits\LogsActivity;
+
+
 
 
 
 class AttendanceController extends Controller
 {
+    use LogsActivity;
     //hr attendance management
     public function import(Request $request)
     {
+
         try {
             $request->validate([
                 'attendance_file' => 'required|file|mimes:csv,xlsx,xls|max:2048',
@@ -89,11 +94,35 @@ class AttendanceController extends Controller
                 $counter++;
             }
 
+            // Log the import activity (assuming you have a Logs model)
+            $currentUser = Auth::user();
+            $employee = $currentUser->employee;
+
+            $fullName = $employee
+            ? trim("{$employee->empPrefix} {$employee->empFname} {$employee->empMname} {$employee->empLname} {$employee->empSuffix}")
+            : 'Unknown Employee';
+
+            $this->logActivity('Import', "User $fullName imported attendance successfully.", $currentUser->id);
+
             return redirect()->back()->with('success', 'Attendance data imported successfully.');
         } catch (Exception $e) {
+            // Log the error
+            $currentUser = Auth::user();
+            $employee = $currentUser->employee;
+            $fullName = $employee
+            ? trim("{$employee->empPrefix} {$employee->empFname} {$employee->empMname} {$employee->empLname} {$employee->empSuffix}")
+            : 'Unknown Employee';
+            $this->logActivity('Import', "User $fullName encountered an error while importing attendance: " . $e->getMessage(), $currentUser->id);
             logger()->error('Reader error: ' . $e->getMessage());
             return redirect()->back()->with('error', 'File type is unreadable.');
         } catch (\Exception $e) {
+            // Log the error
+            $currentUser = Auth::user();
+            $employee = $currentUser->employee;
+            $fullName = $employee
+            ? trim("{$employee->empPrefix} {$employee->empFname} {$employee->empMname} {$employee->empLname} {$employee->empSuffix}")
+            : 'Unknown Employee';
+            $this->logActivity('Import', "User $fullName encountered an error while importing attendance: " . $e->getMessage(), $currentUser->id);
             logger()->error('Import error: ' . $e->getMessage());
             return redirect()->back()->with('error', 'Something went wrong.');
         }

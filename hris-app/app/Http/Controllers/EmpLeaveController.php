@@ -8,10 +8,12 @@ use Exception;
 use App\Models\LeaveStatus;
 use App\Models\Leave;
 use Illuminate\Support\Facades\Auth;
+use App\Traits\LogsActivity;
 
 
 class EmpLeaveController extends Controller
 {
+    use LogsActivity;
 
     public function index()
     {
@@ -45,6 +47,14 @@ class EmpLeaveController extends Controller
 
             return view('pages.hr.leave_management', compact('tabs'));
         } catch (Exception $e) {
+            // Log the error message
+            $currentUser = Auth::user();
+            $employee = $currentUser->employee;
+            $fullName = $employee
+                ? trim("{$employee->empPrefix} {$employee->empFname} {$employee->empMname} {$employee->empLname} {$employee->empSuffix}")
+                : 'Unknown Employee';
+            $this->logActivity('Leave Management', "User $fullName encountered an error while fetching leave applications: " . $e->getMessage(), $currentUser->id);
+
             logger()->error('Failed to fetch leave applications: ' . $e->getMessage());
             return redirect()
                 ->back()
@@ -90,6 +100,13 @@ class EmpLeaveController extends Controller
 
             return view('pages.employee.leave', compact('tabs'));
         } catch (Exception $e) {
+            // Log the error message
+            $currentUser = Auth::user();
+            $employee = $currentUser->employee;
+            $fullName = $employee
+                ? trim("{$employee->empPrefix} {$employee->empFname} {$employee->empMname} {$employee->empLname} {$employee->empSuffix}")
+                : 'Unknown Employee';
+            $this->logActivity('Leave Management', "User $fullName encountered an error while fetching leave applications: " . $e->getMessage(), $currentUser->id);
             logger()->error('Failed to fetch leave details: ' . $e->getMessage());
             return response()->json([
                 'error' => 'Failed to fetch leave details',
@@ -148,6 +165,12 @@ class EmpLeaveController extends Controller
             ]);
         } catch (Exception $e) {
 
+            $currentUser = Auth::user();
+            $employee = $currentUser->employee;
+            $fullName = $employee
+                ? trim("{$employee->empPrefix} {$employee->empFname} {$employee->empMname} {$employee->empLname} {$employee->empSuffix}")
+                : 'Unknown Employee';
+            $this->logActivity('View', "User $fullName encountered an error while fetching leave details: " . $e->getMessage(), $currentUser->id);
             logger()->error('Failed to fetch leave details: ' . $e->getMessage());
 
             return redirect()
@@ -187,6 +210,12 @@ class EmpLeaveController extends Controller
 
             return response()->json($data);
         } catch (Exception $e) {
+            $currentUser = Auth::user();
+            $employee = $currentUser->employee;
+            $fullName = $employee
+                ? trim("{$employee->empPrefix} {$employee->empFname} {$employee->empMname} {$employee->empLname} {$employee->empSuffix}")
+                : 'Unknown Employee';
+            $this->logActivity('View', "User $fullName encountered an error while fetching leave details: " . $e->getMessage(), $currentUser->id);
 
             logger()->error('Failed to fetch leave details: ' . $e->getMessage());
 
@@ -290,11 +319,20 @@ class EmpLeaveController extends Controller
                 'empPayStatus' => $request->empPayStatus ?? 'Without Pay',
                 'updated_at' => now(),
             ]);
-
-            return response()->json([
-                'message' => 'Leave status updated successfully!',
-            ]);
+            $currentUser = Auth::user();
+            $employee = $currentUser->employee;
+            $fullName = $employee
+                ? trim("{$employee->empPrefix} {$employee->empFname} {$employee->empMname} {$employee->empLname} {$employee->empSuffix}")
+                : 'Unknown Employee';
+            $this->logActivity('Leave Management', "User $fullName updated leave status to $finalStatus for leave number {$request->empLeaveNo}", $currentUser->id);
+          return redirect()->back()->with('success', 'Leave status updated successfully!');
         } catch (Exception $e) {
+            $currentUser = Auth::user();
+            $employee = $currentUser->employee;
+            $fullName = $employee
+                ? trim("{$employee->empPrefix} {$employee->empFname} {$employee->empMname} {$employee->empLname} {$employee->empSuffix}")
+                : 'Unknown Employee';
+            $this->logActivity('Leave Management', "User $fullName encountered an error while updating leave status: " . $e->getMessage(), $currentUser->id);
             logger()->error('Leave status update failed: ' . $e->getMessage());
 
             return response()->json([
@@ -369,10 +407,23 @@ class EmpLeaveController extends Controller
                 'empLSRemarks' => json_encode($remarks),
             ]);
 
+            $currentUser = Auth::user();
+            $employee = $currentUser->employee;
+            $fullName = $employee
+                ? trim("{$employee->empPrefix} {$employee->empFname} {$employee->empMname} {$employee->empLname} {$employee->empSuffix}")
+                : 'Unknown Employee';
+            $this->logActivity('Create', "User $fullName submitted a leave application with ID $empLeaveNo", $currentUser->id);
+
             return redirect()
                 ->route('leave_application')
                 ->with('success', 'Leave application submitted successfully!');
         } catch (Exception $e) {
+            $currentUser = Auth::user();
+            $employee = $currentUser->employee;
+            $fullName = $employee
+                ? trim("{$employee->empPrefix} {$employee->empFname} {$employee->empMname} {$employee->empLname} {$employee->empSuffix}")
+                : 'Unknown Employee';
+            $this->logActivity('Create', "User $fullName encountered an error while submitting leave application: " . $e->getMessage(), $currentUser->id);
             logger()->error('Leave application failed: ' . $e->getMessage());
             return redirect()
                 ->back()
@@ -391,6 +442,12 @@ class EmpLeaveController extends Controller
                 'tabs' => null,
             ]);
         } catch (Exception $e) {
+            $currentUser = Auth::user();
+            $employee = $currentUser->employee;
+            $fullName = $employee
+                ? trim("{$employee->empPrefix} {$employee->empFname} {$employee->empMname} {$employee->empLname} {$employee->empSuffix}")
+                : 'Unknown Employee';
+            $this->logActivity('View', "User $fullName encountered an error while fetching leave details: " . $e->getMessage(), $currentUser->id);
             logger()->error('Failed to fetch leave details: ' . $e->getMessage());
             return redirect()
                 ->back()
@@ -467,10 +524,22 @@ class EmpLeaveController extends Controller
                 'empLSRemarks' => '',
                 'updated_at' => now(),
             ]);
+            $currentUser = Auth::user();
+            $employee = $currentUser->employee;
+            $fullName = $employee
+                ? trim("{$employee->empPrefix} {$employee->empFname} {$employee->empMname} {$employee->empLname} {$employee->empSuffix}")
+                : 'Unknown Employee';
+            $this->logActivity('Update', "User $fullName updated leave application with ID $id", $currentUser->id);
             return redirect()
                 ->route('leave_application')
                 ->with('success', 'Leave application updated successfully!');
         } catch (Exception $e) {
+            $currentUser = Auth::user();
+            $employee = $currentUser->employee;
+            $fullName = $employee
+                ? trim("{$employee->empPrefix} {$employee->empFname} {$employee->empMname} {$employee->empLname} {$employee->empSuffix}")
+                : 'Unknown Employee';
+            $this->logActivity('Update', "User $fullName encountered an error while updating leave application: " . $e->getMessage(), $currentUser->id);
             logger()->error('Leave status update failed: ' . $e->getMessage());
             return response()->json([
                 'error' => 'Failed to update leave status',

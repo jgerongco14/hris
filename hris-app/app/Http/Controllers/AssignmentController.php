@@ -7,10 +7,12 @@ use App\Models\Position;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Reader\Csv;
 use PhpOffice\PhpSpreadsheet\Reader\Exception;
+use Illuminate\Support\Facades\Auth;
+use App\Traits\LogsActivity;
 
 class AssignmentController extends Controller
 {
-
+    use LogsActivity;
     public function importPosition(Request $request)
     {
         try {
@@ -51,8 +53,16 @@ class AssignmentController extends Controller
                 ]);
             }
 
+            // Log the import activity (assuming you have a Logs model)
+            $currentUser = Auth::user();
+
+            $this->logActivity('Import', "Admin imported Positions successfully.", $currentUser->id);
+
+
             return redirect()->route('assignment_management')->with('success', 'Positions imported successfully!');
         } catch (Exception $e) {
+            $currentUser = Auth::user();
+            $this->logActivity('Import', "Admin an error occurs while importing positions." .$e->getMessage(), $currentUser->id);
             return redirect()->back()->with('error', 'Error occurred while importing positions: ' . $e->getMessage());
         }
     }
@@ -77,8 +87,14 @@ class AssignmentController extends Controller
             // Store the position in the database (assuming you have a Position model)
             Position::create($request->only('positionID', 'positionName', 'positionDescription'));
 
+            $currentUser = Auth::user();
+
+            $this->logActivity('Import', "Admin Added Positions successfully.", $currentUser->id);
+
             return redirect()->route('assignment_management')->with('success', 'Position added successfully!');
         } catch (\Exception $e) {
+            $currentUser = Auth::user();
+            $this->logActivity('Import', "Admin an error occurs while adding positions." .$e->getMessage(), $currentUser->id);
             return redirect()->back()->with('error', 'Error occurred while creating position: ' . $e->getMessage());
         }
     }
@@ -129,8 +145,14 @@ class AssignmentController extends Controller
             $position = Position::findOrFail($id);
             $position->update($request->only('positionID', 'positionName', 'positionDescription'));
 
+            // Log the update activity (assuming you have a Logs model)
+            $currentUser = Auth::user();
+            $this->logActivity('Import', "Admin updated Positions successfully.", $currentUser->id);
+
             return redirect()->route('assignment_management')->with('success', 'Position updated successfully!');
         } catch (\Exception $e) {
+            $currentUser = Auth::user();
+            $this->logActivity('Import', "Admin an error occurs while updating positions." .$e->getMessage(), $currentUser->id);
             return redirect()->back()->with('error', 'Error occurred while updating position: ' . $e->getMessage());
         }
     }
@@ -139,11 +161,16 @@ class AssignmentController extends Controller
     {
         // Delete the position by ID (assuming you have a Position model)
         try {
+           $currentUser = Auth::user();
+            $this->logActivity('Import', "Admin deleted Positions successfully.", $currentUser->id);
+
             $position = Position::findOrFail($id);
             $position->delete();
 
             return redirect()->route('assignment_management')->with('success', 'Position deleted successfully!');
         } catch (\Exception $e) {
+            $currentUser = Auth::user();
+            $this->logActivity('Import', "Admin an error occurs while deleting positions." .$e->getMessage(), $currentUser->id);
             return redirect()->back()->with('error', 'Error occurred while deleting position: ' . $e->getMessage());
         }
     }

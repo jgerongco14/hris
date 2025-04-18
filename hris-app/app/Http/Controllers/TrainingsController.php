@@ -6,9 +6,11 @@ use Illuminate\Http\Request;
 use App\Models\Trainings;
 use Exception;
 use Illuminate\Support\Facades\Auth;
+use App\Traits\LogsActivity;
 
 class TrainingsController extends Controller
 {
+    use LogsActivity;
     public function createTraining(Request $request)
     {
         try {
@@ -46,8 +48,22 @@ class TrainingsController extends Controller
                 'empTrainCertificate' => json_encode($attachmentPaths),
             ]);
 
+            // Log the activity
+            $currentUser = Auth::user();
+            $employee = $currentUser->employee;
+            $fullName = $employee
+            ? trim("{$employee->empPrefix} {$employee->empFname} {$employee->empMname} {$employee->empLname} {$employee->empSuffix}")
+            : 'Unknown Employee';
+            $this->logActivity('Create', "Employee $fullName created a training record.", $currentUser->id);
             return redirect()->back()->with('success', 'Training created successfully!');
         } catch (Exception $e) {
+            // Log the error
+            $currentUser = Auth::user();
+            $employee = $currentUser->employee;
+            $fullName = $employee
+            ? trim("{$employee->empPrefix} {$employee->empFname} {$employee->empMname} {$employee->empLname} {$employee->empSuffix}")
+            : 'Unknown Employee';
+            $this->logActivity('Error', "Employee $fullName encountered an error while creating training: " . $e->getMessage(), $currentUser->id);
             return redirect()->back()->with('error', 'Error creating training: ' . $e->getMessage());
         }
     }
@@ -61,7 +77,14 @@ class TrainingsController extends Controller
 
             return view('pages.employee.training', compact('trainings'));
         } catch (Exception $e) {
-            return redirect()->back()->with('error', 'Error fetching trainings: ' . $e->getMessage());
+            // Log the error
+            $currentUser = Auth::user();
+            $employee = $currentUser->employee;
+            $fullName = $employee
+            ? trim("{$employee->empPrefix} {$employee->empFname} {$employee->empMname} {$employee->empLname} {$employee->empSuffix}")
+            : 'Unknown Employee';
+            $this->logActivity('Error', "Employee $fullName encountered an error while fetching trainings: " . $e->getMessage(), $currentUser->id);
+            return redirect()->back()->with('error', 'Error fetching trainings');
         }
     }
 
@@ -71,7 +94,14 @@ class TrainingsController extends Controller
             $training = Trainings::findOrFail($id);
             return view('pages.employee.training_edit', compact('training'));
         } catch (Exception $e) {
-            return redirect()->back()->with('error', 'Error fetching training: ' . $e->getMessage());
+            // Log the error
+            $currentUser = Auth::user();
+            $employee = $currentUser->employee;
+            $fullName = $employee
+            ? trim("{$employee->empPrefix} {$employee->empFname} {$employee->empMname} {$employee->empLname} {$employee->empSuffix}")
+            : 'Unknown Employee';
+            $this->logActivity('Error', "Employee $fullName encountered an error while fetching training for edit: " . $e->getMessage(), $currentUser->id);
+            return redirect()->back()->with('error', 'Error fetching training:');
         }
     }
 
@@ -113,9 +143,23 @@ class TrainingsController extends Controller
                 'empTrainConductedBy' => $request->empTrainConductedBy,
                 'empTrainCertificate' => json_encode($finalFiles),
             ]);
-
+            
+            // Log the activity
+            $currentUser = Auth::user();
+            $employee = $currentUser->employee;
+            $fullName = $employee
+            ? trim("{$employee->empPrefix} {$employee->empFname} {$employee->empMname} {$employee->empLname} {$employee->empSuffix}")
+            : 'Unknown Employee';
+            $this->logActivity('Update', "Employee $fullName updated training record.", $currentUser->id);
             return redirect()->back()->with('success', 'Training updated successfully!');
         } catch (Exception $e) {
+            // Log the error
+            $currentUser = Auth::user();
+            $employee = $currentUser->employee;
+            $fullName = $employee
+            ? trim("{$employee->empPrefix} {$employee->empFname} {$employee->empMname} {$employee->empLname} {$employee->empSuffix}")
+            : 'Unknown Employee';
+            $this->logActivity('Error', "Employee $fullName encountered an error while updating training: " . $e->getMessage(), $currentUser->id);
             return redirect()->back()->with('error', 'Error updating training: ' . $e->getMessage());
         }
     }
@@ -123,11 +167,25 @@ class TrainingsController extends Controller
     public function deleteTraining($id)
     {
         try {
+            // Log the activity
+            $currentUser = Auth::user();
+            $employee = $currentUser->employee;
+            $fullName = $employee
+            ? trim("{$employee->empPrefix} {$employee->empFname} {$employee->empMname} {$employee->empLname} {$employee->empSuffix}")
+            : 'Unknown Employee';
+            $this->logActivity('Delete', "Employee $fullName deleted a training record.", $currentUser->id);
             $training = Trainings::findOrFail($id);
             $training->delete();
 
             return redirect()->back()->with('success', 'Training deleted successfully!');
         } catch (Exception $e) {
+            // Log the error
+            $currentUser = Auth::user();
+            $employee = $currentUser->employee;
+            $fullName = $employee
+            ? trim("{$employee->empPrefix} {$employee->empFname} {$employee->empMname} {$employee->empLname} {$employee->empSuffix}")
+            : 'Unknown Employee';
+            $this->logActivity('Error', "Employee $fullName encountered an error while deleting training: " . $e->getMessage(), $currentUser->id);
             return redirect()->back()->with('error', 'Error deleting training: ' . $e->getMessage());
         }
     }

@@ -8,11 +8,16 @@ use App\Models\Employee;
 use App\Models\Position;
 use App\Models\Departments;
 use App\Models\Offices;
+use Illuminate\Support\Facades\Auth;
+use App\Traits\LogsActivity;
+use App\Models\Programs;
 
 
 
 class AssignEmpController extends Controller
 {
+    use LogsActivity;
+
     public function empAssignment(Request $request)
     {
         try {
@@ -52,7 +57,6 @@ class AssignEmpController extends Controller
                     'officeCode'     => $officeCode,
                     'empHead'        => $empHead,
                 ]);
-
                 // Update all related positions if needed
                 foreach ($positions as $position) {
                     $empAssID = $position['empAssID'] ?? null;
@@ -120,8 +124,28 @@ class AssignEmpController extends Controller
                 ]);
             }
 
+            $currentUser = Auth::user();
+            $employee = $currentUser->employee;
+
+            $positionName = Position::find($positions[0]['positionID'] ?? null)->positionName ?? 'N/A';
+            $departmentName = Departments::find($departmentCode)->departmentName ?? 'N/A';
+            $programName = Programs::find($programCode)->programName ?? 'N/A';
+            $officeName = Offices::find($officeCode)->officeName ?? 'N/A';
+
+
+            $fullName = $employee
+                ? trim("{$employee->empPrefix} {$employee->empFname} {$employee->empMname} {$employee->empLname} {$employee->empSuffix}")
+                : 'Unknown Employee';
+
+            $this->logActivity('Assign', "User $fullName assigned $empID to $positionName $departmentName $programName $officeName successfully.", $currentUser->id);
+
+
             return redirect()->back()->with('success', 'Position assignment(s) saved successfully.');
         } catch (\Exception $e) {
+            $fullName = $employee
+                ? trim("{$employee->empPrefix} {$employee->empFname} {$employee->empMname} {$employee->empLname} {$employee->empSuffix}")
+                : 'Unknown Employee';
+            $this->logActivity('Error', "User $fullName an error occurred while assigning position: " . $e->getMessage(), Auth::id());
             return redirect()->back()->with('error', 'Error occurred while assigning position: ' . $e->getMessage());
         }
     }
@@ -153,22 +177,59 @@ class AssignEmpController extends Controller
 
     public function deletePosition($id)
     {
-        $assignment = EmpAssignment::findOrFail($id);
-        $assignment->update([
-            'positionID' => null,
-            'empAssAppointedDate' => null,
-            'empAssEndDate' => null,
-        ]);
+        try {
+            $assignment = EmpAssignment::findOrFail($id);
+            $assignment->update([
+                'positionID' => null,
+                'empAssAppointedDate' => null,
+                'empAssEndDate' => null,
+            ]);
 
-        return redirect()->back()->with('success', 'Assignment deleted successfully.');
+            $positionName = Position::find($assignment->positionID)->positionName ?? 'N/A';
+            $currentUser = Auth::user();
+            $employee = $currentUser->employee;
+
+
+            $fullName = $employee
+                ? trim("{$employee->empPrefix} {$employee->empFname} {$employee->empMname} {$employee->empLname} {$employee->empSuffix}")
+                : 'Unknown Employee';
+
+            $this->logActivity('Delete', "User $fullName deleted $positionName successfully.", $currentUser->id);
+
+            return redirect()->back()->with('success', 'Assignment deleted successfully.');
+        } catch (\Exception $e) {
+            $fullName = $employee
+                ? trim("{$employee->empPrefix} {$employee->empFname} {$employee->empMname} {$employee->empLname} {$employee->empSuffix}")
+                : 'Unknown Employee';
+            $this->logActivity('Error', "User $fullName an error occurred while deleting a position: " . $e->getMessage(), Auth::id());
+            return redirect()->back()->with('error', 'Error occurred while deleting position assignment: ');
+        }
     }
 
 
     public function deleteAssignment($id)
     {
-        $assignment = EmpAssignment::findOrFail($id);
-        $assignment->delete();
+        try {
+            $currentUser = Auth::user();
+            $employee = $currentUser->employee;
 
-        return redirect()->back()->with('success', 'Assignment deleted successfully.');
+
+            $fullName = $employee
+                ? trim("{$employee->empPrefix} {$employee->empFname} {$employee->empMname} {$employee->empLname} {$employee->empSuffix}")
+                : 'Unknown Employee';
+
+            $this->logActivity('Delete', "User $fullName deleted assignment successfully.", $currentUser->id);
+
+            $assignment = EmpAssignment::findOrFail($id);
+            $assignment->delete();
+
+            return redirect()->back()->with('success', 'Assignment deleted successfully.');
+        } catch (\Exception $e) {
+            $fullName = $employee
+                ? trim("{$employee->empPrefix} {$employee->empFname} {$employee->empMname} {$employee->empLname} {$employee->empSuffix}")
+                : 'Unknown Employee';
+            $this->logActivity('Error', "User $fullName an error occurred while deleting assignment: " . $e->getMessage(), Auth::id());
+            return redirect()->back()->with('error', 'Error occurred while deleting assignment: ' . $e->getMessage());
+        }
     }
 }

@@ -5,15 +5,15 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Contribution;
 use App\Models\Employee;
-use PhpOffice\PhpSpreadsheet\IOFactory;
-use PhpOffice\PhpSpreadsheet\Reader\Csv;
 use Carbon\Carbon;
 use Exception;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
+use App\Traits\LogsActivity;
 
 class EmpContributionController extends Controller
 {
+    use LogsActivity;
     public function store(Request $request)
     {
         try {
@@ -34,8 +34,23 @@ class EmpContributionController extends Controller
                 'payRefNo' => $request->payRefNo,
             ]);
 
+            // Log the activity
+            $currentUser = Auth::user();
+            $employee = $currentUser->employee;
+            $fullName = $employee
+            ? trim("{$employee->empPrefix} {$employee->empFname} {$employee->empMname} {$employee->empLname} {$employee->empSuffix}")
+            : 'Unknown Employee';
+
+            $this->logActivity('Create', "User $fullName added a new contribution.", $currentUser->id);
+
             return redirect()->back()->with('success', 'Contribution successfully added.');
         } catch (\Exception $e) {
+            $currentUser = Auth::user();
+            $employee = $currentUser->employee;
+            $fullName = $employee
+            ? trim("{$employee->empPrefix} {$employee->empFname} {$employee->empMname} {$employee->empLname} {$employee->empSuffix}")
+            : 'Unknown Employee';
+            $this->logActivity('Create', "User $fullName encountered an error while adding a contribution: " . $e->getMessage(), $currentUser->id);
             return redirect()->back()->with('error', 'Error occurred while adding contribution: ' . $e->getMessage());
         }
     }
@@ -157,8 +172,23 @@ class EmpContributionController extends Controller
                 }
             }
 
+            // Log the import activity
+            $currentUser = Auth::user();
+            $employee = $currentUser->employee;
+            $fullName = $employee
+            ? trim("{$employee->empPrefix} {$employee->empFname} {$employee->empMname} {$employee->empLname} {$employee->empSuffix}")
+            : 'Unknown Employee';
+            $this->logActivity('Import', "User $fullName imported contributions successfully.", $currentUser->id);
+
             return redirect()->back()->with('success', 'Contributions successfully imported.');
         } catch (\Exception $e) {
+            // Log the error
+            $currentUser = Auth::user();
+            $employee = $currentUser->employee;
+            $fullName = $employee
+            ? trim("{$employee->empPrefix} {$employee->empFname} {$employee->empMname} {$employee->empLname} {$employee->empSuffix}")
+            : 'Unknown Employee';
+            $this->logActivity('Import', "User $fullName encountered an error while importing contributions: " . $e->getMessage(), $currentUser->id);
             Log::error("Import error: " . $e->getMessage());
             return redirect()->back()->with('error', 'Error importing: ' . $e->getMessage());
         }
@@ -205,6 +235,13 @@ class EmpContributionController extends Controller
                 'activeType' // for keeping tab active in Blade
             ));
         } catch (\Exception $e) {
+            // Log the error
+            $currentUser = Auth::user();
+            $employee = $currentUser->employee;
+            $fullName = $employee
+            ? trim("{$employee->empPrefix} {$employee->empFname} {$employee->empMname} {$employee->empLname} {$employee->empSuffix}")
+            : 'Unknown Employee';
+            $this->logActivity('View', "User $fullName encountered an error while viewing contributions: " . $e->getMessage(), $currentUser->id);
             return redirect()->back()->with('error', 'Error: ' . $e->getMessage());
         }
     }
@@ -314,8 +351,25 @@ class EmpContributionController extends Controller
             $tempFile = tempnam(sys_get_temp_dir(), 'cert');
             $templateProcessor->saveAs($tempFile);
 
+            // Log the export activity
+            $currentUser = Auth::user();
+            $employee = $currentUser->employee;
+            $actorfullName = $employee
+            ? trim("{$employee->empPrefix} {$employee->empFname} {$employee->empMname} {$employee->empLname} {$employee->empSuffix}")
+            : 'Unknown Employee';
+            $this->logActivity('Export', "User $actorfullName exported contributions for $fullName", $currentUser->id);
+
+
             return response()->download($tempFile, $fileName)->deleteFileAfterSend(true);
         } catch (Exception $e) {
+            // Log the error
+            $currentUser = Auth::user();
+            $employee = $currentUser->employee;
+            $actorfullName = $employee
+            ? trim("{$employee->empPrefix} {$employee->empFname} {$employee->empMname} {$employee->empLname} {$employee->empSuffix}")
+            : 'Unknown Employee';
+            $this->logActivity('Export', "User $actorfullName encountered an error while exporting contributions: " . $e->getMessage(), $currentUser->id);
+
             return back()->with('error', 'Error generating document: ' . $e->getMessage());
         }
     }
@@ -355,6 +409,15 @@ class EmpContributionController extends Controller
                 'empPRNo' => $validatedData['empPRNo'] ?? null,
             ]);
 
+            // Log the update activity
+            $currentUser = Auth::user();
+            $employee = $currentUser->employee;
+            $fullName = $employee
+            ? trim("{$employee->empPrefix} {$employee->empFname} {$employee->empMname} {$employee->empLname} {$employee->empSuffix}")
+            : 'Unknown Employee';
+            $this->logActivity('Update', "User $fullName updated user {$contribution->empID} contribution.", $currentUser->id);
+
+
             return redirect()->route('contribution.management', [
                 'contribution_type' => $request->input('contribution_type', 'SSS'),  // Pass the current contribution type
                 'search' => $request->input('search')  // Optionally pass any search filters back
@@ -363,6 +426,13 @@ class EmpContributionController extends Controller
             // Pass the validation error to the session
             return redirect()->back()->with('error', 'Validation failed: ' . implode(", ", $e->errors()));
         } catch (\Exception $e) {
+            // Log the error
+            $currentUser = Auth::user();
+            $employee = $currentUser->employee;
+            $fullName = $employee
+            ? trim("{$employee->empPrefix} {$employee->empFname} {$employee->empMname} {$employee->empLname} {$employee->empSuffix}")
+            : 'Unknown Employee';
+            $this->logActivity('Update', "User $fullName encountered an error while updating contribution: " . $e->getMessage(), $currentUser->id);
             Log::error('Error updating contribution: ' . $e->getMessage());
             return redirect()->back()->with('error', 'Error occurred while updating the contribution: ' . $e->getMessage());
         }
@@ -372,11 +442,25 @@ class EmpContributionController extends Controller
     public function destroy($id)
     {
         try {
+            // Log the delete activity
+            $currentUser = Auth::user();
+            $employee = $currentUser->employee;
+            $fullName = $employee
+            ? trim("{$employee->empPrefix} {$employee->empFname} {$employee->empMname} {$employee->empLname} {$employee->empSuffix}")
+            : 'Unknown Employee';
+            $this->logActivity('Delete', "User $fullName deleted user {$id} contribution.", $currentUser->id);
             $contribution = Contribution::findOrFail($id);
             $contribution->delete();
 
             return redirect()->route('contribution.management')->with('success', 'Contribution successfully deleted.');
         } catch (\Exception $e) {
+            // Log the error
+            $currentUser = Auth::user();
+            $employee = $currentUser->employee;
+            $fullName = $employee
+            ? trim("{$employee->empPrefix} {$employee->empFname} {$employee->empMname} {$employee->empLname} {$employee->empSuffix}")
+            : 'Unknown Employee';
+            $this->logActivity('Delete', "User $fullName encountered an error while deleting contribution: " . $e->getMessage(), $currentUser->id);
             return redirect()->back()->with('error', 'Error occurred while deleting the contribution: ' . $e->getMessage());
         }
     }
@@ -419,6 +503,13 @@ class EmpContributionController extends Controller
                 'activeType'  // Active type passed for tab highlighting
             ));
         } catch (\Exception $e) {
+            // Log the error
+            $currentUser = Auth::user();
+            $employee = $currentUser->employee;
+            $fullName = $employee
+            ? trim("{$employee->empPrefix} {$employee->empFname} {$employee->empMname} {$employee->empLname} {$employee->empSuffix}")
+            : 'Unknown Employee';
+            $this->logActivity('View', "User $fullName encountered an error while viewing contributions: " . $e->getMessage(), $currentUser->id);
             return redirect()->back()->with('error', 'Error occurred while fetching contributions: ' . $e->getMessage());
         }
     }
