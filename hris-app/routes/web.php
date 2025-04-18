@@ -15,6 +15,7 @@ use App\Http\Controllers\LogsController;
 use App\Http\Controllers\OfficeController;
 use App\Http\Controllers\ReportsController;
 use App\Http\Controllers\TrainingsController;
+use App\Http\Controllers\FinanceController;
 
 Route::group(['middleware' => ['prevent-back-history']], function () {
     // Your routes that should be protected from back history
@@ -188,5 +189,13 @@ Route::group(['middleware' => ['prevent-back-history']], function () {
             Route::put('/offices/{id}', [OfficeController::class, 'updateOffice'])->name('offices.update');
             Route::delete('/{id}', [OfficeController::class, 'deleteOffice'])->name('offices.destroy');
         });
+
+        // Finance
+
+        Route::prefix('finance')->group(function () {
+            Route::get('/', [FinanceController::class, 'displayEmployees'])->name('finance');
+            Route::put('/finance/rvm/update/{id}', [FinanceController::class, 'updateRvm'])->name('finance.updateRvm');
+        });
+
     });
 });

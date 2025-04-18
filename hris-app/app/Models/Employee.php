@@ -134,4 +134,12 @@ class Employee extends Model
     {
         return $this->hasMany(Trainings::class, 'empID', 'empID');
     }
+    public function isAssignedToOfficeByName($officeName)
+    {
+        return $this->assignments()
+            ->whereHas('office', function ($query) use ($officeName) {
+                $query->where('officeName', $officeName);
+            })
+            ->exists();
+    }
 }

@@ -183,8 +183,8 @@
                                 </div>
                                 <div class="col">
                                     <h5>Birthday</h5>
-                                    <span class="profile-text" id="birthdayText"><?php echo e($employee->empBirthdate ? \Carbon\Carbon::parse($employee->empBirthdate)->format('F d, Y') : ''); ?></span>
-                                    <input type="date" class="form-control profile-input d-none" id="birthdayInput" name="empBdate" value="<?php echo e($employee->empBirthdate ? \Carbon\Carbon::parse($employee->empBirthdate)->format('Y-m-d') : ''); ?>">
+                                    <span class="profile-text" id="birthdayText"><?php echo e($employee->empBirthdate ? \Carbon\Carbon::createFromFormat('d/m/Y', $employee->empBirthdate)->format('F d, Y') : ''); ?></span>
+                                    <input type="date" class="form-control profile-input d-none" id="birthdayInput" name="empBdate" value="<?php echo e($employee->empBirthdate ? \Carbon\Carbon::createFromFormat('d/m/Y', $employee->empBirthdate)->format('Y-m-d') : ''); ?>">
                                 </div>
                                 <div class="col">
                                     <h5>Civil Status</h5>
@@ -286,8 +286,8 @@
                                 </div>
                                 <div class="col">
                                     <h5>Birh Date of Spouse</h5>
-                                    <span class="profile-text" id="spouseBdateText"><?php echo e($employee->empSpouseBdate ? \Carbon\Carbon::parse($employee->empSpouseBdate)->format('F d, Y') : ''); ?></span>
-                                    <input type="date" class="form-control profile-input d-none" id="spouseBdateInput" name="empSpouseBdate" value="<?php echo e($employee->empSpouseBdate ? \Carbon\Carbon::parse($employee->empSpouseBdate)->format('Y-m-d') : ''); ?>">
+                                    <span class="profile-text" id="spouseBdateText"><?php echo e($employee->empSpouseBdate ? \Carbon\Carbon::createFromFormat('d/m/Y', $employee->empSpouseBdate)->format('F d, Y') : ''); ?></span>
+                                    <input type="date" class="form-control profile-input d-none" id="spouseBdateInput" name="empSpouseBdate" value="<?php echo e($employee->empSpouseBdate ? \Carbon\Carbon::createFromFormat('d/m/Y', $employee->empSpouseBdate)->format('Y-m-d') : ''); ?>">
                                 </div>
                             </div>
                             <div class="row">

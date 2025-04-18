@@ -9,6 +9,7 @@
     $showAll = $role === 'superadmin';
     $isHeadOfOffice = Auth::user()->employee?->assignments()->where('empHead', 1)->exists();
     $hasVPAccess = Auth::user()->employee?->hasPosition(['President', 'Vice President of Academic Affairs', 'VP Finance']);
+    $isFinanceEmployee = Auth::user()->employee?->isAssignedToOfficeByName('Finance');
     ?>
 
     <ul class="nav nav-pills flex-column mb-auto">
@@ -128,6 +129,17 @@
         </li>
         <?php endif; ?>
         <?php endif; ?>
+
+        
+        <?php if($isFinanceEmployee): ?>
+        <li>
+            <a href="<?php echo e(route('finance')); ?>" class="nav-link d-flex align-items-center gap-2 <?php echo e(request()->routeIs('finance') ? 'active' : 'link-dark'); ?>">
+                <i class="ri-building-line" style="font-size: 25px;"></i>
+                <span>RVM</span>
+            </a>
+        </li>
+        <?php endif; ?>
+
     </ul>
     <ul class="nav nav-pills flex-column mt-auto">
         <li>
