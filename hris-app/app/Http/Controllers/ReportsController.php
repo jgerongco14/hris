@@ -75,15 +75,22 @@ class ReportsController extends Controller
             $employeeSearch = $request->input('employee_search');
             $reportSearch = $request->input('report_search');
 
-            $employees = Employee::when($employeeSearch, function ($query) use ($employeeSearch) {
-                $query->where('empID', 'like', "%$employeeSearch%")
-                    ->orWhere('empFname', 'like', "%$employeeSearch%")
-                    ->orWhere('empLname', 'like', "%$employeeSearch%");
+            $employees = Employee::whereHas('user', function ($query) {
+                $query->where('role', '!=', 'admin');
             })
+                ->when($employeeSearch, function ($query) use ($employeeSearch) {
+                    $query->where('empID', 'like', "%$employeeSearch%")
+                        ->orWhere('empFname', 'like', "%$employeeSearch%")
+                        ->orWhere('empLname', 'like', "%$employeeSearch%");
+                })
                 ->paginate(10)
                 ->appends(['employee_search' => $employeeSearch]);
 
-            $reports = Reports::with('employee')
+            $reports = Reports::with(['employee' => function ($query) {
+                $query->whereHas('user', function ($q) {
+                    $q->where('role', '!=', 'admin');
+                });
+            }])
                 ->when($reportSearch, function ($query) use ($reportSearch) {
                     $query->whereHas('employee', function ($subQuery) use ($reportSearch) {
                         $subQuery->where('empID', 'like', "%$reportSearch%")
@@ -94,18 +101,24 @@ class ReportsController extends Controller
                 ->paginate(10)
                 ->appends(['report_search' => $reportSearch]);
 
-            // Compute summary counts based on latest report per employee
             $latestReports = Reports::select('empID', DB::raw('MAX(id) as latest_id'))
                 ->groupBy('empID')
                 ->pluck('latest_id');
 
-            $activeCount = Employee::whereNull('status')
-                ->orWhereRaw('LOWER(status) = ?', ['active'])
+            $activeCount = Employee::whereHas('user', function ($query) {
+                $query->where('role', '!=', 'admin');
+            })
+                ->where(function ($query) {
+                    $query->whereNull('status')
+                        ->orWhereRaw('LOWER(status) = ?', ['active']);
+                })
                 ->count();
 
-            $resignedCount = Employee::whereRaw('LOWER(status) = ?', ['resigned'])
+            $resignedCount = Employee::whereHas('user', function ($query) {
+                $query->where('role', '!=', 'admin');
+            })
+                ->whereRaw('LOWER(status) = ?', ['resigned'])
                 ->count();
-
 
             return view('pages.hr.reports', compact(
                 'employees',
@@ -119,6 +132,7 @@ class ReportsController extends Controller
             return redirect()->back()->with('error', 'An error occurred while fetching the reports. ' . $e->getMessage());
         }
     }
+
 
 
 
