@@ -9,6 +9,40 @@
         </div>
         <div class="card-body">
 
+            <div class="row">
+                <div class="col mb-3">
+                    <label for="empPersonelStatus" class="form-label">Personnel Status</label>
+                    <select name="empPersonelStatus" id="empPersonelStatus" class="form-select" required>
+                        <option value="" disabled <?php echo e(old('empPersonelStatus') ? '' : 'selected'); ?>>Select Personnel Status</option>
+                        <option value="Full-Time" <?php echo e(old('empPersonelStatus') == 'Full-Time' ? 'selected' : ''); ?>>Full-Time</option>
+                        <option value="Part-Time" <?php echo e(old('empPersonelStatus') == 'Part-Time' ? 'selected' : ''); ?>>Part-Time</option>
+                        <option value="Contractual" <?php echo e(old('empPersonelStatus') == 'Contractual' ? 'selected' : ''); ?>>Contractual</option>
+                        <option value="Probationary" <?php echo e(old('empPersonelStatus') == 'Probationary' ? 'selected' : ''); ?>>Probationary</option>
+                    </select>
+                </div>
+
+                <div class="col mb-3">
+                    <label for="empEmployeerName" class="form-label">Name of the Employer</label>
+                    <input type="text" class="form-control" id="empEmployeerName" name="empEmployeerName" value="<?php echo e(old('empEmployeerName')); ?>">
+                </div>
+
+                <div class="col mb-3">
+                    <label for="empEmployeerAddress" class="form-label">Employer Address</label>
+                    <input type="text" class="form-control" id="empEmployeerAddress" name="empEmployeerAddress" value="<?php echo e(old('empEmployeerAddress')); ?>">
+                </div>
+
+
+                <div class="col mb-3">
+                    <label for="empDateHired" class="form-label">Date Hired</label>
+                    <input type="date" class="form-control" id="empDateHired" name="empDateHired" value="<?php echo e(old('empDateHired', $employee->empDateHired ?? '')); ?>">
+                </div>
+                <div class="col mb-3">
+                    <label for="empDateResigned" class="form-label">Date Resigned</label>
+                    <input type="date" class="form-control" id="empDateResigned" name="empDateResigned" value="<?php echo e(old('empDateResigned', $employee->empDateResigned ?? '')); ?>">
+                </div>
+
+            </div>
+
 
             <div class="row">
 
@@ -44,7 +78,7 @@
 
             <div class="row">
 
-                <div class="col-4 mb-3">
+                <div class="col mb-3">
                     <label for="photo" class="form-label">Profile Picture</label>
 
                     <?php if(!empty($employee->photo)): ?>
@@ -65,28 +99,61 @@
                 </div>
 
 
-                <div class="col-4 mb-3">
+                <div class="col mb-3">
                     <label class="form-label">Gender</label>
                     <div class="d-flex align-items-center">
                         <div class="form-check me-3">
-                            <input class="form-check-input" type="radio" id="male" name="empGender" value="male" <?php echo e(old('empGender', $employee->empGender ?? '') == 'male' ? 'checked' : ''); ?>>
-                            <label class="form-check-label" for="male">Male</label>
+                            <input class="form-check-input" type="radio" id="Male" name="empGender" value="Male"
+                                <?php echo e(old('empGender', $employee->empGender ?? '') === 'Male' ? 'checked' : ''); ?>>
+                            <label class="form-check-label" for="Male">Male</label>
                         </div>
                         <div class="form-check">
-                            <input class="form-check-input" type="radio" id="female" name="empGender" value="female" <?php echo e(old('empGender', $employee->empGender ?? '') == 'female' ? 'checked' : ''); ?>>
-                            <label class="form-check-label" for="female">Female</label>
+                            <input class="form-check-input" type="radio" id="Female" name="empGender" value="Female"
+                                <?php echo e(old('empGender', $employee->empGender ?? '') === 'Female' ? 'checked' : ''); ?>>
+                            <label class="form-check-label" for="Female">Female</label>
                         </div>
                     </div>
                 </div>
 
 
 
-                <div class="col-4 mb-3">
+                <div class="col mb-3">
                     <label for="empBirthdate" class="form-label">Birthdate</label>
                     <div class="input-group">
                         <span class="input-group-text"><i class="ri-calendar-line"></i></span>
                         <input type="text" class="form-control datepicker" id="empBirthdate" name="empBirthdate" value="<?php echo e(old('empBirthdate')); ?>" readonly required>
                     </div>
+                </div>
+
+                <div class="col">
+                    <label for="empContactNo" class="form-label">Contact Number</label>
+                    <input type="text" class="form-control" id="empContactNo" name="empContactNo" value="<?php echo e(old('empContactNo')); ?>">
+                </div>
+                <div class="col">
+                    <label for="empCivilStatus" class="form-label">Civil Status</label>
+                    <select name="empCivilStatus" id="empCivilStatus" class="form-select">
+                        <option value="" disabled <?php echo e(old('empCivilStatus') ? '' : 'selected'); ?>>Select Civil Status</option>
+                        <option value="Single" <?php echo e(old('empCivilStatus') == 'Single' ? 'selected' : ''); ?>>Single</option>
+                        <option value="Married" <?php echo e(old('empCivilStatus') == 'Married' ? 'selected' : ''); ?>>Married</option>
+                        <option value="Widowed" <?php echo e(old('empCivilStatus') == 'Widowed' ? 'selected' : ''); ?>>Widowed</option>
+                        <option value="Divorced" <?php echo e(old('empCivilStatus') == 'Divorced' ? 'selected' : ''); ?>>Divorced</option>
+                        <option value="Separated" <?php echo e(old('empCivilStatus') == 'Separated' ? 'selected' : ''); ?>>Separated</option>
+                    </select>
+                </div>
+
+                <div class="col">
+                    <label for="empBloodType" class="form-label">Blood Type</label>
+                    <select name="empBloodType" id="empBloodType" class="form-select">
+                        <option value="" disabled <?php echo e(old('empBloodType') ? '' : 'selected'); ?>>Select Blood Type</option>
+                        <option value="A+" <?php echo e(old('empBloodType') == 'A+' ? 'selected' : ''); ?>>A+</option>
+                        <option value="A-" <?php echo e(old('empBloodType') == 'A-' ? 'selected' : ''); ?>>A-</option>
+                        <option value="B+" <?php echo e(old('empBloodType') == 'B+' ? 'selected' : ''); ?>>B+</option>
+                        <option value="B-" <?php echo e(old('empBloodType') == 'B-' ? 'selected' : ''); ?>>B-</option>
+                        <option value="O+" <?php echo e(old('empBloodType') == 'O+' ? 'selected' : ''); ?>>O+</option>
+                        <option value="O-" <?php echo e(old('empBloodType') == 'O-' ? 'selected' : ''); ?>>O-</option>
+                        <option value="AB+" <?php echo e(old('empBloodType') == 'AB+' ? 'selected' : ''); ?>>AB+</option>
+                        <option value="AB-" <?php echo e(old('empBloodType') == 'AB-' ? 'selected' : ''); ?>>AB-</option>
+                    </select>
                 </div>
 
             </div>
@@ -127,6 +194,21 @@
                 <div class="col-md-4 mb-3">
                     <label for="empPagIbigNum" class="form-label">Pag-Ibig Number</label>
                     <input type="text" class="form-control" id="empPagIbigNum" name="empPagIbigNum" value="<?php echo e(old('empPagIbigNum')); ?>">
+                </div>
+            </div>
+
+            <div class="row my-4">
+                <div class="col">
+                    <label for="empEmergencyContactName" class="form-label">Contact Name</label>
+                    <input type="text" class="form-control" id="empEmergencyContactName" name="empEmergencyContactName" value="<?php echo e(old('empEmergencyContactName')); ?>">
+                </div>
+                <div class="col">
+                    <label for="empEmergencyContactNo" class="form-label">Contact Number</label>
+                    <input type="text" class="form-control" id="empEmergencyContactNo" name="empEmergencyContactNo" value="<?php echo e(old('empEmergencyContactNo')); ?>">
+                </div>
+                <div class="col">
+                    <label for="empEmergencyContactAddress" class="form-label">Address</label>
+                    <input type="text" class="form-control" id="empEmergencyContactAddress" name="empEmergencyContactAddress" value="<?php echo e(old('empEmergencyContactAddress')); ?>">
                 </div>
             </div>
 
@@ -378,7 +460,30 @@
     </div>
 </div>
 
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const empPersonelStatus = document.getElementById('empPersonelStatus');
+        const employerName = document.getElementById('empEmployerName');
+        const employerAddress = document.getElementById('empEmployerAddress');
 
-</div>
+        function toggleEmployerFields() {
+            const isPartTime = empPersonelStatus.value === 'Part-Time';
 
-</div><?php /**PATH C:\Projects\hris\hris-app\resources\views/pages/hr/components/employee_list.blade.php ENDPATH**/ ?>
+            employerName.required = isPartTime;
+            employerAddress.required = isPartTime;
+
+            if (isPartTime) {
+                employerName.closest('.col').querySelector('label').innerHTML = 'Name of the Employer <span class="text-danger">*</span>';
+                employerAddress.closest('.col').querySelector('label').innerHTML = 'Employer Address <span class="text-danger">*</span>';
+            } else {
+                employerName.closest('.col').querySelector('label').innerHTML = 'Name of the Employer';
+                employerAddress.closest('.col').querySelector('label').innerHTML = 'Employer Address';
+            }
+        }
+
+        personnelStatus.addEventListener('change', toggleEmployerFields);
+
+        // Trigger once on load
+        toggleEmployerFields();
+    });
+</script><?php /**PATH C:\Projects\hris\hris-app\resources\views/pages/hr/components/employee_list.blade.php ENDPATH**/ ?>

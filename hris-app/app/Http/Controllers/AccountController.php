@@ -161,8 +161,8 @@ class AccountController extends Controller
             }
 
             // If employee or HR and it's the first Google login, create or update profile
-            if (in_array($user->role, ['employee', 'hr']) && $isFirstGoogleLogin) {
-                $existingEmployee = \App\Models\Employee::where('user_id', $user->id)
+            if (in_array($user->role, ['employee', 'hr', 'admin']) && $isFirstGoogleLogin) {
+                $existingEmployee = Employee::where('user_id', $user->id)
                     ->orWhere('empID', $user->empID)
                     ->first();
 

@@ -50,6 +50,7 @@ class ProfileController extends Controller
 
             $validatedData = $request->validate([
                 'empID' => 'required|string|max:255',
+                'email' => 'nullable|email|max:255|unique:users,email,' . $user->id,
                 'empPrefix' => 'nullable|string|max:10',
                 'empFirstName' => 'required|string|max:255',
                 'empMiddleName' => 'nullable|string|max:255',
@@ -64,7 +65,43 @@ class ProfileController extends Controller
                 'empSSS' => 'nullable|string|max:50',
                 'empPagibig' => 'nullable|string|max:50',
                 'empTIN' => 'nullable|string|max:50',
+                'empCivilStatus' => 'nullable|string|max:50',
+                'empBloodType' => 'nullable|string|max:10',
+                'empContactNo' => 'nullable|string|max:20',
+                'empFatherName' => 'nullable|string|max:100',
+                'empMotherName' => 'nullable|string|max:100',
+                'empSpouseName' => 'nullable|string|max:100',
+                'empSpouseBdate' => 'nullable|date',
+                'children' => 'nullable|array',
+                'children.*.name' => 'nullable|string|max:255',
+                'children.*.birthdate' => 'nullable|date',
+                'empEmergencyContactName' => 'nullable|string|max:100',
+                'empEmergencyContactAddress' => 'nullable|string|max:500',
+                'empEmergencyContactNo' => 'nullable|string|max:20',
             ]);
+
+            $childrenData = $request->input('children', []);
+            $formattedChildren = [];
+
+            foreach ($childrenData as $child) {
+                // Include only if name or birthdate is filled
+                if (!empty($child['name']) || !empty($child['birthdate'])) {
+                    $formattedChildren[] = [
+                        'name' => $child['name'] ?? null,
+                        'birthdate' => $child['birthdate'] ?? null,
+                    ];
+                }
+            }
+
+
+            $user = Auth::user();
+            if ($user instanceof \App\Models\User && !empty($validatedData['email']) && $validatedData['email'] !== $user->email) {
+                $user->email = $validatedData['email'];
+                $user->google_id = null;
+                $user->save(); 
+            }
+
+
 
             $employee->update([
                 'empID' => $validatedData['empID'],
@@ -82,6 +119,18 @@ class ProfileController extends Controller
                 'empSSSNum' => $validatedData['empSSS'],
                 'empPagIbigNum' => $validatedData['empPagibig'],
                 'empTinNum' => $validatedData['empTIN'],
+                'empCivilStatus' => $validatedData['empCivilStatus'],
+                'empBloodType' => $validatedData['empBloodType'],
+                'empContactNo' => $validatedData['empContactNo'],
+                'empFatherName' => $validatedData['empFatherName'],
+                'empMotherName' => $validatedData['empMotherName'],
+                'empSpouseName' => $validatedData['empSpouseName'],
+                'empSpouseBdate' => $validatedData['empSpouseBdate'],
+                'empChildrenName' => json_encode(array_column($formattedChildren, 'name')),
+                'empChildrenBdate' => json_encode(array_column($formattedChildren, 'birthdate')),
+                'empEmergencyContactName' => $validatedData['empEmergencyContactName'],
+                'empEmergencyContactAddress' => $validatedData['empEmergencyContactAddress'],
+                'empEmergencyContactNo' => $validatedData['empEmergencyContactNo'],
             ]);
 
             return redirect()->back()->with('success', 'Profile updated successfully.');

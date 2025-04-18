@@ -258,11 +258,27 @@
                     $('#empPagIbigNum').val(employee.empPagIbigNum);
                     $('#empBirthdate').val(employee.empBirthdate);
 
-                    if (employee.empGender === 'male') {
-                        $('#male').prop('checked', true);
-                    } else if (employee.empGender === 'female') {
-                        $('#female').prop('checked', true);
+                    if (employee.empGender === 'Male') {
+                        $('#Male').prop('checked', true);
+                    } else if (employee.empGender === 'Female') {
+                        $('#Female').prop('checked', true);
                     }
+
+                    $('#empDateHired').val(employee.empDateHired);
+                    $('#empDateResigned').val(employee.empDateResigned);
+                    $('#empPersonelStatus').val(employee.empPersonelStatus);
+                    $('#empEmployeerName').val(employee.empEmployeerName);
+                    $('#empEmployeerAddress').val(employee.empEmployeerAddress);
+                    $('#empContactNo').val(employee.empContactNo);
+                    $('#empCivilStatus').val(employee.empCivilStatus);
+                    $('#empBloodType').val(employee.empBloodType);
+                    $('#empEmployerName').val(employee.empEmployeerName); // note: correct spelling
+                    $('#empEmployerAddress').val(employee.empEmployeerAddress);
+
+                    $('#empEmergencyContactName').val(employee.empEmergencyContactName);
+                    $('#empEmergencyContactNo').val(employee.empEmergencyContactNo);
+                    $('#empEmergencyContactAddress').val(employee.empEmergencyContactAddress);
+
                 })
                 .catch(error => {
                     showToast('Error', 'Failed to load employee data', 'danger');

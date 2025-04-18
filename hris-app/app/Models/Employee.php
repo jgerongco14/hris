@@ -16,6 +16,11 @@ class Employee extends Model
     // Primary key column name
     protected $primaryKey = 'id';
 
+    protected $casts = [
+        'children' => 'array',
+    ];
+
+
     // The attributes that are mass assignable
     protected $fillable = [
         'id',
@@ -37,8 +42,44 @@ class Employee extends Model
         'empPagIbigNum',
         'photo',
         'role',
+        'empCivilStatus',
+        'empBloodType',
+        'empContactNo',
+        'empRVMRetirementNo',
+        'empBPIATMAccountNo',
+        'empDateHired',
+        'empDateResigned',
+        'empPersonelStatus',
+        'empEmployeerName',
+        'empEmployeerAddress',
+        'empFatherName',
+        'empMotherName',
+        'empSpouseName',
+        'empSpouseBdate',
+        'empChildrenName',
+        'empChildrenBdate',
+        'empEmergencyContactName',
+        'empEmergencyContactAddress',
+        'empEmergencyContactNo',
         'status',
     ];
+
+    public function getChildrenAttribute()
+    {
+        $names = json_decode($this->empChildrenName ?? '[]', true);
+        $birthdates = json_decode($this->empChildrenBdate ?? '[]', true);
+
+        $children = [];
+        foreach ($names as $i => $name) {
+            $children[] = [
+                'name' => $name,
+                'birthdate' => $birthdates[$i] ?? null,
+            ];
+        }
+
+        return $children;
+    }
+
 
     // If you want to handle dates properly for 'empBirthdate'
     protected $dates = [
@@ -93,5 +134,4 @@ class Employee extends Model
     {
         return $this->hasMany(Trainings::class, 'empID', 'empID');
     }
-   
 }

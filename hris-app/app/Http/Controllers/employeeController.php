@@ -27,9 +27,17 @@ class EmployeeController extends Controller
                 'empID' => 'required|unique:employees,empID|max:255',
                 'empFname' => 'required|string|max:255',
                 'empLname' => 'required|string|max:255',
-                'empGender' => 'in:male,female',
+                'empGender' => 'nullable|in:Male,Female',
                 'empBirthdate' => 'date',
                 'photo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:5120', // 5MB max
+                'empDateHired' => 'nullable|date',
+                'empDateResigned' => 'nullable|date',
+                'empPersonelStatus' => 'nullable|string|max:50',
+                'empEmployeerName' => 'nullable|string|max:100',
+                'empEmployeerAddress' => 'nullable|string|max:255',
+                'empEmergencyContactNo' => 'nullable|string|max:15',
+                'empEmergencyContactName' => 'nullable|string|max:100',
+                'empEmergencyContactAddress' => 'nullable|string|max:255',
             ]);
 
 
@@ -72,6 +80,17 @@ class EmployeeController extends Controller
                 'empTinNum' => $request->input('empTinNum', null),
                 'empPagIbigNum' => $request->input('empPagIbigNum', null),
                 'photo' => $photoPath,
+                'empDateHired' => $request->input('empDateHired', null),
+                'empDateResigned' => $request->input('empDateResigned', null),
+                'empContactNo' => $request->input('empContactNo', null),
+                'empPersonelStatus' => $request->input('empPersonelStatus', null),
+                'empEmployeerName' => $request->input('empEmployeerName', null),
+                'empEmployeerAddress' => $request->input('empEmployeerAddress', null),
+                'empCivilStatus' => $request->input('empCivilStatus', null),
+                'empBloodType' => $request->input('empBloodType', null),
+                'empEmergencyContactAddress' => $request->input('empEmergencyContactAddress', null),
+                'empEmergencyContactNo' => $request->input('empEmergencyContactNo', null),
+                'empEmergencyContactName' => $request->input('empEmergencyContactName', null),
             ]);
 
 
@@ -292,7 +311,7 @@ class EmployeeController extends Controller
                 'empMname' => 'nullable|string|max:100',
                 'empLname' => 'required|string|max:100',
                 'empSuffix' => 'nullable|string|max:10',
-                'empGender' => 'nullable|in:male,female',
+                'empGender' => 'nullable|in:Male,Female',
                 'empBirthdate' => 'nullable|date',
                 'address' => 'nullable|string|max:255',
                 'province' => 'nullable|string|max:100',
@@ -302,6 +321,18 @@ class EmployeeController extends Controller
                 'empTinNum' => 'nullable|string|max:30',
                 'empPagIbigNum' => 'nullable|string|max:30',
                 'photo' => 'nullable|image|max:2048', // max 2MB
+                'empDateHired' => 'nullable|date',
+                'empDateResigned' => 'nullable|date',
+                'empContactNo' => 'nullable|string|max:15',
+                'empPersonelStatus' => 'nullable|string|max:50',
+                'empEmployeerName' => 'nullable|string|max:100',
+                'empEmployeerAddress' => 'nullable|string|max:255',
+                'empCivilStatus' => 'nullable|string|max:50',
+                'empBloodType' => 'nullable|string|max:5',
+                'empEmergencyContactAddress' => 'nullable|string|max:255',
+                'empEmergencyContactNo' => 'nullable|string|max:15',
+                'empEmergencyContactName' => 'nullable|string|max:100',
+                
             ]);
 
             unset($validated['photo']);
