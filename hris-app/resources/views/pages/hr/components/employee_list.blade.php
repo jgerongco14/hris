@@ -331,13 +331,28 @@
                                     </div>
                                     @endif
 
-                                    <span>
-                                        {{ $employee->empPrefix }}
-                                        {{ $employee->empFname }}
-                                        {{ $employee->empMname }}
-                                        {{ $employee->empLname }}
-                                        {{ $employee->empSuffix }}
-                                    </span>
+                                    <div class="d-flex flex-column">
+                                        <span class="fw-bold" style="font-size: 16px;">
+                                            {{ $employee->empPrefix }}
+                                            {{ $employee->empFname }}
+                                            {{ $employee->empMname }}
+                                            {{ $employee->empLname }}
+                                            {{ $employee->empSuffix }}
+                                        </span>
+                                        <span>
+                                            @if(!empty($employee->empPersonelStatus))
+                                            ({{ $employee->empPersonelStatus }})
+                                            @endif
+                                        </span>
+                                        <span>
+                                            @if( !empty($employee->empDateHired))
+                                            (Date Hired: {{ $employee->empDateHired }})
+                                            @endif
+                                            @if( !empty($employee->empDateResigned))
+                                            (Date Resigned: {{ $employee->empDateResigned }})
+                                            @endif
+                                        </span>
+                                    </div>
                                 </div>
                             </td>
                             <td class="align-middle">

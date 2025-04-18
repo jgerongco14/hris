@@ -333,18 +333,33 @@
                                     </div>
                                     <?php endif; ?>
 
-                                    <span>
-                                        <?php echo e($employee->empPrefix); ?>
+                                    <div class="d-flex flex-column">
+                                        <span class="fw-bold" style="font-size: 16px;">
+                                            <?php echo e($employee->empPrefix); ?>
 
-                                        <?php echo e($employee->empFname); ?>
+                                            <?php echo e($employee->empFname); ?>
 
-                                        <?php echo e($employee->empMname); ?>
+                                            <?php echo e($employee->empMname); ?>
 
-                                        <?php echo e($employee->empLname); ?>
+                                            <?php echo e($employee->empLname); ?>
 
-                                        <?php echo e($employee->empSuffix); ?>
+                                            <?php echo e($employee->empSuffix); ?>
 
-                                    </span>
+                                        </span>
+                                        <span>
+                                            <?php if(!empty($employee->empPersonelStatus)): ?>
+                                            (<?php echo e($employee->empPersonelStatus); ?>)
+                                            <?php endif; ?>
+                                        </span>
+                                        <span>
+                                            <?php if( !empty($employee->empDateHired)): ?>
+                                            (Date Hired: <?php echo e($employee->empDateHired); ?>)
+                                            <?php endif; ?>
+                                            <?php if( !empty($employee->empDateResigned)): ?>
+                                            (Date Resigned: <?php echo e($employee->empDateResigned); ?>)
+                                            <?php endif; ?>
+                                        </span>
+                                    </div>
                                 </div>
                             </td>
                             <td class="align-middle">
