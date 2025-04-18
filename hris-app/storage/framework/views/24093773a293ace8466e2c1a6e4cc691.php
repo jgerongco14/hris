@@ -50,11 +50,32 @@
                      <td><?php echo e($contribution->employee->empID ?? 'N/A'); ?></td>
                      <td>
                          <?php if($contribution->employee): ?>
-                         <?php echo e($contribution->employee->empPrefix); ?> <?php echo e($contribution->employee->empFname); ?> <?php echo e($contribution->employee->empMname); ?> <?php echo e($contribution->employee->empLname); ?> <?php echo e($contribution->employee->empSuffix); ?>
+                         <div class="d-flex align-items-center gap-2">
+                             <?php
+                             $employeePhoto = $contribution->employee->photo ?? null;
+                             $isExternal = $employeePhoto && Str::startsWith($employeePhoto, ['http://', 'https://']);
+                             ?>
 
-                         <?php else: ?>
-                         Employee not found
-                         <?php endif; ?>
+
+                             <?php if($employeePhoto): ?>
+                             <img
+                                 src="<?php echo e($isExternal ? $employeePhoto : asset('storage/employee_photos/' . $contribution->employee->photo)); ?>"
+                                 alt="Employee Photo" width="50" height="50" class="rounded-circle">
+
+                             <?php else: ?>
+                             <div class="no-photo bg-light rounded-circle d-flex align-items-center justify-content-center"
+                                 style="width:50px; height:50px;">
+                                 <i class="ri-user-line"></i>
+                             </div>
+                             <?php endif; ?>
+
+                             <?php echo e($contribution->employee->empPrefix); ?> <?php echo e($contribution->employee->empFname); ?> <?php echo e($contribution->employee->empMname); ?> <?php echo e($contribution->employee->empLname); ?> <?php echo e($contribution->employee->empSuffix); ?>
+
+                             <?php else: ?>
+                             Employee not found
+                             <?php endif; ?>
+                         </div>
+
                      </td>
                      <td>
                          <?php echo e(is_numeric($contribution->empConAmount) 

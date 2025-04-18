@@ -47,7 +47,7 @@ class EmployeeController extends Controller
                 );
             }
 
-          $user = User::create([
+            $user = User::create([
                 'empID' => $request->input('empID', null),
                 'role' => 'employee',
                 'password' => Hash::make('temppass'),
@@ -74,7 +74,7 @@ class EmployeeController extends Controller
                 'photo' => $photoPath,
             ]);
 
-            
+
 
             // Return JSON if it's an AJAX request
             if ($request->expectsJson()) {
@@ -304,18 +304,22 @@ class EmployeeController extends Controller
                 'photo' => 'nullable|image|max:2048', // max 2MB
             ]);
 
-            // Handle file upload if new photo is provided
+            unset($validated['photo']);
+
+            // Handle file upload
             if ($request->hasFile('photo')) {
-                // Delete old photo if exists
-                if ($employee->photo && Storage::exists('public/' . $employee->photo)) {
-                    Storage::delete('public/' . $employee->photo);
+                if ($employee->photo && Storage::disk('public')->exists('employee_photos/' . $employee->photo)) {
+                    Storage::disk('public')->delete('employee_photos/' . $employee->photo);
                 }
 
-                $validated['photo'] = $request->file('photo')->store('employee_photos', 'public');
+                $filename = uniqid() . '.' . $request->file('photo')->getClientOriginalExtension();
+                $request->file('photo')->storeAs('employee_photos', $filename, 'public');
+                $employee->photo = $filename;
             }
 
-            // Update the employee
-            $employee->update($validated);
+            // Update other fields
+            $employee->fill($validated);
+            $employee->save();
 
             return redirect()->route('employee_management')->with('success', 'Employee updated successfully.');
         } catch (Exception $e) {
@@ -328,21 +332,21 @@ class EmployeeController extends Controller
 
     public function destroy(Employee $employee)
     {
-       try {
-         // Delete photo if exists
-         if ($employee->photo) {
-            Storage::disk('public')->delete($employee->photo);
-        }
+        try {
+            // Delete photo if exists
+            if ($employee->photo) {
+                Storage::disk('public')->delete($employee->photo);
+            }
 
-        // Delete the employee record
-        $user = User::where('empID', $employee->empID)->first();
-        if ($user) {
-            $user->delete();
-        }
+            // Delete the employee record
+            $user = User::where('empID', $employee->empID)->first();
+            if ($user) {
+                $user->delete();
+            }
 
-        return redirect()->route('employee_management')
-            ->with('success', 'Employee deleted successfully');
-       } catch (Exception $e) {
+            return redirect()->route('employee_management')
+                ->with('success', 'Employee deleted successfully');
+        } catch (Exception $e) {
             logger()->error('Failed to delete employee: ' . $e->getMessage());
             return redirect()
                 ->back()

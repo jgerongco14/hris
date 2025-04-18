@@ -122,8 +122,27 @@
                                 <tr>
                                     <td class="text-center">{{ $item->empAttID }}</td>
                                     <td>
-                                        {{ $item->employee->empLname ?? 'Unknown' }}, {{ $item->employee->empFname ?? 'Unknown' }}
-                                        <input type="hidden" name="empID[]" value="{{ $item->empID }}">
+                                        <div class="d-flex align-items-center gap-2">
+                                            @php
+                                            $employeePhoto = $item->employee->photo ?? null;
+                                            $isExternal = $employeePhoto && Str::startsWith($employeePhoto, ['http://', 'https://']);
+                                            @endphp
+
+
+                                            @if($employeePhoto)
+                                            <img
+                                                src="{{ $isExternal ? $employeePhoto : asset('storage/employee_photos/' . $item->employee->photo) }}"
+                                                alt="Employee Photo" width="50" height="50" class="rounded-circle">
+
+                                            @else
+                                            <div class="no-photo bg-light rounded-circle d-flex align-items-center justify-content-center"
+                                                style="width:50px; height:50px;">
+                                                <i class="ri-user-line"></i>
+                                            </div>
+                                            @endif
+                                            {{ $item->employee->empPrefix }} {{ $item->employee->empFname }} {{ $item->employee->empMname }} {{ $item->employee->empLname }} {{ $item->employee->empSuffix }}
+                                            <input type="hidden" name="empID[]" value="{{ $item->empID }}">
+                                        </div>
                                     </td>
                                     <td class="text-center">{{ \Carbon\Carbon::parse($item->empAttDate)->format('M d, Y') }}</td>
                                     <td class="text-center">{{ $item->empAttTimeIn }}</td>

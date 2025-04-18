@@ -72,11 +72,21 @@
                                     <td>{{ \Carbon\Carbon::parse($status->leave->empLeaveDateApplied)->format('M d, Y') }}</td>
                                     <td class="text-center">
                                         @php
-                                        $photo = $employee->photo ?? null;
-                                        $isExternal = $photo && Str::startsWith($photo, ['http://', 'https://']);
+                                        $employeePhoto = $employee->photo ?? null;
+                                        $isExternal = $employeePhoto && Str::startsWith($employeePhoto, ['http://', 'https://']);
                                         @endphp
                                         <div class="col d-flex align-items-center gap-2">
-                                            <img src="{{ $photo ? ($isExternal ? $photo : asset('storage/' . $photo)) : '/images/default-user.png' }}" alt="Avatar" width="40" height="40" class="{{ $photo ? 'rounded-circle' : 'rounded' }}" onerror="this.onerror=null; this.src='/images/default-user.png';">
+                                            @if($employeePhoto)
+                                            <img
+                                                src="{{ $isExternal ? $employeePhoto : asset('storage/employee_photos/' . $employee->photo) }}"
+                                                alt="Employee Photo" width="50" height="50" class="rounded-circle">
+
+                                            @else
+                                            <div class="no-photo bg-light rounded-circle d-flex align-items-center justify-content-center"
+                                                style="width:50px; height:50px;">
+                                                <i class="ri-user-line"></i>
+                                            </div>
+                                            @endif
                                             <span>{{ $employee->empFname ?? '' }} {{ $employee->empMname ?? '' }} {{ $employee->empLname ?? '' }}</span>
                                         </div>
                                     </td>

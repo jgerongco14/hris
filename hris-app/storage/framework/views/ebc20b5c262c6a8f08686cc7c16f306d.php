@@ -162,9 +162,28 @@
                                 <tr>
                                     <td class="text-center"><?php echo e($item->empAttID); ?></td>
                                     <td>
-                                        <?php echo e($item->employee->empLname ?? 'Unknown'); ?>, <?php echo e($item->employee->empFname ?? 'Unknown'); ?>
+                                        <div class="d-flex align-items-center gap-2">
+                                            <?php
+                                            $employeePhoto = $item->employee->photo ?? null;
+                                            $isExternal = $employeePhoto && Str::startsWith($employeePhoto, ['http://', 'https://']);
+                                            ?>
 
-                                        <input type="hidden" name="empID[]" value="<?php echo e($item->empID); ?>">
+
+                                            <?php if($employeePhoto): ?>
+                                            <img
+                                                src="<?php echo e($isExternal ? $employeePhoto : asset('storage/employee_photos/' . $item->employee->photo)); ?>"
+                                                alt="Employee Photo" width="50" height="50" class="rounded-circle">
+
+                                            <?php else: ?>
+                                            <div class="no-photo bg-light rounded-circle d-flex align-items-center justify-content-center"
+                                                style="width:50px; height:50px;">
+                                                <i class="ri-user-line"></i>
+                                            </div>
+                                            <?php endif; ?>
+                                            <?php echo e($item->employee->empPrefix); ?> <?php echo e($item->employee->empFname); ?> <?php echo e($item->employee->empMname); ?> <?php echo e($item->employee->empLname); ?> <?php echo e($item->employee->empSuffix); ?>
+
+                                            <input type="hidden" name="empID[]" value="<?php echo e($item->empID); ?>">
+                                        </div>
                                     </td>
                                     <td class="text-center"><?php echo e(\Carbon\Carbon::parse($item->empAttDate)->format('M d, Y')); ?></td>
                                     <td class="text-center"><?php echo e($item->empAttTimeIn); ?></td>

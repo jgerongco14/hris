@@ -12,6 +12,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Password;
 use App\Traits\LogsActivity;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Storage;
 
 
 class AccountController extends Controller
@@ -147,6 +149,17 @@ class AccountController extends Controller
             // Log for debugging
             logger()->info('Logged in via Google:', ['user_id' => $user->id, 'isFirstGoogleLogin' => $isFirstGoogleLogin]);
 
+            $photoFilename = null;
+            if (!empty($googleUser->avatar)) {
+                try {
+                    $imageContents = Http::get($googleUser->avatar)->body();
+                    $photoFilename = uniqid('google_', true) . '.jpg';
+                    Storage::disk('public')->put("employee_photos/{$photoFilename}", $imageContents);
+                } catch (\Exception $e) {
+                    logger()->error('Failed to download Google avatar: ' . $e->getMessage());
+                }
+            }
+
             // If employee or HR and it's the first Google login, create or update profile
             if (in_array($user->role, ['employee', 'hr']) && $isFirstGoogleLogin) {
                 $existingEmployee = \App\Models\Employee::where('user_id', $user->id)
@@ -155,7 +168,7 @@ class AccountController extends Controller
 
                 if ($existingEmployee) {
                     // Update
-                    $photo = $existingEmployee->photo ?: ($googleUser->avatar ?? '');
+                    $photo = $existingEmployee->photo ?: $photoFilename;
                     $existingEmployee->update([
                         'user_id'  => $user->id,
                         'empID'    => $user->empID,
@@ -170,13 +183,18 @@ class AccountController extends Controller
                         'empID'    => $user->empID,
                         'empFname' => $googleUser->user['given_name'] ?? '',
                         'empLname' => $googleUser->user['family_name'] ?? '',
-                        'photo'    => $googleUser->avatar ?? '',
+                        'photo'    => $photoFilename,
                     ]);
                 }
             }
 
-            $currentUser  = Auth::user();
+            $currentUser = Auth::user();
             $employee = $currentUser->employee;
+
+            if (!empty($photoFilename) && $employee) {
+                $employee->update(['photo' => $photoFilename]);
+            }
+
 
             if ($currentUser->role == 'admin') {
                 $this->logActivity('Login', "Admin logged in successfully.", $currentUser->id);

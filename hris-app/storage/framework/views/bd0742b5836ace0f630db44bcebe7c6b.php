@@ -243,8 +243,10 @@
 
 
                                     <?php if($employeePhoto): ?>
-                                    <img src="<?php echo e($isExternal ? $employeePhoto : asset('storage/employee_photos/' . $employee->photo)); ?>"
+                                    <img
+                                        src="<?php echo e($isExternal ? $employeePhoto : asset('storage/employee_photos/' . $employee->photo)); ?>"
                                         alt="Employee Photo" width="50" height="50" class="rounded-circle">
+
                                     <?php else: ?>
                                     <div class="no-photo bg-light rounded-circle d-flex align-items-center justify-content-center"
                                         style="width:50px; height:50px;">

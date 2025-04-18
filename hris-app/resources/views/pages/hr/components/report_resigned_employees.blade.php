@@ -37,7 +37,7 @@
                             @endphp
 
                             @if($employeePhoto)
-                            <img src="{{ $isExternal ? $employeePhoto : asset('storage/' . $employee->photo) }}"
+                            <img src="{{ $isExternal ? $employeePhoto : asset('storage/employee_photos/' . $report->employee->photo) }}"
                                 alt="Employee Photo" width="50" height="50" class="rounded-circle">
                             @else
                             <div class="no-photo bg-light rounded-circle d-flex align-items-center justify-content-center"
