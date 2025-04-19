@@ -11,6 +11,7 @@ use App\Models\Offices;
 use Illuminate\Support\Facades\Auth;
 use App\Traits\LogsActivity;
 use App\Models\Programs;
+use Illuminate\Support\Facades\Log;
 
 
 
@@ -159,17 +160,24 @@ class AssignEmpController extends Controller
                 ->where('empID', $empID)
                 ->firstOrFail();
 
-            $departments = Departments::with('programs')->get();
+            $departments = Departments::with(['programs' => function ($query) {
+                $query->select('programs.id', 'programs.programCode', 'programs.programName');
+            }])->get();
+
+            // Debug: Check if departments have programs
+            foreach ($departments as $department) {
+                Log::debug("Department: {$department->departmentName}", [
+                    'programs_count' => $department->programs->count(),
+                    'programs' => $department->programs->toArray()
+                ]);
+            }
+
             $offices = Offices::all();
             $positions = Position::all();
 
             return view('pages.hr.employee_management', compact('employee', 'departments', 'offices', 'positions'));
         } catch (\Exception $e) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Failed to retrieve employee assignments.',
-                'error' => $e->getMessage()
-            ], 500);
+            return redirect()->back()->with('error', 'Error occurred while fetching assignments: ' . $e->getMessage());
         }
     }
 

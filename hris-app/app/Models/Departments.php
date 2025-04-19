@@ -19,7 +19,7 @@ class Departments extends Model
 
     public function programs()
     {
-        return $this->belongsToMany(Programs::class, 'department_program', 'department_id', 'program_id');
+        return $this->belongsToMany(Programs::class, 'department_program', 'department_id', 'program_id')->withPivot('created_at', 'updated_at');;
     }
 
     public function empAssignments()

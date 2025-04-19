@@ -116,12 +116,12 @@
 
                     <button type="button" class="btn btn-secondary mb-3" onclick="addPositionField('{{ $employee->empID }}')">Add Another Position</button>
 
+                    <div class="d-flex">
 
-                    <!-- Department and Office Selection -->
-                    <div class="row d-flex justify-content-between mt-4">
-                        <div class="col mb-3">
+                        <!-- Department and Office Selection -->
+                        <div class="col mb-3 mx-1">
                             <label for="departmentID" class="form-label">Department (Optional)</label>
-                            <select class="form-select" name="departmentID">
+                            <select class="form-select" name="departmentID" id="departmentID-{{ $employee->empID }}" onchange="updateProgramsDropdown(this, '{{ $employee->empID }}')">
                                 <option value="">None</option>
                                 @foreach($departments as $department)
                                 <option
@@ -131,17 +131,19 @@
                                     {{ $department->departmentName }}
                                 </option>
                                 @endforeach
+                                DB::table('department_program')->get();
                             </select>
                         </div>
 
                         <!-- Program Selection -->
-                        <div class="col mb-3">
+                        <div class="col mb-3 mx-1">
                             <label for="programCode" class="form-label">Program (Optional)</label>
-                            <select class="form-select" name="programCode">
+                            <select class="form-select" name="programCode" id="programContainer-{{ $employee->empID }}">
                                 <option value="">None</option>
-                                @if($latest && $latest->department && $latest->department->programs)
+                                @if($latest && $latest->department)
                                 @foreach($latest->department->programs as $program)
-                                <option value="{{ $program->programCode }}" {{ $latest->programCode === $program->programCode ? 'selected' : '' }}>
+                                <option value="{{ $program->programCode }}"
+                                    {{ $latest->programCode == $program->programCode ? 'selected' : '' }}>
                                     {{ $program->programName }}
                                 </option>
                                 @endforeach
@@ -150,7 +152,7 @@
                         </div>
 
 
-                        <div class="col mb-3">
+                        <div class="col mb-3 mx-1">
                             <label for="officeID" class="form-label">Office (Optional)</label>
                             <select class="form-select" name="officeID">
                                 <option value="">None</option>
@@ -165,30 +167,31 @@
 
                         </div>
                     </div>
-
-                    <!-- Make Head of the Office Checkbox -->
-                    <div class="form-check mb-3">
-                        <input class="form-check-input" type="checkbox" name="makeHead" value="1"
-                            {{ !empty($latest?->empHead) ? 'checked' : '' }}
-                            data-locked="true">
-
-                        <label class="form-check-label">Make Head of the Office</label>
-                    </div>
-
-
-
-                    <div class="div mb-3 text-center">
-                        <button type="submit" class="btn btn-primary">Assign</button>
-                    </div>
-                </form>
-
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                </div>
-
             </div>
+
+            <!-- Make Head of the Office Checkbox -->
+            <div class="form-check mb-3 mx-3">
+                <input class="form-check-input" type="checkbox" name="makeHead" value="1"
+                    {{ !empty($latest?->empHead) ? 'checked' : '' }}
+                    data-locked="true">
+
+                <label class="form-check-label">Make Head of the Office</label>
+            </div>
+
+
+
+            <div class="div mb-3 text-center">
+                <button type="submit" class="btn btn-primary">Assign</button>
+            </div>
+            </form>
+
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+            </div>
+
         </div>
     </div>
+</div>
 </div>
 
 <script>
@@ -263,23 +266,42 @@
         positionItem.remove();
     }
 
-    function updateProgramsDropdown(departmentSelect) {
-        const selectedOption = departmentSelect.options[departmentSelect.selectedIndex];
-        const programs = JSON.parse(selectedOption.getAttribute('data-programs') || '[]');
-        const programSelect = document.querySelector('[name="programCode"]');
+    function updateProgramsDropdown(departmentSelect, empID) {
+        const wrapper = departmentSelect.closest('form');
+        const programSelect = document.getElementById(`programContainer-${empID}`); // Find element that starts with "programContainer"
 
-        // Reset programs
+        if (!programSelect) {
+            console.warn('Program select not found.');
+            return;
+        }
+
         programSelect.innerHTML = '<option value="">None</option>';
 
-        if (programs.length > 0) {
-            programs.forEach(program => {
-                const option = document.createElement('option');
-                option.value = program.programCode;
-                option.textContent = program.programName;
-                programSelect.appendChild(option);
-            });
+        const selectedOption = departmentSelect.selectedOptions[0];
+        if (!selectedOption || !selectedOption.dataset.programs) {
+            console.log('No programs data found for selected department');
+            return;
+        }
+
+        try {
+            const programs = JSON.parse(selectedOption.dataset.programs);
+            console.log('Parsed programs:', programs);
+
+            if (programs && programs.length > 0) {
+                programs.forEach(program => {
+                    if (program && program.programCode) {
+                        const option = new Option(program.programName, program.programCode);
+                        programSelect.add(option);
+                    }
+                });
+            } else {
+                console.log('No programs available for this department');
+            }
+        } catch (e) {
+            console.error('Error parsing programs:', e);
         }
     }
+
 
     function autoCheckHeadStatus() {
         const departmentSelect = document.getElementById('departmentID');
@@ -298,29 +320,15 @@
 
     document.addEventListener('DOMContentLoaded', function() {
         const departmentSelect = document.getElementById('departmentID');
-        const officeSelect = document.getElementById('officeID');
 
         if (departmentSelect) {
+            // Initialize on load
+            updateProgramsDropdown(departmentSelect);
+
+            // Update on change
             departmentSelect.addEventListener('change', function() {
                 updateProgramsDropdown(departmentSelect);
-                autoCheckHeadStatus();
             });
-
-            // Update programs on initial load
-            updateProgramsDropdown(departmentSelect);
         }
-
-        if (officeSelect) {
-            officeSelect.addEventListener('change', autoCheckHeadStatus);
-        }
-
-        // Initial auto-check
-        autoCheckHeadStatus();
-    });
-
-
-    // ✅ Hide programContainer on page load
-    document.addEventListener('DOMContentLoaded', () => {
-        document.getElementById('programContainer').style.display = 'none';
     });
 </script>
