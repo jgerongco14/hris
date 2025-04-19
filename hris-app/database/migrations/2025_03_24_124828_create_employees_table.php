@@ -35,15 +35,15 @@ return new class extends Migration
             $table->string('empContactNo')->nullable();
             $table->string('empRVMRetirementNo')->nullable();
             $table->string('empBPIATMAccountNo')->nullable();
-            $table->date('empDateHired')->nullable();
-            $table->date('empDateResigned')->nullable();
+            $table->string('empDateHired')->nullable();
+            $table->string('empDateResigned')->nullable();
             $table->string('empPersonelStatus')->nullable();
             $table->string('empEmployeerName')->nullable();
             $table->string('empEmployeerAddress', 500)->nullable();
             $table->string('empFatherName',100)->nullable();
             $table->string('empMotherName',100)->nullable();
             $table->string('empSpouseName',100)->nullable();
-            $table->date('empSpouseBdate', 100)->nullable();
+            $table->string('empSpouseBdate', 100)->nullable();
             $table->string('empChildrenName', 500)->nullable();
             $table->string('empChildrenBdate', 500)->nullable();
             $table->string('empEmergencyContactName', 100)->nullable();

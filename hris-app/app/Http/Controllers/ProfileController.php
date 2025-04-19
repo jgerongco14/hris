@@ -7,9 +7,14 @@ use Illuminate\Support\Facades\Auth;
 use App\Models\User;
 use App\Models\Employee;
 use Illuminate\Support\Facades\Storage;
+use App\Traits\LogsActivity;
+use Exception;
+use Carbon\Carbon;
 
 class ProfileController extends Controller
 {
+    use LogsActivity;
+
     // Show profile page
     public function index()
     {
@@ -48,6 +53,7 @@ class ProfileController extends Controller
                 return redirect()->back()->with('error', 'Employee profile not found.');
             }
 
+
             $validatedData = $request->validate([
                 'empID' => 'required|string|max:255',
                 'email' => 'nullable|email|max:255|unique:users,email,' . $user->id,
@@ -80,6 +86,21 @@ class ProfileController extends Controller
                 'empEmergencyContactNo' => 'nullable|string|max:20',
             ]);
 
+
+            // Prepare children fields
+            $childrenNames = [];
+            $childrenBdates = [];
+
+            foreach ($request->input('children', []) as $child) {
+                if (!empty($child['name']) || !empty($child['birthdate'])) {
+                    $childrenNames[] = $child['name'] ?? '';
+                    $childrenBdates[] = !empty($child['birthdate'])
+                        ? Carbon::createFromFormat('Y-m-d', $child['birthdate'])->format('d/m/Y')
+                        : '';
+                }
+            }
+
+
             $childrenData = $request->input('children', []);
             $formattedChildren = [];
 
@@ -98,7 +119,7 @@ class ProfileController extends Controller
             if ($user instanceof \App\Models\User && !empty($validatedData['email']) && $validatedData['email'] !== $user->email) {
                 $user->email = $validatedData['email'];
                 $user->google_id = null;
-                $user->save(); 
+                $user->save();
             }
 
 
@@ -119,22 +140,37 @@ class ProfileController extends Controller
                 'empSSSNum' => $validatedData['empSSS'],
                 'empPagIbigNum' => $validatedData['empPagibig'],
                 'empTinNum' => $validatedData['empTIN'],
-                'empCivilStatus' => $validatedData['empCivilStatus'],
-                'empBloodType' => $validatedData['empBloodType'],
-                'empContactNo' => $validatedData['empContactNo'],
-                'empFatherName' => $validatedData['empFatherName'],
-                'empMotherName' => $validatedData['empMotherName'],
-                'empSpouseName' => $validatedData['empSpouseName'],
-                'empSpouseBdate' => $validatedData['empSpouseBdate'],
-                'empChildrenName' => json_encode(array_column($formattedChildren, 'name')),
-                'empChildrenBdate' => json_encode(array_column($formattedChildren, 'birthdate')),
-                'empEmergencyContactName' => $validatedData['empEmergencyContactName'],
-                'empEmergencyContactAddress' => $validatedData['empEmergencyContactAddress'],
-                'empEmergencyContactNo' => $validatedData['empEmergencyContactNo'],
+                'empCivilStatus' => $validatedData['empCivilStatus'] ?? null,
+                'empBloodType' => $validatedData['empBloodType'] ?? null,
+                'empContactNo' => $validatedData['empContactNo'] ?? null,
+                'empFatherName' => $validatedData['empFatherName'] ?? null,
+                'empMotherName' => $validatedData['empMotherName'] ?? null,
+                'empSpouseName' => $validatedData['empSpouseName'] ?? null,
+                'empSpouseBdate' => $validatedData['empSpouseBdate'] ?? null,
+                'empChildrenName' => json_encode($childrenNames),
+                'empChildrenBdate' => json_encode($childrenBdates),
+                'empEmergencyContactName' => $validatedData['empEmergencyContactName'] ?? null,
+                'empEmergencyContactAddress' => $validatedData['empEmergencyContactAddress'] ?? null,
+                'empEmergencyContactNo' => $validatedData['empEmergencyContactNo'] ?? null,
             ]);
+
+            // Log the activity
+            $currentUser = Auth::user();
+            $employeeActor = $currentUser->employee;
+            $fullName = $employeeActor
+                ? trim("{$employeeActor->empPrefix} {$employeeActor->empFname} {$employeeActor->empMname} {$employeeActor->empLname} {$employeeActor->empSuffix}")
+                : 'Unknown Employee';
+            $this->logActivity('Update', "User $fullName updated profile successfully.", $currentUser->id);
 
             return redirect()->back()->with('success', 'Profile updated successfully.');
         } catch (\Exception $e) {
+            // Log the error
+            $currentUser = Auth::user();
+            $employeeActor = $currentUser->employee;
+            $fullName = $employeeActor
+                ? trim("{$employeeActor->empPrefix} {$employeeActor->empFname} {$employeeActor->empMname} {$employeeActor->empLname} {$employeeActor->empSuffix}")
+                : 'Unknown Employee';
+            $this->logActivity('Update', "User $fullName encountered an error while updating profile: " . $e->getMessage(), $currentUser->id);
             return redirect()->back()->with('error', 'Failed to update profile. ' . $e->getMessage());
         }
     }
@@ -142,26 +178,45 @@ class ProfileController extends Controller
 
     public function updatePhoto(Request $request)
     {
-        $request->validate([
-            'photo' => 'required|image|mimes:jpg,jpeg,png|max:2048'
-        ]);
+        try {
+            $request->validate([
+                'photo' => 'required|image|mimes:jpg,jpeg,png|max:2048'
+            ]);
 
-        $employee = Auth::user()->employee;
+            $employee = Auth::user()->employee;
 
-        // Delete old photo if it exists
-        if ($employee->photo && Storage::disk('public')->exists('employee_photos/' . $employee->photo)) {
-            Storage::disk('public')->delete('employee_photos/' . $employee->photo);
+            // Delete old photo if it exists
+            if ($employee->photo && Storage::disk('public')->exists('employee_photos/' . $employee->photo)) {
+                Storage::disk('public')->delete('employee_photos/' . $employee->photo);
+            }
+
+            // Generate new filename
+            $filename = uniqid() . '.' . $request->file('photo')->getClientOriginalExtension();
+
+            // Store the new photo
+            $request->file('photo')->storeAs('employee_photos', $filename, 'public');
+
+            // Update employee record
+            $employee->update(['photo' => $filename]);
+
+            // Log the activity
+            $currentUser = Auth::user();
+            $employeeActor = $currentUser->employee;
+            $fullName = $employeeActor
+                ? trim("{$employeeActor->empPrefix} {$employeeActor->empFname} {$employeeActor->empMname} {$employeeActor->empLname} {$employeeActor->empSuffix}")
+                : 'Unknown Employee';
+            $this->logActivity('Update', "User $fullName updated profile picture successfully.", $currentUser->id);
+
+            return back()->with('success', 'Profile picture updated successfully!');
+        } catch (Exception $e) {
+            // Log the error
+            $currentUser = Auth::user();
+            $employeeActor = $currentUser->employee;
+            $fullName = $employeeActor
+                ? trim("{$employeeActor->empPrefix} {$employeeActor->empFname} {$employeeActor->empMname} {$employeeActor->empLname} {$employeeActor->empSuffix}")
+                : 'Unknown Employee';
+            $this->logActivity('Update', "User $fullName encountered an error while updating profile picture: " . $e->getMessage(), $currentUser->id);
+            return redirect()->back()->with('error', 'Failed to update profile picture.');
         }
-
-        // Generate new filename
-        $filename = uniqid() . '.' . $request->file('photo')->getClientOriginalExtension();
-
-        // Store the new photo
-        $request->file('photo')->storeAs('employee_photos', $filename, 'public');
-
-        // Update employee record
-        $employee->update(['photo' => $filename]);
-
-        return back()->with('success', 'Profile picture updated successfully!');
     }
 }

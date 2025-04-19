@@ -110,7 +110,7 @@ Route::group(['middleware' => ['prevent-back-history']], function () {
         Route::get('/employee', [EmployeeController::class, 'index'])->name('employee_management');
         Route::post('/employee/import', [EmployeeController::class, 'importEmp'])->name('employee.import');
         Route::get('/employee/{id}/edit', [EmployeeController::class, 'edit'])->name('employee.edit');
-        Route::put('/employee/{id}', [EmployeeController::class, 'update']);
+        Route::put('/employee/{id}', [EmployeeController::class, 'update'])->name('employee.update');
         Route::delete('/employee/{employee}', [EmployeeController::class, 'destroy'])->name('employee.destroy');
 
 

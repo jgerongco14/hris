@@ -110,12 +110,12 @@
                                 </div>
                                 <div class="col">
                                     <h5>Date Hired</h5>
-                                    <span class="profile-text" id="empDateHiredText"><?php echo e($employee->empDateHired ?? ''); ?></span>
+                                    <span class="profile-text" id="empDateHiredText"><?php echo e($employee->empDateHired ? \Carbon\Carbon::parse($employee->empDateHired)->format('F d, Y') : ''); ?></span>
                                     <input type="text" class="form-control profile-input d-none" id="empDateHiredInput" name="empDateHired" value="<?php echo e($employee->empDateHired ?? 'Unknown'); ?>" readonly>
                                 </div>
                                 <div class="col">
                                     <h5>Date Resigned</h5>
-                                    <span class="profile-text" id="empDateResignedText"><?php echo e($employee->empDateResigned ?? ''); ?></span>
+                                    <span class="profile-text" id="empDateResignedText"><?php echo e($employee->empDateResigned ? \Carbon\Carbon::parse($employee->empDateResigned)->format('F d, Y') : ''); ?></span>
                                     <input type="text" class="form-control profile-input d-none" id="empDateResignedInput" name="empDateResigned" value="<?php echo e($employee->empDateResigned ?? 'Unknown'); ?>" readonly>
                                 </div>
                             </div>
@@ -183,9 +183,15 @@
                                 </div>
                                 <div class="col">
                                     <h5>Birthday</h5>
-                                    <span class="profile-text" id="birthdayText"><?php echo e($employee->empBirthdate ? \Carbon\Carbon::createFromFormat('d/m/Y', $employee->empBirthdate)->format('F d, Y') : ''); ?></span>
+
+                                    <span class="profile-text" id="birthdayText">
+                                        <?php echo e($employee->empBirthdate ? \Carbon\Carbon::parse($employee->empBirthdate)->format('F d, Y') : ''); ?>
+
+                                    </span>
+
                                     <input type="date" class="form-control profile-input d-none" id="birthdayInput" name="empBdate"
-                                        value="<?php echo e($employee->empBirthdate ? \Carbon\Carbon::createFromFormat('d/m/Y', $employee->empBirthdate)->format('Y-m-d') : ''); ?>">
+                                    value="<?php echo e($employee->empBirthdate ? \Carbon\Carbon::parse($employee->empBirthdate)->format('Y-m-d') : ''); ?>">
+
                                 </div>
                                 <div class="col">
                                     <h5>Civil Status</h5>
@@ -287,9 +293,14 @@
                                 </div>
                                 <div class="col">
                                     <h5>Birh Date of Spouse</h5>
-                                    <span class="profile-text" id="spouseBdateText"><?php echo e($employee->empSpouseBdate ? \Carbon\Carbon::createFromFormat('d/m/Y', $employee->empSpouseBdate)->format('F d, Y') : ''); ?></span>
+                                    <span class="profile-text" id="spouseBdateText">
+                                        <?php echo e($employee->empSpouseBdate ? \Carbon\Carbon::parse($employee->empSpouseBdate)->format('F d, Y') : ''); ?>
+
+                                    </span>
+
                                     <input type="date" class="form-control profile-input d-none" id="spouseBdateInput" name="empSpouseBdate"
-                                        value="<?php echo e($employee->empSpouseBdate ? \Carbon\Carbon::createFromFormat('d/m/Y', $employee->empSpouseBdate)->format('Y-m-d') : ''); ?>">
+                                        value="<?php echo e($employee->empSpouseBdate ? \Carbon\Carbon::parse($employee->empSpouseBdate)->format('Y-m-d') : ''); ?>">
+
                                 </div>
                             </div>
                             <div class="row">
@@ -303,6 +314,7 @@
                                             <strong>Name:</strong> <?php echo e($child['name'] ?? 'N/A'); ?><br>
                                             <strong>Birthdate:</strong>
                                             <?php echo e($child['birthdate'] ? \Carbon\Carbon::parse($child['birthdate'])->format('F d, Y') : 'N/A'); ?>
+
 
                                         </p>
                                         <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
@@ -321,7 +333,7 @@
                                                 <div class="col">
                                                     <input type="date" class="form-control profile-input"
                                                         name="children[<?php echo e($index); ?>][birthdate]"
-                                                        value="<?php echo e($child['birthdate'] ? \Carbon\Carbon::createFromFormat('d/m/Y', $child['birthdate'])->format('Y-m-d') : ''); ?>">
+                                                        value="<?php echo e($child['birthdate'] ? \Carbon\Carbon::parse($child['birthdate'])->format('Y-m-d') : ''); ?>">
                                                 </div>
                                                 <div class="col-auto">
                                                     <button type="button" class="btn btn-danger remove-child">Remove</button>

@@ -155,26 +155,14 @@ class AdminController extends Controller
             }
 
             $currentUser  = Auth::user();
-            $employee = $currentUser->employee;
-
-            // Handle case where employee record might be missing
-            $fullName = $employee
-                ? trim("{$employee->empPrefix} {$employee->empFname} {$employee->empMname} {$employee->empLname} {$employee->empSuffix}")
-                : 'Unknown Employee';
-
-            $this->logActivity('Import', "User $fullName imported a file successfully.", $currentUser->id);
+       
+            $this->logActivity('Import', "Admin imported users successfully.", $currentUser->id);
 
             return redirect()->back()->with('success', 'Imported a file successfully.');
         } catch (Exception $e) {
             $currentUser  = Auth::user();
-            $employee = $currentUser->employee;
 
-            // Handle case where employee record might be missing
-            $fullName = $employee
-                ? trim("{$employee->empPrefix} {$employee->empFname} {$employee->empMname} {$employee->empLname} {$employee->empSuffix}")
-                : 'Unknown Employee';
-
-            $this->logActivity('Import', "User $fullName imported a file failed.", $currentUser->id);
+            $this->logActivity('Import', "Admin imported users Failed.", $currentUser->id);
             return redirect()->back()->with('error', 'Error importing user data: ' . $e->getMessage());
         }
     }

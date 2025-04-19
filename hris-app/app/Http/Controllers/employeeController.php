@@ -20,6 +20,21 @@ class EmployeeController extends Controller
 {
     use LogsActivity;
 
+    private function parseDate($date)
+    {
+        try {
+            // Try parsing as d/m/Y or d-m-Y
+            return \Carbon\Carbon::createFromFormat('d/m/Y', $date)->format('Y-m-d');
+        } catch (\Exception $e1) {
+            try {
+                return \Carbon\Carbon::createFromFormat('d-m-Y', $date)->format('Y-m-d');
+            } catch (\Exception $e2) {
+                return null; // or throw exception if you want to stop the import
+            }
+        }
+    }
+
+
     public function store(Request $request)
     {
         try {
@@ -42,6 +57,15 @@ class EmployeeController extends Controller
                 'empEmergencyContactName' => 'nullable|string|max:100',
                 'empEmergencyContactAddress' => 'nullable|string|max:255',
             ]);
+
+            if ($request->has('empBirthdate')) {
+                $parsed = $this->parseDate($request->input('empBirthdate'));
+                if ($parsed) {
+                    $request->merge(['empBirthdate' => $parsed]);
+                } else {
+                    return redirect()->back()->withInput()->with('error', 'Invalid birthdate format. Please use MM/DD/YYYY or DD/MM/YYYY.');
+                }
+            }
 
 
             // Handle file upload
@@ -132,6 +156,8 @@ class EmployeeController extends Controller
         }
     }
 
+
+
     public function importEmp(Request $request)
     {
         try {
@@ -183,7 +209,7 @@ class EmployeeController extends Controller
                         'empLname' => $empLname,
                         'empSuffix' => $empSuffix,
                         'empGender' => $empGender,
-                        'empBirthdate' => $empBirthdate,
+                        'empBirthdate' => $this->parseDate($empBirthdate),
                         'address' => $address,
                         'province' => $province,
                         'city' => $city,
@@ -301,11 +327,17 @@ class EmployeeController extends Controller
             $employees = $query->paginate(10);
             $positions = Position::all();
 
+            $employeeToEdit = null;
+            if ($request->has('edit')) {
+                $employeeToEdit = Employee::find($request->edit);
+            }
+
             return view('pages.hr.employee_management', [
                 'employees' => $employees,
                 'positions' => $positions,
                 'departments' => $departments,
                 'offices' => $offices,
+                'employee' => $employeeToEdit,
             ]);
         } catch (Exception $e) {
             // Log the error
@@ -370,7 +402,7 @@ class EmployeeController extends Controller
                 'empEmergencyContactAddress' => 'nullable|string|max:255',
                 'empEmergencyContactNo' => 'nullable|string|max:15',
                 'empEmergencyContactName' => 'nullable|string|max:100',
-                
+
             ]);
 
             unset($validated['photo']);

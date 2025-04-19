@@ -53,12 +53,12 @@
                                 </div>
                                 <div class="col">
                                     <h5>Date Hired</h5>
-                                    <span class="profile-text" id="empDateHiredText">{{ $employee->empDateHired ?? '' }}</span>
+                                    <span class="profile-text" id="empDateHiredText">{{ $employee->empDateHired ? \Carbon\Carbon::parse($employee->empDateHired)->format('F d, Y') : '' }}</span>
                                     <input type="text" class="form-control profile-input d-none" id="empDateHiredInput" name="empDateHired" value="{{ $employee->empDateHired ?? 'Unknown' }}" readonly>
                                 </div>
                                 <div class="col">
                                     <h5>Date Resigned</h5>
-                                    <span class="profile-text" id="empDateResignedText">{{ $employee->empDateResigned ?? '' }}</span>
+                                    <span class="profile-text" id="empDateResignedText">{{ $employee->empDateResigned ? \Carbon\Carbon::parse($employee->empDateResigned)->format('F d, Y') : ''  }}</span>
                                     <input type="text" class="form-control profile-input d-none" id="empDateResignedInput" name="empDateResigned" value="{{ $employee->empDateResigned ?? 'Unknown' }}" readonly>
                                 </div>
                             </div>
@@ -126,8 +126,14 @@
                                 </div>
                                 <div class="col">
                                     <h5>Birthday</h5>
-                                    <span class="profile-text" id="birthdayText">{{ $employee->empBirthdate ? \Carbon\Carbon::createFromFormat('d/m/Y', $employee->empBirthdate)->format('F d, Y') : '' }}</span>
-                                    <input type="date" class="form-control profile-input d-none" id="birthdayInput" name="empBdate" value="{{ $employee->empBirthdate ? \Carbon\Carbon::createFromFormat('d/m/Y', $employee->empBirthdate)->format('Y-m-d') : '' }}">
+
+                                    <span class="profile-text" id="birthdayText">
+                                        {{ $employee->empBirthdate ? \Carbon\Carbon::parse($employee->empBirthdate)->format('F d, Y') : '' }}
+                                    </span>
+
+                                    <input type="date" class="form-control profile-input d-none" id="birthdayInput" name="empBdate"
+                                    value="{{ $employee->empBirthdate ? \Carbon\Carbon::parse($employee->empBirthdate)->format('Y-m-d') : '' }}">
+
                                 </div>
                                 <div class="col">
                                     <h5>Civil Status</h5>
@@ -229,8 +235,13 @@
                                 </div>
                                 <div class="col">
                                     <h5>Birh Date of Spouse</h5>
-                                    <span class="profile-text" id="spouseBdateText">{{ $employee->empSpouseBdate ? \Carbon\Carbon::createFromFormat('d/m/Y', $employee->empSpouseBdate)->format('F d, Y') : '' }}</span>
-                                    <input type="date" class="form-control profile-input d-none" id="spouseBdateInput" name="empSpouseBdate" value="{{ $employee->empSpouseBdate ? \Carbon\Carbon::createFromFormat('d/m/Y', $employee->empSpouseBdate)->format('Y-m-d') : '' }}">
+                                    <span class="profile-text" id="spouseBdateText">
+                                        {{ $employee->empSpouseBdate ? \Carbon\Carbon::parse($employee->empSpouseBdate)->format('F d, Y') : '' }}
+                                    </span>
+
+                                    <input type="date" class="form-control profile-input d-none" id="spouseBdateInput" name="empSpouseBdate"
+                                        value="{{  $employee->empSpouseBdate ? \Carbon\Carbon::parse($employee->empSpouseBdate)->format('Y-m-d') : '' }}">
+
                                 </div>
                             </div>
                             <div class="row">
@@ -244,6 +255,7 @@
                                             <strong>Name:</strong> {{ $child['name'] ?? 'N/A' }}<br>
                                             <strong>Birthdate:</strong>
                                             {{ $child['birthdate'] ? \Carbon\Carbon::parse($child['birthdate'])->format('F d, Y') : 'N/A' }}
+
                                         </p>
                                         @empty
                                         <p>No children information provided.</p>
@@ -259,7 +271,9 @@
                                                     <input type="text" class="form-control profile-input" name="children[{{ $index }}][name]" placeholder="Child's Name" value="{{ $child['name'] ?? '' }}">
                                                 </div>
                                                 <div class="col">
-                                                    <input type="date" class="form-control profile-input" name="children[{{ $index }}][birthdate]" value="{{ $child['birthdate'] ?? '' }}">
+                                                    <input type="date" class="form-control profile-input"
+                                                        name="children[{{ $index }}][birthdate]"
+                                                        value="{{ $child['birthdate'] ? \Carbon\Carbon::parse($child['birthdate'])->format('Y-m-d') : '' }}">
                                                 </div>
                                                 <div class="col-auto">
                                                     <button type="button" class="btn btn-danger remove-child">Remove</button>
