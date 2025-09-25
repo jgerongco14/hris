@@ -1,1 +1,0 @@
-components.navbar<?php /**PATH C:\Projects\hris\hris-app\storage\framework\views/e93811b79daa642e556e61322a663db3.blade.php ENDPATH**/ ?>

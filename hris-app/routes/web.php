@@ -16,11 +16,10 @@ use App\Http\Controllers\OfficeController;
 use App\Http\Controllers\ReportsController;
 use App\Http\Controllers\TrainingsController;
 use App\Http\Controllers\FinanceController;
+use App\Http\Controllers\TestSessionController;
 
-Route::group(['middleware' => ['prevent-back-history']], function () {
-    // Your routes that should be protected from back history
-
-
+// Public routes with guest middleware (redirect if already authenticated)
+Route::middleware(['guest'])->group(function () {
     Route::get('/', function () {
         return redirect()->route('login');
     });
@@ -32,34 +31,39 @@ Route::group(['middleware' => ['prevent-back-history']], function () {
     // ✅ Login form submission
     Route::post('/login', [AccountController::class, 'defaultlogin'])->name('defaultlogin');
 
-    // Google login
-    Route::controller(AccountController::class)->group(function () {
-        Route::get('auth/google', 'googleLogin')->name('auth.google');
-        Route::get('auth/google-callback', 'googleAuth')->name('auth.google-callback');
-    });
-
-    // Change Password when you are currently online
-    Route::get('/change-password', [AccountController::class, 'showChangeForm'])->name('password.change.form');
-    Route::post('/change-password', [AccountController::class, 'updatePassword'])->name('password.change.update');
-    // Change Password when you are offline
+    // Password reset routes (should be public)
     Route::get('forgot-password', [AccountController::class, 'showLinkRequestForm'])->name('password.request');
     Route::post('forgot-password', [AccountController::class, 'sendResetLinkEmail'])->name('password.email');
     Route::get('reset-password/{token}', [AccountController::class, 'showResetForm'])->name('password.reset');
     Route::post('reset-password', [AccountController::class, 'reset'])->name('password.update');
+});
+
+// Google login routes (don't apply guest middleware to callback)
+Route::controller(AccountController::class)->group(function () {
+    Route::get('auth/google', 'googleLogin')->name('auth.google')->middleware('guest');
+    Route::get('auth/google-callback', 'googleAuth')->name('auth.google-callback');
+});
+
+// Test session route (for debugging)
+Route::get('/test-session', [TestSessionController::class, 'testSession'])->name('test.session');
 
 
+// Authenticated routes with prevent-back-history middleware
+Route::middleware(['auth', 'prevent-back-history'])->group(function () {
+    // Change Password when you are currently online
+    Route::get('/change-password', [AccountController::class, 'showChangeForm'])->name('password.change.form');
+    Route::post('/change-password', [AccountController::class, 'updatePassword'])->name('password.change.update');
+    
     Route::get('/logout', [AccountController::class, 'logout'])->name('logout');
 
-
-    Route::middleware(['auth'])->group(function () {
-        // Admin
-        // User Management
-        Route::get('/admin/user_management', [AdminController::class, 'showUserManagement'])->name('user_management');
-        Route::post('/admin/user_management/import', [AdminController::class, 'importUserData'])->name('user.store');
-        Route::post('/admin/user_management/create', [AdminController::class, 'createUser'])->name('user.create');
-        Route::get('/admin/user_management/{id}', [AdminController::class, 'editUser'])->name('user.edit');
-        Route::put('/admin/user_management/{id}', [AdminController::class, 'updateUser'])->name('user.update');
-        Route::delete('/admin/user_management/{id}', [AdminController::class, 'deleteUser'])->name('user.delete');
+    // Admin
+    // User Management
+    Route::get('/admin/user_management', [AdminController::class, 'showUserManagement'])->name('user_management');
+    Route::post('/admin/user_management/import', [AdminController::class, 'importUserData'])->name('user.store');
+    Route::post('/admin/user_management/create', [AdminController::class, 'createUser'])->name('user.create');
+    Route::get('/admin/user_management/{id}', [AdminController::class, 'editUser'])->name('user.edit');
+    Route::put('/admin/user_management/{id}', [AdminController::class, 'updateUser'])->name('user.update');
+    Route::delete('/admin/user_management/{id}', [AdminController::class, 'deleteUser'])->name('user.delete');
 
 
         // Position Management
@@ -196,6 +200,4 @@ Route::group(['middleware' => ['prevent-back-history']], function () {
             Route::get('/', [FinanceController::class, 'displayEmployees'])->name('finance');
             Route::put('/finance/rvm/update/{id}', [FinanceController::class, 'updateRvm'])->name('finance.updateRvm');
         });
-
-    });
 });
