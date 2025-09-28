@@ -195,12 +195,24 @@ class AdminController extends Controller
                 return redirect()->back()->with('error', 'All fields are required.');
             }
 
-            // Check if user already exists
-            $existingUser = User::where('email', $user->email)->first();
-            if ($existingUser && $existingUser->id !== $id) {
+            // Check if email already exists (excluding current user)
+            $existingUser = User::where('email', $user->email)
+                              ->where('id', '!=', (int)$id)
+                              ->first();
+            if ($existingUser) {
                 return redirect()
                     ->back()
                     ->with('error', 'User with email ' . $user->email . ' already exists.');
+            }
+
+            // Check if empID already exists (excluding current user)
+            $existingEmpID = User::where('empID', $user->empID)
+                               ->where('id', '!=', (int)$id)
+                               ->first();
+            if ($existingEmpID) {
+                return redirect()
+                    ->back()
+                    ->with('error', 'User with Employee ID ' . $user->empID . ' already exists.');
             }
 
             // Update Users
