@@ -3,19 +3,34 @@ use Illuminate\Support\Str;
 $employee = Auth::user()->employee;
 $photo = $employee->photo ?? null;
 $isExternal = $photo && Str::startsWith($photo, ['http://', 'https://']);
-$defaultPhoto = asset('images/default-avatar.png');
+
+// Build image URL with fallback handling
+$imageUrl = null;
+if ($photo) {
+    if ($isExternal) {
+        $imageUrl = $photo;
+    } else {
+        // For local files, use storage link
+        $imageUrl = asset('storage/employee_photos/' . $photo);
+    }
+} else {
+    // Use a placeholder service for default avatar
+    $imageUrl = 'https://ui-avatars.com/api/?name=' . urlencode(($employee ? trim($employee->empFname . ' ' . $employee->empLname) : 'User')) . '&size=150&background=6c757d&color=ffffff';
+}
+
 $assignments = $employee ? $employee->assignments()->with('position')->get()->sortByDesc('assignDate') : collect();
 $latestAssignment = $assignments->first();
 @endphp
 
 <!-- Profile Display Card -->
 <div class="card d-flex flex-row align-items-center p-4 mx-3 bg-light my-3">
-    <img src="{{ $photo ? ($isExternal ? $photo : asset('storage/employee_photos/' . $photo)) : $defaultPhoto }}"
+    <img src="{{ $imageUrl }}"
         alt="User Avatar"
         width="150"
         height="150"
         class="rounded me-4"
-        style="object-fit: cover; background-color: #e0e0e0;">
+        style="object-fit: cover; background-color: #e0e0e0;"
+        onerror="this.src='https://ui-avatars.com/api/?name=User&size=150&background=6c757d&color=ffffff'">
 
     <div>
         @if($employee)

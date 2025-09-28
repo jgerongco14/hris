@@ -150,13 +150,34 @@ class AccountController extends Controller
             logger()->info('Logged in via Google:', ['user_id' => $user->id, 'isFirstGoogleLogin' => $isFirstGoogleLogin]);
 
             $photoFilename = null;
+            $shouldDownloadPhoto = false;
+
+            // Check if we need to download the Google avatar
             if (!empty($googleUser->avatar)) {
-                try {
-                    $imageContents = Http::get($googleUser->avatar)->body();
-                    $photoFilename = uniqid('google_', true) . '.jpg';
-                    Storage::disk('public')->put("employee_photos/{$photoFilename}", $imageContents);
-                } catch (\Exception $e) {
-                    logger()->error('Failed to download Google avatar: ' . $e->getMessage());
+                if ($isFirstGoogleLogin) {
+                    // For first login, check if user already has a photo
+                    $existingEmployee = Employee::where('user_id', $user->id)
+                        ->orWhere('empID', $user->empID)
+                        ->first();
+                    
+                    $shouldDownloadPhoto = !$existingEmployee || empty($existingEmployee->photo);
+                } else {
+                    // For subsequent logins, check if current employee has no photo
+                    $currentEmployee = $user->employee;
+                    $shouldDownloadPhoto = $currentEmployee && empty($currentEmployee->photo);
+                }
+
+                if ($shouldDownloadPhoto) {
+                    try {
+                        $imageContents = Http::get($googleUser->avatar)->body();
+                        $photoFilename = uniqid('google_', true) . '.jpg';
+                        Storage::disk('public')->put("employee_photos/{$photoFilename}", $imageContents);
+                        logger()->info('Downloaded Google avatar:', ['filename' => $photoFilename]);
+                    } catch (\Exception $e) {
+                        logger()->error('Failed to download Google avatar: ' . $e->getMessage());
+                    }
+                } else {
+                    logger()->info('Skipped downloading Google avatar - user already has a profile photo');
                 }
             }
 
@@ -191,7 +212,8 @@ class AccountController extends Controller
             $currentUser = Auth::user();
             $employee = $currentUser->employee;
 
-            if (!empty($photoFilename) && $employee) {
+            // For non-first-time logins, update photo only if employee doesn't have one already and we downloaded a new one
+            if (!$isFirstGoogleLogin && !empty($photoFilename) && $employee && empty($employee->photo)) {
                 $employee->update(['photo' => $photoFilename]);
             }
 
