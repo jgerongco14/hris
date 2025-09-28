@@ -359,6 +359,7 @@
                             <td class="align-middle">
                                 <?php $__empty_1 = true; $__currentLoopData = $employee->assignments; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $assignment): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
                                 <div>
+                                    <?php if($assignment->position): ?>
                                     <strong><?php echo e($assignment->position->positionName); ?></strong><br>
                                     <small class="text-muted">
                                         <?php echo e($assignment->empAssAppointedDate); ?>
@@ -367,6 +368,9 @@
                                         <?php echo e($assignment->empAssEndDate ?? 'Present'); ?>
 
                                     </small>
+                                    <?php else: ?>
+                                    <span class="text-muted">Department/Office Assignment Only</span>
+                                    <?php endif; ?>
                                 </div>
                                 <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
                                 <span class="text-muted">Unassigned</span>

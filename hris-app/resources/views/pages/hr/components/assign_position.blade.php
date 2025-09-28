@@ -52,7 +52,7 @@
                                 @foreach($assignedPositions as $index => $position)
                                 <tr>
                                     <td>{{ $index + 1 }}</td>
-                                    <td>{{ $position->position->positionName }}</td>
+                                    <td>{{ $position->position ? $position->position->positionName : 'Department/Office Only' }}</td>
                                     <td>{{ $position->empAssAppointedDate }}</td>
                                     <td>{{ $position->empAssEndDate ?? 'N/A' }}</td>
                                     <td>
@@ -104,7 +104,7 @@
                             </div>
 
                             <div class="col mb-3">
-                                <label for="empAssEndDate" class="form-label">End Date</label>
+                                <label for="empAssEndDate" class="form-label">End Date <small class="text-muted">(Optional)</small></label>
                                 <input type="date" class="form-control" id="empAssEndDate" name="positions[0][empAssEndDate]">
                             </div>
 
@@ -237,7 +237,7 @@
         const endDateWrapper = document.createElement('div');
         endDateWrapper.classList.add('col', 'mb-3');
         endDateWrapper.innerHTML = `
-        <label class="form-label">End Date</label>
+        <label class="form-label">End Date <small class="text-muted">(Optional)</small></label>
         <input type="date" class="form-control" name="positions[${index}][empAssEndDate]">
     `;
 

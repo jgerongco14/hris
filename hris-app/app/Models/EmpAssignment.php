@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class EmpAssignment extends Model
 {
-    protected $table = 'empassignments';
+    protected $table = 'empAssignments'; // Fixed table name to match migration
     protected $primaryKey = 'id';
 
     protected $fillable = [

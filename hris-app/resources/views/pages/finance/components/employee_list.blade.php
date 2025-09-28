@@ -69,12 +69,21 @@
                     <td class="align-middle">
                         @forelse ($employee->assignments as $assignment)
                         <div>
-                            <strong>{{ $assignment->position->positionName }}</strong><br>
-                            <small class="text-muted">
-                                {{ $assignment->empAssAppointedDate }}
-                                to
-                                {{ $assignment->empAssEndDate ?? 'Present' }}
-                            </small>
+                            @if($assignment->position)
+                                <strong>{{ $assignment->position->positionName }}</strong><br>
+                                <small class="text-muted">
+                                    {{ $assignment->empAssAppointedDate }}
+                                    to
+                                    {{ $assignment->empAssEndDate ?? 'Present' }}
+                                </small>
+                            @else
+                                <strong>Department/Office Assignment</strong><br>
+                                <small class="text-muted">
+                                    {{ $assignment->empAssAppointedDate }}
+                                    to
+                                    {{ $assignment->empAssEndDate ?? 'Present' }}
+                                </small>
+                            @endif
                         </div>
                         @empty
                         <span class="text-muted">Unassigned</span>

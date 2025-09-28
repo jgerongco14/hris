@@ -52,7 +52,7 @@
                                 <?php $__currentLoopData = $assignedPositions; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $index => $position): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                                 <tr>
                                     <td><?php echo e($index + 1); ?></td>
-                                    <td><?php echo e($position->position->positionName); ?></td>
+                                    <td><?php echo e($position->position ? $position->position->positionName : 'Department/Office Only'); ?></td>
                                     <td><?php echo e($position->empAssAppointedDate); ?></td>
                                     <td><?php echo e($position->empAssEndDate ?? 'N/A'); ?></td>
                                     <td>
@@ -104,7 +104,7 @@
                             </div>
 
                             <div class="col mb-3">
-                                <label for="empAssEndDate" class="form-label">End Date</label>
+                                <label for="empAssEndDate" class="form-label">End Date <small class="text-muted">(Optional)</small></label>
                                 <input type="date" class="form-control" id="empAssEndDate" name="positions[0][empAssEndDate]">
                             </div>
 
@@ -241,7 +241,7 @@
         const endDateWrapper = document.createElement('div');
         endDateWrapper.classList.add('col', 'mb-3');
         endDateWrapper.innerHTML = `
-        <label class="form-label">End Date</label>
+        <label class="form-label">End Date <small class="text-muted">(Optional)</small></label>
         <input type="date" class="form-control" name="positions[${index}][empAssEndDate]">
     `;
 

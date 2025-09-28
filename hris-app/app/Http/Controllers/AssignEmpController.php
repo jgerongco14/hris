@@ -25,7 +25,7 @@ class AssignEmpController extends Controller
             $request->validate([
                 'empID' => 'required|exists:employees,empID',
                 'positions' => 'nullable|array',
-                'positions.*.empAssID' => 'nullable|exists:emp_assignments,id',
+                'positions.*.empAssID' => 'nullable|exists:empAssignments,id',
                 'positions.*.positionID' => 'nullable|exists:positions,positionID',
                 'positions.*.empAssAppointedDate' => 'nullable|date',
                 'positions.*.empAssEndDate' => 'nullable|date|after_or_equal:positions.*.empAssAppointedDate',
@@ -42,58 +42,23 @@ class AssignEmpController extends Controller
             $officeCode = $request->input('officeID');
             $empHead = $request->input('makeHead') ? true : false;
 
-            $existingAssignment = EmpAssignment::where('empID', $empID)
-                ->where(function ($query) {
-                    $query->whereNotNull('departmentCode')
-                        ->orWhereNotNull('officeCode');
-                })
-                ->latest('created_at')
-                ->first();
+            $createdAssignments = 0;
+            $updatedAssignments = 0;
 
-            // If an existing department/office assignment is found, update it
-            if ($existingAssignment) {
-                $existingAssignment->update([
-                    'departmentCode' => $departmentCode,
-                    'programCode'    => $programCode,
-                    'officeCode'     => $officeCode,
-                    'empHead'        => $empHead,
-                ]);
-                // Update all related positions if needed
-                foreach ($positions as $position) {
-                    $empAssID = $position['empAssID'] ?? null;
-                    if ($empAssID) {
-                        EmpAssignment::where('id', $empAssID)->update([
-                            'officeCode'     => $officeCode,
-                            'departmentCode' => $departmentCode,
-                            'programCode'    => $programCode,
-                            'empHead'        => $empHead,
-                        ]);
-                    }
-                }
-            }
-
-            // ✅ Optional: Check for duplicate positionIDs in the request
-            $positionIDs = collect($positions)
-                ->pluck('positionID')
-                ->filter()
-                ->toArray();
-
-            if (count($positionIDs) !== count(array_unique($positionIDs))) {
-                return redirect()->back()->with('error', 'Duplicate positions detected in the submission.');
-            }
-
-
-            // ✅ Loop through all submitted positions
+            // Process position assignments
             foreach ($positions as $position) {
                 $positionID = $position['positionID'] ?? null;
                 $appointedDate = $position['empAssAppointedDate'] ?? null;
                 $endDate = $position['empAssEndDate'] ?? null;
-                if (!$positionID || !$appointedDate || !$endDate) {
-                    continue; // Skip if positionID is not provided
-                }
                 $empAssID = $position['empAssID'] ?? null;
+                
+                // Skip if essential fields are missing
+                if (!$positionID || !$appointedDate) {
+                    continue;
+                }
 
                 if ($empAssID) {
+                    // Update existing assignment
                     $existing = EmpAssignment::find($empAssID);
                     if ($existing) {
                         $existing->update([
@@ -105,11 +70,12 @@ class AssignEmpController extends Controller
                             'programCode' => $programCode,
                             'empHead' => $empHead,
                         ]);
+                        $updatedAssignments++;
                         continue;
                     }
                 }
 
-                // Generate assignment number
+                // Create new assignment
                 $empAssNo = $positionID . '-' . $empID . '-' . date('Y', strtotime($appointedDate));
 
                 EmpAssignment::create([
@@ -123,30 +89,71 @@ class AssignEmpController extends Controller
                     'programCode' => $programCode,
                     'empHead' => $empHead,
                 ]);
+                $createdAssignments++;
             }
 
+            // If no positions were processed but department/office info was provided,
+            // create a department/office assignment without a position
+            if ($createdAssignments == 0 && $updatedAssignments == 0 && ($departmentCode || $officeCode)) {
+                // Check if there's an existing department/office assignment without position
+                $existingDeptOfficeAssignment = EmpAssignment::where('empID', $empID)
+                    ->whereNull('positionID')
+                    ->where(function ($query) {
+                        $query->whereNotNull('departmentCode')
+                            ->orWhereNotNull('officeCode');
+                    })
+                    ->first();
+
+                if ($existingDeptOfficeAssignment) {
+                    // Update existing department/office assignment
+                    $existingDeptOfficeAssignment->update([
+                        'departmentCode' => $departmentCode,
+                        'programCode' => $programCode,
+                        'officeCode' => $officeCode,
+                        'empHead' => $empHead,
+                    ]);
+                    $updatedAssignments++;
+                } else {
+                    // Create new department/office assignment without position
+                    $empAssNo = 'DEPT-' . $empID . '-' . date('Y');
+                    EmpAssignment::create([
+                        'empAssNo' => $empAssNo,
+                        'empID' => $empID,
+                        'positionID' => null,
+                        'empAssAppointedDate' => now()->format('Y-m-d'),
+                        'empAssEndDate' => null,
+                        'officeCode' => $officeCode,
+                        'departmentCode' => $departmentCode,
+                        'programCode' => $programCode,
+                        'empHead' => $empHead,
+                    ]);
+                    $createdAssignments++;
+                }
+            }
+
+            // Log activity
             $currentUser = Auth::user();
             $employee = $currentUser->employee;
-
-            $positionName = Position::find($positions[0]['positionID'] ?? null)->positionName ?? 'N/A';
-            $departmentName = Departments::find($departmentCode)->departmentName ?? 'N/A';
-            $programName = Programs::find($programCode)->programName ?? 'N/A';
-            $officeName = Offices::find($officeCode)->officeName ?? 'N/A';
-
-
             $fullName = $employee
                 ? trim("{$employee->empPrefix} {$employee->empFname} {$employee->empMname} {$employee->empLname} {$employee->empSuffix}")
                 : 'Unknown Employee';
 
-            $this->logActivity('Assign', "User $fullName assigned $empID to $positionName $departmentName $programName $officeName successfully.", $currentUser->id);
+            $this->logActivity('Assign', "User $fullName processed assignments for employee $empID (Created: $createdAssignments, Updated: $updatedAssignments).", $currentUser->id);
 
+            $message = "Assignment completed successfully. ";
+            if ($createdAssignments > 0) $message .= "Created: $createdAssignments. ";
+            if ($updatedAssignments > 0) $message .= "Updated: $updatedAssignments.";
 
-            return redirect()->back()->with('success', 'Position assignment(s) saved successfully.');
+            return redirect()->back()->with('success', $message);
+
         } catch (\Exception $e) {
+            $currentUser = Auth::user();
+            $employee = $currentUser->employee ?? null;
             $fullName = $employee
                 ? trim("{$employee->empPrefix} {$employee->empFname} {$employee->empMname} {$employee->empLname} {$employee->empSuffix}")
                 : 'Unknown Employee';
-            $this->logActivity('Error', "User $fullName an error occurred while assigning position: " . $e->getMessage(), Auth::id());
+            
+            $this->logActivity('Error', "User $fullName encountered an error while assigning position: " . $e->getMessage(), $currentUser->id);
             return redirect()->back()->with('error', 'Error occurred while assigning position: ' . $e->getMessage());
         }
     }
@@ -193,7 +200,11 @@ class AssignEmpController extends Controller
                 'empAssEndDate' => null,
             ]);
 
-            $positionName = Position::find($assignment->positionID)->positionName ?? 'N/A';
+            $positionName = 'N/A';
+            if ($assignment->positionID) {
+                $position = Position::find($assignment->positionID);
+                $positionName = $position ? $position->positionName : 'N/A';
+            }
             $currentUser = Auth::user();
             $employee = $currentUser->employee;
 
