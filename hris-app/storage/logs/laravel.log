@@ -2689,3 +2689,11 @@
 [2025-10-01 14:36:52] local.INFO: Skipped downloading Google avatar - user already has a profile photo  
 [2025-10-01 14:41:00] local.INFO: Logged in via Google: {"user_id":1,"isFirstGoogleLogin":false} 
 [2025-10-01 14:41:00] local.INFO: Skipped downloading Google avatar - user already has a profile photo  
+[2025-10-01 14:48:42] local.ERROR: Login Error: This password does not use the Bcrypt algorithm.  
+[2025-10-01 14:48:46] local.ERROR: Login Error: This password does not use the Bcrypt algorithm.  
+[2025-10-01 14:49:04] local.ERROR: Login Error: This password does not use the Bcrypt algorithm.  
+[2025-10-01 14:49:33] local.ERROR: Google Login Error: Attempt to read property "google_id" on null  
+[2025-10-01 14:50:10] local.INFO: Logged in via Google: {"user_id":29,"isFirstGoogleLogin":true} 
+[2025-10-01 14:50:12] local.INFO: Downloaded Google avatar: {"filename":"google_68dd3fa3cc70a7.57901934.jpg"} 
+[2025-10-01 14:51:19] local.INFO: Logged in via Google: {"user_id":29,"isFirstGoogleLogin":false} 
+[2025-10-01 14:51:19] local.INFO: Skipped downloading Google avatar - user already has a profile photo  
