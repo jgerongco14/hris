@@ -2679,3 +2679,13 @@
 #70 C:\\Projects\\hris\\hris-app\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\resources\\server.php(23): require_once('C:\\\\Projects\\\\hri...')
 #71 {main}
 "} 
+[2025-10-01 14:10:18] local.ERROR: Google Login Error:   
+[2025-10-01 14:10:30] local.INFO: Logged in via Google: {"user_id":1,"isFirstGoogleLogin":false} 
+[2025-10-01 14:10:30] local.INFO: Skipped downloading Google avatar - user already has a profile photo  
+[2025-10-01 14:30:56] local.WARNING: Login failed {"identifier":"0011","stored_password_length":60,"input_password":"temppass","stored_password_preview":"$2y$12$v7r..."} 
+[2025-10-01 14:36:33] local.WARNING: Login failed {"identifier":"0011","stored_password_length":60,"input_password":"temppass","stored_password_preview":"$2y$12$v7r..."} 
+[2025-10-01 14:36:44] local.ERROR: Google Login Error:   
+[2025-10-01 14:36:52] local.INFO: Logged in via Google: {"user_id":1,"isFirstGoogleLogin":false} 
+[2025-10-01 14:36:52] local.INFO: Skipped downloading Google avatar - user already has a profile photo  
+[2025-10-01 14:41:00] local.INFO: Logged in via Google: {"user_id":1,"isFirstGoogleLogin":false} 
+[2025-10-01 14:41:00] local.INFO: Skipped downloading Google avatar - user already has a profile photo  

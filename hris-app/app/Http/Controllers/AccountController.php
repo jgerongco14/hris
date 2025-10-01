@@ -49,22 +49,34 @@ class AccountController extends Controller
             }
 
             $storedPassword = $user->password;
-            $isHashed = strlen($storedPassword) === 60 && str_starts_with($storedPassword, '$2y$');
-
             $passwordValid = false;
+            $wasPlainText = false;
 
-            if ($isHashed) {
-                $passwordValid = Hash::check($password, $storedPassword);
+            // Try hashed password check first (this works for all bcrypt variants)
+            if (Hash::check($password, $storedPassword)) {
+                $passwordValid = true;
             } else {
-                $passwordValid = $password === $storedPassword;
+                // If hash check fails, try plain text comparison
+                if ($password === $storedPassword) {
+                    $passwordValid = true;
+                    $wasPlainText = true;
+                }
             }
 
             if (!$passwordValid) {
+                // Add debugging info to help diagnose issues
+                logger()->warning('Login failed', [
+                    'identifier' => $identifier,
+                    'stored_password_length' => strlen($storedPassword),
+                    'input_password' => $password,
+                    'stored_password_preview' => substr($storedPassword, 0, 10) . '...'
+                ]);
+
                 return redirect()->route('login')->with('error', 'Invalid credentials. Please go to your HR for assistance.');
             }
 
-            // Optional: upgrade to bcrypt if it was plain text
-            if (!$isHashed) {
+            // Upgrade plain text password to hashed for security
+            if ($wasPlainText) {
                 $user->password = Hash::make($password);
                 $user->save();
                 logger()->info('Upgraded plain-text password to hashed for user.', ['user_id' => $user->id]);
@@ -159,7 +171,7 @@ class AccountController extends Controller
                     $existingEmployee = Employee::where('user_id', $user->id)
                         ->orWhere('empID', $user->empID)
                         ->first();
-                    
+
                     $shouldDownloadPhoto = !$existingEmployee || empty($existingEmployee->photo);
                 } else {
                     // For subsequent logins, check if current employee has no photo

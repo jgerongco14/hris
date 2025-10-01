@@ -38,38 +38,39 @@ class AdminController extends Controller
         return view('pages.admin.user_management', compact('users'));
     }
 
-    public function createUser()
+    public function createUser(Request $request)
     {
         try {
-
-            $user = new User();
-            $user->empID = request('empID');
-            $user->email = request('email');
-            $user->role = request('role');
-
-            // Validate the data before saving
-            if (empty($user->empID) || empty($user->email) || empty($user->role)) {
+            // Validate the data BEFORE creating anything
+            if (empty($request->empID) || empty($request->email) || empty($request->role)) {
                 return redirect()->back()->with('error', 'All fields are required.');
             }
 
-            // Check if user already exists
-            $existingUser = User::where('email', $user->email)->first();
-            $existingEmpID = User::where('empID', $user->empID)->first();
+            // Check if user already exists BEFORE creating
+            $existingUser = User::where('email', $request->email)->first();
+            $existingEmpID = User::where('empID', $request->empID)->first();
 
             if ($existingUser) {
                 return redirect()
                     ->back()
-                    ->with('error', 'User with email ' . $user->email . ' already exists.');
-            } else if ($existingEmpID) {
-                return redirect()
-                    ->back()
-                    ->with('error', 'User with Employee ID ' . $user->empID . ' already exists.');
+                    ->with('error', 'User with email ' . $request->email . ' already exists.');
             }
 
-            // Create Users
-            $user->save();
+            if ($existingEmpID) {
+                return redirect()
+                    ->back()
+                    ->with('error', 'User with Employee ID ' . $request->empID . ' already exists.');
+            }
 
-            $currentUser  = Auth::user();
+            // NOW create the user with HASHED password (consistent with import)
+            $user = User::create([
+                'empID' => $request->empID,
+                'email' => $request->email,
+                'role' => $request->role,
+                'password' => Hash::make('temppass'), // FIXED: Now hashed like import
+            ]);
+
+            $currentUser = Auth::user();
             $employee = $currentUser->employee;
 
             // Handle case where employee record might be missing
@@ -81,7 +82,7 @@ class AdminController extends Controller
 
             return redirect()->back()->with('success', 'User created successfully.');
         } catch (Exception $e) {
-            $currentUser  = Auth::user();
+            $currentUser = Auth::user();
             $employee = $currentUser->employee;
 
             // Handle case where employee record might be missing
@@ -89,9 +90,9 @@ class AdminController extends Controller
                 ? trim("{$employee->empPrefix} {$employee->empFname} {$employee->empMname} {$employee->empLname} {$employee->empSuffix}")
                 : 'Unknown Employee';
 
-            $this->logActivity('Create', "User $fullName created user failed.{$e->getMessage()}", $currentUser->id);
+            $this->logActivity('Create', "User $fullName created user failed. {$e->getMessage()}", $currentUser->id);
 
-            return redirect()->back()->with('error', 'Error creating user: ');
+            return redirect()->back()->with('error', 'Error creating user: ' . $e->getMessage());
         }
     }
 
@@ -120,7 +121,7 @@ class AdminController extends Controller
                 $empID = isset($row[0]) ? trim($row[0]) : null;
                 $email = isset($row[1]) && trim($row[1]) !== '' ? trim($row[1]) : null;
                 $role = isset($row[2]) ? trim($row[2]) : 'employee';
-                $password = isset($row[3]) && trim($row[3]) !== '' ? trim($row[3]) : 'password123'; // FIXED
+                $password = isset($row[3]) && trim($row[3]) !== '' ? trim($row[3]) : 'temppass'; // FIXED
 
                 // Skip if empID is missing
                 if (empty($empID)) continue;
@@ -155,7 +156,7 @@ class AdminController extends Controller
             }
 
             $currentUser  = Auth::user();
-       
+
             $this->logActivity('Import', "Admin imported users successfully.", $currentUser->id);
 
             return redirect()->back()->with('success', 'Imported a file successfully.');
@@ -197,8 +198,8 @@ class AdminController extends Controller
 
             // Check if email already exists (excluding current user)
             $existingUser = User::where('email', $user->email)
-                              ->where('id', '!=', (int)$id)
-                              ->first();
+                ->where('id', '!=', (int)$id)
+                ->first();
             if ($existingUser) {
                 return redirect()
                     ->back()
@@ -207,8 +208,8 @@ class AdminController extends Controller
 
             // Check if empID already exists (excluding current user)
             $existingEmpID = User::where('empID', $user->empID)
-                               ->where('id', '!=', (int)$id)
-                               ->first();
+                ->where('id', '!=', (int)$id)
+                ->first();
             if ($existingEmpID) {
                 return redirect()
                     ->back()
